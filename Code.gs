@@ -270,7 +270,7 @@ function cardData_(tok) {
     insta: pick(c.cardInsta), fb: pick(c.cardFb), yt: pick(c.cardYt), review: pick(c.reviewLink),
     services: String(c.cardServices || '').split('\n').map(x => x.trim()).filter(Boolean),
     about: pick(c.cardAbout, c.about), greet: pick(c.cardGreet, 'Dear {name}, thank you for your enquiry. We would love to decorate your {event}.'),
-    upi: c.cardUpi ? pick(b.bupi) : '', since: pick(c.cardSince, '1985'), halls: Array.isArray(c.halls) ? c.halls.filter(h => h && h.name) : [], acc: pick(c.acc, '#d9161c'), gold: pick(c.gold, '#9a7a1c'), photos: []
+    upi: c.cardUpi ? pick(b.bupi) : '', since: pick(c.cardSince, '1985'), halls: Array.isArray(c.halls) ? c.halls.filter(h => h && h.name).map(h => (h.hidePrice || c.cardHallPrices === false) ? Object.assign({}, h, { rent: '', maint: '', power: '' }) : h) : [], acc: pick(c.acc, '#d9161c'), gold: pick(c.gold, '#9a7a1c'), photos: []
   };
   const names = String(c.cardGallery || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 9);
   if (names.length) { const ph = kvRead_(ph_()); names.forEach(n => { if (ph[n]) card.photos.push({ name: n, src: ph[n].raw }); }); }
