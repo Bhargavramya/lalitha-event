@@ -231,7 +231,10 @@ function calSync_(id, d) {
   const paid = (+d.adv || 0) + (d.pays || []).reduce((a, p) => a + (+p.amt || 0), 0);
   let n = 0;
   const items = (d.rows || []).filter(r => !r.opt).map(r => r.sec ? '\n' + String(r.name).toUpperCase() : (++n) + '. ' + r.name + (r.uom ? ' (' + r.uom + ')' : '') + ' × ' + r.qty).join('\n');
-  const desc = [(d.doctype || 'Quotation') + ' ' + (d.no || ''), 'Client: ' + (d.client || '') + (d.phone ? ' · ' + d.phone : ''), d.attn ? 'Contact: ' + d.attn : '', d.guests ? 'Guests: ' + d.guests : '',
+  const vmap = /^https?:\/\//.test(String(d.vmap || '').trim()) ? String(d.vmap).trim() : '';
+  const ll = (vmap.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) || []);
+  const loc = ll[1] ? (d.venue ? d.venue + ' (' + ll[1] + ',' + ll[2] + ')' : ll[1] + ',' + ll[2]) : (d.venue || '');
+  const desc = [(d.doctype || 'Quotation') + ' ' + (d.no || ''), vmap ? '📍 Map: ' + vmap : '', 'Client: ' + (d.client || '') + (d.phone ? ' · ' + d.phone : ''), d.attn ? 'Contact: ' + d.attn : '', d.guests ? 'Guests: ' + d.guests : '',
     d.setup ? 'Setup: ' + d.setup : '', d.team ? 'Team: ' + d.team : '', d.vehicle ? 'Vehicle: ' + d.vehicle : '',
     'Total: ' + inr_(d.total) + ' · Paid: ' + inr_(paid) + ' · Balance: ' + inr_((+d.total || 0) - paid), '', 'Items:' + '\n' + items, d.notes ? '\nNotes: ' + d.notes : ''].filter(x => x !== '').join('\n');
   let start, end, allDay = !d.etime;
@@ -239,12 +242,12 @@ function calSync_(id, d) {
   else start = new Date(y, m - 1, dd);
   if (ev && ev.isAllDayEvent() !== allDay) { ev.deleteEvent(); ev = null; }
   if (!ev) {
-    const opt = { location: d.venue || '', description: desc, guests: guests.join(','), sendInvites: guests.length > 0 };
+    const opt = { location: loc, description: desc, guests: guests.join(','), sendInvites: guests.length > 0 };
     ev = allDay ? cal.createAllDayEvent(title, start, opt) : cal.createEvent(title, start, end, opt);
     ev.addPopupReminder(24 * 60); ev.addPopupReminder(3 * 60);
     P.setProperty(key, ev.getId());
   } else {
-    ev.setTitle(title); ev.setLocation(d.venue || ''); ev.setDescription(desc);
+    ev.setTitle(title); ev.setLocation(loc); ev.setDescription(desc);
     if (allDay) ev.setAllDayDate(start); else ev.setTime(start, end);
   }
   try { const have = ev.getGuestList().map(g => g.getEmail().toLowerCase()); guests.forEach(g => { if (have.indexOf(g) < 0) ev.addGuest(g); }); have.forEach(g => { if (guests.indexOf(g) < 0) ev.removeGuest(g); }); } catch (x) { }
