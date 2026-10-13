@@ -58,6 +58,10 @@ details.ab summary{cursor:pointer;list-style:none;display:flex;justify-content:s
 @media print{#fx,.fxb{display:none!important}}
 main{z-index:1}
 html,body,*{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.fb{text-align:center;padding:22px 18px}.fbh{font-size:46px;animation:fl 3s ease-in-out infinite}.fb h2{margin:6px 0 6px;font-size:24px;color:var(--acc)}.fb p{margin:0 auto 10px;max-width:34ch;color:var(--mut);font-size:14px;line-height:1.5}
+.stars{font-size:30px;letter-spacing:6px;color:#f5b301;margin:6px 0 14px;text-shadow:0 2px 8px #f5b30155;animation:up .6s .3s both}
+.fbb{display:block;padding:14px;border-radius:14px;background:var(--acc);color:#fff;font-weight:800;text-decoration:none;font-size:16px;box-shadow:0 8px 20px #d9161c40}
+.fbw{display:block;margin-top:10px;padding:12px;border-radius:14px;background:#25d366;color:#fff;font-weight:700;text-decoration:none}.mut2{color:var(--mut)}
 </style></head><body class="glass"><i class="bl b1"></i><i class="bl b2"></i>
 <div id="intro"><img class="m" id="im" alt=""><img class="t" id="it" alt="Lalitha Event Decors"></div>
 <main id="m"><p class="err" id="ld">Loading…</p></main>
@@ -72,7 +76,16 @@ const ft=s=>{if(!s)return'';let[h,m]=s.split(':');h=+h;return (h%12||12)+':'+m+(
 const num=p=>String(p||'').replace(/[^\d+]/g,''),wan=p=>{p=num(p).replace(/^\+/,'');return p.length===10?'91'+p:p};
 const inr=v=>{v=String(v||'').trim();return /^\d[\d,]*$/.test(v)?'₹'+Number(v.replace(/,/g,'')).toLocaleString('en-IN'):v};
 const lnk=u=>/^https?:/.test(u)?u:'https://'+u;
-function render(d){const c=d.card||{},e=d.enq,gold=c.style==='royal'||c.style==='dark';if(c.style==='list')c.style='glass';document.body.className=c.style||'glass';$('im').src=gold?G:R;
+const FB=/^fb/i.test(tok)||(window.PREVIEW&&window.PREVIEW.fb);
+function renderFb(d){const c=d.card||{},gold=c.style==='royal'||c.style==='dark';document.body.className=(c.style==='list'?'glass':c.style)||'glass';
+const nm=window.PREVIEW&&window.PREVIEW.name||'';const wmsg=encodeURIComponent('Hello '+(c.name||'Lalitha Event Decors')+', here is my feedback: ');
+$('m').innerHTML=`<div class="g hd"><div><span class="tl"><img class="t" src="${T}" alt="${esc(c.name||'Lalitha Event Decors')}"></span></div></div>
+<div class="g fb"><div class="fbh">🙏</div><h2>Thank you${nm?', '+esc(nm):''}!</h2><p>It was a pleasure decorating your event. Your feedback helps us serve you and other families better.</p>
+<div class="stars">★★★★★</div>${c.review?`<a class="fbb" href="${esc(c.review)}" target="_blank" rel="noopener">⭐ Review us on Google</a>`:'<p class="mut2">Review link not set yet.</p>'}
+${c.wa?`<a class="fbw" href="https://wa.me/${wan(c.wa)}?text=${wmsg}">💬 Send feedback on WhatsApp</a>`:''}</div>
+<div class="bot"><a href="${location.pathname}" style="text-decoration:none">🪪 Our visiting card</a>${c.insta?`<a href="${esc(lnk(c.insta))}" target="_blank" rel="noopener">📸 Instagram</a>`:''}</div>`;
+setTimeout(()=>$('intro').classList.add('done'),Math.max(0,(window.PREVIEW?900:1500)-(Date.now()-t0)))}
+function render(d){if(FB)return renderFb(d);const c=d.card||{},e=d.enq,gold=c.style==='royal'||c.style==='dark';if(c.style==='list')c.style='glass';document.body.className=c.style||'glass';$('im').src=gold?G:R;
 if(c.acc&&!gold)document.documentElement.style.setProperty('--acc',c.acc);
 let h=`<div class="g hd"><div><span class="tl"><img class="t" src="${T}" alt="${esc(c.name||'Lalitha Event Decors')}"></span>${c.owner?`<div class="who"><b>${esc(c.owner)}</b>${c.role?' · '+esc(c.role):''}</div>`:''}</div></div>`;
 if(e){const g=(c.greet||'Dear {name}, thank you for your enquiry.').replace('{name}','<b>'+esc(e.client||'Sir/Madam')+'</b>').replace('{event}',esc((e.event||'event').toLowerCase()));
@@ -122,7 +135,7 @@ const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const name=(h.name||'h
 if(navigator.canShare&&navigator.canShare({files:[file]})&&/Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:h.name})}catch(e){}}
 else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}}
 catch(e){alert('Could not create the file. Please try again.')}btn.disabled=false;btn.textContent=old}
-(window.PREVIEW?Promise.resolve(window.PREVIEW):fetch(API+'?card='+encodeURIComponent(tok)).then(r=>r.json())).then(d=>{if(!d.ok)throw new Error(d.error==='Wrong password'?'old':'x');render(d)}).catch(err=>{$('ld').innerHTML=err&&err.message==='old'?'This card is not set up yet.<br><small>Owner: update Code.gs in your Google Sheet and deploy a new version.</small>':'Could not load the card. Please check your internet and try again.';setTimeout(()=>$('intro').classList.add('done'),1200)});
+(window.PREVIEW?Promise.resolve(window.PREVIEW):fetch(API+'?card='+encodeURIComponent(FB?'':tok)).then(r=>r.json())).then(d=>{if(!d.ok)throw new Error(d.error==='Wrong password'?'old':'x');render(d)}).catch(err=>{$('ld').innerHTML=err&&err.message==='old'?'This card is not set up yet.<br><small>Owner: update Code.gs in your Google Sheet and deploy a new version.</small>':'Could not load the card. Please check your internet and try again.';setTimeout(()=>$('intro').classList.add('done'),1200)});
 (function(){const c=document.createElement('canvas');c.id='fx';c.setAttribute('aria-hidden','true');document.body.prepend(c);const b=document.createElement('i');b.className='fxb';document.body.prepend(b);
 const x=c.getContext('2d');let W,H,D=Math.min(2,window.devicePixelRatio||1),P=[];
 function size(){W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}
