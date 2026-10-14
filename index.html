@@ -646,7 +646,7 @@ body.mobile .tabs button[data-t="est"]{display:none!important}
 <div class="conn"><div><span class="mut">Last synced</span><b id="lastsync">Not yet</b></div><div><span class="mut">Google Sheet</span><b id="sheetname">—</b></div></div>
 <div class="flex" style="margin-top:10px"><button class="pri" onclick="syncNow(1)">⟳ Sync now</button><a id="sheetlink" class="btnlike" target="_blank" hidden>Open Google Sheet ↗</a><a id="sheetdl" class="btnlike" target="_blank" hidden>⬇ Download Sheet (.xlsx)</a><button onclick="pushAll()">Copy all data to another Sheet…</button></div>
 <details style="margin-top:12px"><summary>Connection details (locked)</summary><div class="grid" style="margin-top:8px">
-<label>Web app URL<input id="gurl" readonly placeholder="https://script.google.com/macros/s/…/exec"></label><label>Password<input id="gkey" type="password" readonly placeholder="Same as SECRET in Code.gs"></label></div>
+<label>Web app URL<input id="gurl" readonly placeholder="https://script.google.com/macros/s/…/exec"></label><label hidden>Password<input id="gkey" type="password" readonly></label></div>
 <div class="flex" style="margin-top:8px"><button id="connedit" onclick="connEdit()">🔒 Change connection</button><button id="connsave" class="pri" onclick="connSave()" hidden>Save & connect</button><button id="conncancel" onclick="connLock()" hidden>Cancel</button></div></details>
 <label style="margin-top:12px">Also add bookings to these Gmail calendars (comma separated)<input data-c="calGuests" placeholder="partner@gmail.com, manager@gmail.com"></label><p class="mut" style="margin-top:4px">They get each confirmed booking as a calendar invite, which updates when you change the booking. After changing this list, tap "Add all confirmed now" on the Calendar tab.</p>
 <p class="mut">Everything is stored in your Google Sheet: quotations, items, payments, clients, catalog, packages, photos and settings. This device keeps a copy so the app also works without internet; changes are sent to the Sheet as soon as you are online.</p></div>
@@ -978,7 +978,7 @@ else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.down
 applyCfg();loadCat();pkgUI();stampUI();list();newQ();cfgInit();
 function confirmDel(k){return true}
 const DEFURL='https://script.google.com/macros/s/AKfycbywbMwdA1grg0_tuzdOWm3OzhCPTFywr8htj_vbCl5IWl4P-MzN5yyqRetndiNJXTdK/exec';
-const G={get url(){return (ls.get('lal_g',{}).url||DEFURL).trim()},get key(){return ls.get('lal_g',{}).key||''}};
+const G={get url(){return (ls.get('lal_g',{}).url||DEFURL).trim()},get key(){return ls.get('lal_g',{}).key||'change-this-password'}};
 ['gurl','gkey'].forEach(id=>{$(id).value=ls.get('lal_g',{})[id==='gurl'?'url':'key']||(id==='gurl'?DEFURL:'');});
 connLock();
 function connLock(){['gurl','gkey'].forEach(id=>{$(id).readOnly=true;$(id).value=ls.get('lal_g',{})[id==='gurl'?'url':'key']||(id==='gurl'?DEFURL:'')});$('connedit').hidden=false;$('connsave').hidden=$('conncancel').hidden=true}
@@ -1209,7 +1209,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='4.0';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='4.1';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -1372,7 +1372,7 @@ const [w,c,cp]=a.querySelectorAll('button');w.onclick=ev=>{ev.stopPropagation();
 
 /* ===== simple Settings menu ===== */
 const SETM=[['card','card','Visiting card & team','Your card, contacts, halls, review link'],['biz','home','Business & payment','Name, address, GST, bank & UPI'],['cat','folder','Items & packages','Your catalog and saved packages'],['def','doc','Quotation defaults','Numbering, GST, terms, validity'],['prn','eye','Print layout','How the PDF looks'],['sync','reload','Sync, backup & display','Google Sheets, theme, share app']];
-function syncHealth(){if(!G.url)return{ok:false,msg:'Google Sheets not set up'};if(!G.key)return{ok:false,msg:'Password not entered'};const e=ls.get('lal_syncerr','');if(e)return{ok:false,msg:e};const p=ls.get('lal_pend',[]).length;if(p>0)return{ok:true,warn:true,msg:p+' change'+(p>1?'s':'')+' waiting to sync'};return{ok:true,msg:'Connected ✓'}}
+function syncHealth(){if(!G.url)return{ok:false,msg:'Google Sheets not set up'};const e=ls.get('lal_syncerr','');if(e)return{ok:false,msg:e};const p=ls.get('lal_pend',[]).length;if(p>0)return{ok:true,warn:true,msg:p+' change'+(p>1?'s':'')+' waiting to sync'};return{ok:true,msg:'Connected ✓'}}
 function cardMissing(){const c=C();return [['cardOwner','your name'],['cardPhone','call number'],['reviewLink','Google review link']].filter(([k])=>!String(c[k]||'').trim()).map(x=>x[1])}
 function setHome(){document.querySelectorAll('[data-sp]').forEach(e=>e.hidden=true);$('setback').hidden=true;const h=syncHealth(),miss=cardMissing();
 $('sethome').hidden=false;$('sethome').innerHTML='<h1 class="seth1">Settings</h1>'+(!h.ok?`<button class="setwarn" onclick="stab('sync')"><b>⚠ ${esc(h.msg)}</b><span>Your data and visiting card details only reach customers after you connect. Tap to fix.</span></button>`:'')+'<div class="setlist">'+SETM.map(([k,i,t,sub])=>{let badge='';if(k==='sync')badge=`<em class="${h.ok?(h.warn?'w':'ok'):'bad'}">${esc(h.ok?(h.warn?'Syncing…':'Connected'):'Not connected')}</em>`;if(k==='card'&&miss.length)badge=`<em class="bad">${miss.length} missing</em>`;return `<button class="setrow" onclick="stab('${k}')"><span class="sri">${svgI(i,22)}</span><span class="srt"><b>${t}</b><small>${k==='card'&&miss.length?'Missing: '+esc(miss.join(', ')):sub}</small></span>${badge}<span class="chev">›</span></button>`}).join('')+'</div><p class="ver" style="text-align:center;margin:14px 0 90px">App version <span class="appver">v'+APP_VERSION+'</span></p>'}
