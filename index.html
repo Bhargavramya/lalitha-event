@@ -1131,7 +1131,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='3.6';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='3.7';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -1241,4 +1241,18 @@ function memAdd(){if(!memD)memD=memParse();memD.push({name:'',role:'',phone:''})
 function memDel(i){memD.splice(i,1);memWrite();memRender()}
 (function(){const st=window.stab;window.stab=function(t){const r=st.apply(this,arguments);if(t==='card')setTimeout(()=>{memRender(1);meFill()},0);return r};['lkEdit','lkSave','lkCancel'].forEach(f=>{const o=window[f];if(o)window[f]=function(){const r=o.apply(this,arguments);setTimeout(()=>memRender(1),0);return r}})})();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{});let had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)alertMsg('✨ App updated — tap ⟳ to load the new version',5000);had=true})}
+/* ---- keep work after the app is closed (cleared only by ⟳ reload) ---- */
+(function(){const EQF=['eq_name','eq_phone','eq_event','eq_date','eq_follow','eq_venue','eq_vmap','eq_notes'];
+function uiSave(){try{const u={tab:document.body.dataset.tab||'home',eq:null,at:Date.now()};if($('eq')&&!$('eq').hidden){u.eq={};EQF.forEach(k=>{if($(k))u.eq[k]=$(k).value})}ls.set('lal_ui',u);
+u.cur=curId||null;if(typeof isDirty==='function'&&isDirty()){u.q={id:curId,data:data()};ls.set('lal_draft',{id:curId,data:data(),at:Date.now()})}ls.set('lal_ui',u)}catch(e){}}
+window.uiSave=uiSave;let t;const soon=()=>{clearTimeout(t);t=setTimeout(uiSave,300)};
+document.addEventListener('input',soon,true);document.addEventListener('change',soon,true);document.addEventListener('click',soon,true);
+addEventListener('pagehide',uiSave);document.addEventListener('visibilitychange',()=>{if(document.hidden)uiSave()});
+const fresh=/[?&]r=\d+/.test(location.search);
+function restore(){if(fresh){ls.set('lal_ui',null);history.replaceState(null,'',location.pathname+location.search.replace(/[?&]r=\d+/,'').replace(/^&/,'?')+location.hash);return}
+const u=ls.get('lal_ui',null);if(!u)return;
+try{if(u.q&&u.q.data){curId=u.q.id||null;fill(u.q.data);cleanSnap='';markDirty()}else if(u.cur&&allQ()[u.cur]){curId=u.cur;fill(allQ()[u.cur]);markClean()}}catch(e){}
+const b=$('draftbar');if(b&&u.q)b.hidden=true;if(u.tab&&u.tab!=='home'){try{tab(u.tab)}catch(e){}}
+if(u.eq){try{enqOpen();EQF.forEach(k=>{if($(k)&&u.eq[k]!=null)$(k).value=u.eq[k]});if(typeof mapShow==='function')mapShow('eq_vmap')}catch(e){}}}
+if(document.readyState==='complete')setTimeout(restore,300);else addEventListener('load',()=>setTimeout(restore,300))})();
 </script></body></html>
