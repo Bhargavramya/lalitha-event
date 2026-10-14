@@ -1008,6 +1008,8 @@ if(st.catalog&&st.catalog.at>ls.get('lal_set_at_catalog',0)){ls.set('lal_cat',st
 if(st.packages&&st.packages.at>ls.get('lal_set_at_packages',0)){ls.set('lal_pkg',st.packages.value);ls.set('lal_set_at_packages',st.packages.at);pkgUI()}
 if(st.stamp&&st.stamp.at>ls.get('lal_set_at_stamp',0)){ls.set('lal_stamp',st.stamp.value);ls.set('lal_set_at_stamp',st.stamp.at);stampUI()}
 {const ph=getPh();let ch=0;for(const k in st)if(k.startsWith('ph:')&&st[k].at>ls.get('lal_set_at_'+k,0)){const n=k.slice(3);if(st[k].value)ph[n]=st[k].value;else delete ph[n];ls.set('lal_set_at_'+k,st[k].at);ch=1}if(ch)ls.set('lal_ph',ph)}
+const filled=o=>o&&typeof o==='object'&&Object.values(o).some(v=>v!==''&&v!=null&&!(Array.isArray(v)&&!v.length));
+for(const k of ['config','business']){const lk=k==='config'?'lal_cfg':'lal_b';const loc=ls.get(lk,{});if(st[k]&&filled(loc)&&(!ls.get('lal_set_at_'+k,0)||+st[k].at<=1||!filled(st[k].value))){gset(k,loc);delete st[k]}}
 if(st.config&&st.config.at>ls.get('lal_set_at_config',0)){ls.set('lal_cfg',st.config.value);ls.set('lal_set_at_config',st.config.at);applyCfg();cfgInit()}
 if(st.business&&st.business.at>ls.get('lal_set_at_business',0)){ls.set('lal_b',st.business.value);ls.set('lal_set_at_business',st.business.at);B.forEach(k=>{if(st.business.value[k]!==undefined)$(k).value=st.business.value[k]})}else if(!st.business)gset('business',ls.get('lal_b',{}));
 if(!curId&&!$('client').value)$('no').value=nextNo();
@@ -1209,7 +1211,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='4.1';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='4.2';const APP_DATE='13 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
