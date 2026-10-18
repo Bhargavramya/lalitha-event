@@ -1270,7 +1270,7 @@ function sharePdf(){if($('pv').hidden&&!checkReady())return;wantShare=1;if($('pv
 async function makePdf(){wantShare=0;const f=$('pvf'),w=f.contentWindow,d=f.contentDocument;if(!w.html2pdf){alertMsg('PDF tool still loading, try again');return}alertMsg('Making PDF…');
 d.querySelectorAll('.pb').forEach(e=>e.remove());const el=d.body.firstElementChild;const pad=el.style.padding;el.style.padding='0';el.style.width='186mm';
 const name=($('doctype').value+' '+$('no').value+' '+$('client').value).replace(/[\/\\:]/g,'-').trim()+'.pdf';
-try{const blob=await w.html2pdf().set({margin:[10,12,10,12],filename:name,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all'],avoid:['tr','.bot','.sign','figure']}}).from(el).outputPdf('blob');
+try{const blob=await w.html2pdf().set(w.JSON.parse(JSON.stringify({margin:[10,12,10,12],filename:name,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all'],avoid:['tr','.bot','.sign','figure']}}))).from(el).outputPdf('blob');
 el.style.padding=pad;el.style.width='';const file=new File([blob],name,{type:'application/pdf'});
 pdfReady(file,`${$('doctype').value} ${$('no').value} – ${C().bizName}`)}catch(e){alertMsg('Could not make PDF: '+e.message);el.style.padding=pad;el.style.width=''}}
 let PDFF=null;
@@ -1515,7 +1515,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='6.1';const APP_DATE='15 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='6.2';const APP_DATE='15 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
