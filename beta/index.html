@@ -1688,7 +1688,7 @@ const d=mdl('PDF ready',`<p class="mut" style="margin:0 0 12px">${esc(file.name)
 applyCfg();loadCat();pkgUI();stampUI();list();newQ();cfgInit();
 function confirmDel(k){return true}
 const DEFURL='https://script.google.com/macros/s/AKfycbywbMwdA1grg0_tuzdOWm3OzhCPTFywr8htj_vbCl5IWl4P-MzN5yyqRetndiNJXTdK/exec';
-const G={get url(){return DEFURL},get key(){return 'change-this-password'}};
+const G={get url(){return DEFURL},get key(){return ls.get('lal_key','')}};
 ['gurl','gkey'].forEach(id=>{$(id).value=ls.get('lal_g',{})[id==='gurl'?'url':'key']||(id==='gurl'?DEFURL:'');});
 connLock();
 function connLock(){['gurl','gkey'].forEach(id=>{$(id).readOnly=true;$(id).value=ls.get('lal_g',{})[id==='gurl'?'url':'key']||(id==='gurl'?DEFURL:'')});$('connedit').hidden=false;$('connsave').hidden=$('conncancel').hidden=true}
@@ -1921,7 +1921,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='8.6';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='8.7';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3319,4 +3319,12 @@ const eq=window.enqQuote;window.enqQuote=function(){const r=eq.apply(this,argume
   (rest.length?`<p class="mut" style="margin:14px 0 8px">More shortcuts${L.length>=8?' (max 8 — remove one first)':''}</p><div class="scl">${rest.map(k=>`<div class="scr"><button class="sca" data-ad="${k}" ${L.length>=8?'disabled':''} aria-label="Add">+</button><span class="hi">${SC[k][1]()}</span><b>${SC[k][0]}</b></div>`).join('')}</div>`:'');
   $('scbox').querySelectorAll('button').forEach(b=>b.onclick=()=>{const D=b.dataset;if(D.rm!=null){if(L.length<2)return alertMsg('Keep at least one shortcut');L.splice(+D.rm,1)}if(D.up!=null){const j=+D.up;[L[j-1],L[j]]=[L[j],L[j-1]]}if(D.dn!=null){const j=+D.dn;[L[j+1],L[j]]=[L[j],L[j+1]]}if(D.ad)L.push(D.ad);draw()})};
  draw();d.querySelector('[data-sv]').onclick=()=>{o.list=L;w[i]={id:'acts',o};d.remove();wSet(w)}}})();
+
+/* v8.7: sheet password lives only on this phone, never in the app code */
+function askKey(wrong){if(document.querySelector('.mdl.keym'))return;const d=mdl(wrong?'Sheet password is wrong':'Enter sheet password',`<p class="mut" style="margin:0 0 10px">${wrong?'The Google Sheet did not accept this password. Type it again.':'Type it once. It stays saved on this phone only.'}</p><input id="keyin" type="password" autocomplete="current-password" placeholder="Sheet password" style="width:100%;height:48px;font-size:17px"><label style="display:flex;gap:8px;align-items:center;margin:10px 0 0;flex-direction:row"><input type="checkbox" onchange="$('keyin').type=this.checked?'text':'password'" style="width:18px;height:18px"> Show password</label><button class="pri" style="width:100%;height:48px;margin-top:14px" id="keyok">Save &amp; sync</button>`);d.classList.add('keym');d.style.zIndex=400;
+ $('keyok').onclick=()=>{const v=$('keyin').value.trim();if(!v)return $('keyin').focus();ls.set('lal_key',v);d.remove();try{syncNow(1)}catch(e){}};setTimeout(()=>$('keyin').focus(),200)}
+(function(){const sn=window.syncNow;window.syncNow=function(){if(!G.key){askKey();return}return sn.apply(this,arguments)};
+ const st=window.stat;if(st)window.stat=function(m){const r=st.apply(this,arguments);if(/wrong password/i.test(String(m||''))){ls.set('lal_key','');askKey(true)}return r};
+ setTimeout(()=>{if(G.url&&!G.key)askKey()},1500);
+ const s=document.querySelector('[data-sp="sync"]');if(s&&!$('keyrow'))s.insertAdjacentHTML('beforeend',`<div class="card" id="keyrow" style="margin-top:12px"><h2>Sheet password</h2><p class="mut" style="margin:4px 0 10px">Saved only on this phone. Change it here if you change it in Apps Script.</p><button onclick="ls.set('lal_key','');askKey()">Change sheet password</button></div>`)})();
 </script></body></html>
