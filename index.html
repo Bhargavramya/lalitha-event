@@ -1912,7 +1912,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='8.4';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='8.5';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3291,4 +3291,14 @@ function wCustom(i){const w=wGet(),x=w[i],o=wOpt(x);let h='';
   if(x.id==='today')o.btns=$('wo1').checked;if(x.id==='stats'&&n)o.n=n;if(x.id==='upcoming'&&n)o.rows=n;
   w[i]={id:x.id,o};d.remove();wSet(w)}}
 try{hxRender()}catch(e){}
+/* v8.5: Quote + Enquiry merged — every job starts as an enquiry, then becomes a quote */
+SC.new=['New',()=>HXI('plus'),'enqOpen()'];delete SC.quote;delete SC.enq;
+WCAT.acts.o.list=['new','card','staff','cal'];WCAT.acts.d='New, Card, Staff, Calendar and more';
+(function(){const w=ls.get('lal_widgets',null);if(Array.isArray(w)){let ch=false;w.forEach(x=>{if(x.id==='acts'&&x.o&&x.o.list&&x.o.list.some(k=>k==='quote'||k==='enq')){const L=[];x.o.list.forEach(k=>{const n=(k==='quote'||k==='enq')?'new':k;if(!L.includes(n))L.push(n)});x.o.list=L;ch=true}});if(ch)ls.set('lal_widgets',w)}})();
+function enqQuote(){if(!$('eq_name').value.trim()||!$('eq_phone').value.trim())return enqSave(0);const before=curId;enqSave(0);if(curId&&curId!==before)setTimeout(()=>convertFrom(curId),60)}
+(function(){const b=[...document.querySelectorAll('#eq button')].find(x=>/enqSave\(0\)/.test(x.getAttribute('onclick')||''));if(b&&!$('eqq')){b.insertAdjacentHTML('afterend',`<button id="eqq" class="pri" onclick="enqQuote()">Save &amp; make quote</button>`);b.classList.remove('pri')}
+const eo=window.enqOpen;window.enqOpen=function(){const r=eo.apply(this,arguments);const h=document.querySelector('#eq h2,#eq h3,#eq b');if(h&&/enquiry/i.test(h.textContent)&&!h.dataset.n){h.dataset.n=1;h.textContent='New enquiry / quote'}return r}})();
+try{hxRender()}catch(e){}
+(function(){const s=[...document.querySelectorAll('#eq button')].find(x=>/enqSave\(1\)/.test(x.getAttribute('onclick')||''));if(s)s.classList.remove('pri');
+const eq=window.enqQuote;window.enqQuote=function(){const r=eq.apply(this,arguments);[300,700,1200].forEach(t=>setTimeout(()=>document.querySelectorAll('.mdl').forEach(m=>{if(/what is the status/i.test(m.textContent))m.remove()}),t));return r}})();
 </script></body></html>
