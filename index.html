@@ -1921,7 +1921,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='8.8';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='8.9';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3347,4 +3347,17 @@ function haptic(kind){if(!HAP.on())return;const pat={tap:8,select:12,success:[12
  // setting in Look & feel
  const look=document.querySelector('[data-sp="look"]');if(look&&!$('hapt')){const a=$('anseg');const html=`<label id="hapt" style="display:flex;flex-direction:row;align-items:center;gap:10px;margin:12px 0"><input type="checkbox" ${HAP.on()?'checked':''} onchange="ls.set('lal_hap',this.checked);if(this.checked)haptic('success')" style="width:20px;height:20px"> Vibration on taps, saves and errors</label>`;(a&&a.parentElement?a.parentElement:look).insertAdjacentHTML(a?'afterend':'beforeend',html)}
 })();
+/* v8.9: phone notifications via OneSignal */
+const OS_APP='d6498cce-e33a-4eb8-847f-789cc1c1d8a9';
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+(function(){if(location.protocol!=='https:')return;const base=location.pathname.replace(/[^/]*$/,'');
+ const s=document.createElement('script');s.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';s.defer=true;document.head.appendChild(s);
+ OneSignalDeferred.push(async OS=>{try{await OS.init({appId:OS_APP,serviceWorkerPath:base.slice(1)+'sw.js',serviceWorkerParam:{scope:base},notifyButton:{enable:false},promptOptions:{slidedown:{prompts:[]}}});window._OS=OS;OS.User.addTag('role','owner');OS.Notifications.addEventListener('permissionChange',()=>ntfUI());ntfUI()}catch(e){console.warn('OneSignal',e)}})})();
+function ntfState(){const OS=window._OS;if(!('Notification' in window))return /iPhone|iPad/.test(navigator.userAgent)&&!navigator.standalone?'home':'no';if(!OS)return 'loading';if(Notification.permission==='denied')return 'denied';return OS.User.PushSubscription.optedIn?'on':'off'}
+function ntfUI(){const b=$('ntfrow');if(!b)return;const s=ntfState(),T={on:['Notifications are ON ✓','You will get alerts when a customer accepts, staff reach or finish, and an 8 am summary.','Turn off'],off:['Notifications are off','Get alerts when a customer accepts, staff reach or finish, and a morning summary.','Turn on notifications'],denied:['Notifications are blocked','Allow them in your phone Settings → Notifications → Lalitha, then come back.',''],home:['Open from the Home Screen app','On iPhone, notifications work only in the app added to the Home Screen.',''],no:['Not supported on this browser','Use Chrome on Android or the Home Screen app on iPhone (iOS 16.4+).',''],loading:['Notifications','Loading…','']}[s];
+ b.innerHTML=`<h2>${T[0]}</h2><p class="mut" style="margin:4px 0 10px">${T[1]}</p>${T[2]?`<button class="${s==='off'?'pri':''}" onclick="ntfToggle()">${T[2]}</button>`:''}`}
+async function ntfToggle(){const OS=window._OS;if(!OS)return alertMsg('Still loading — try again in a moment');try{if(OS.User.PushSubscription.optedIn){await OS.User.PushSubscription.optOut();alertMsg('Notifications turned off')}else{await OS.Notifications.requestPermission();if(Notification.permission==='granted'){await OS.User.PushSubscription.optIn();alertMsg('Notifications turned on ✓')}}}catch(e){alertMsg('Could not turn on notifications')}setTimeout(ntfUI,800)}
+(function(){const s=document.querySelector('[data-sp="sync"]');if(s&&!$('ntfrow')){const c=document.createElement('div');c.className='card';c.id='ntfrow';c.style.marginBottom='12px';const h=s.querySelector('.card,h2');(h&&h.parentElement===s?h:s.firstElementChild).before(c);ntfUI()}
+ if(typeof SET_EXTRA!=='undefined')SET_EXTRA.sync=(SET_EXTRA.sync||'')+' notifications alerts push reminder';
+ const m=SETM.find(x=>x[0]==='sync');if(m)m[3]='Notifications, backup, restore, share app'})();
 </script></body></html>
