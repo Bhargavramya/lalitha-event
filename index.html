@@ -1921,7 +1921,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='8.7';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='8.8';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3327,4 +3327,24 @@ function askKey(wrong){if(document.querySelector('.mdl.keym'))return;const d=mdl
  const st=window.stat;if(st)window.stat=function(m){const r=st.apply(this,arguments);if(/wrong password/i.test(String(m||''))){ls.set('lal_key','');askKey(true)}return r};
  setTimeout(()=>{if(G.url&&!G.key)askKey()},1500);
  const s=document.querySelector('[data-sp="sync"]');if(s&&!$('keyrow'))s.insertAdjacentHTML('beforeend',`<div class="card" id="keyrow" style="margin-top:12px"><h2>Sheet password</h2><p class="mut" style="margin:4px 0 10px">Saved only on this phone. Change it here if you change it in Apps Script.</p><button onclick="ls.set('lal_key','');askKey()">Change sheet password</button></div>`)})();
+/* v8.8: vibration (haptics) for important actions — Android vibrate, iPhone switch-tick */
+const HAP={on:()=>ls.get('lal_hap',true)!==false,sw:null};
+function haptic(kind){if(!HAP.on())return;const pat={tap:8,select:12,success:[12,60,18],error:[30,50,30,50,30],warn:[25,40,25],heavy:30}[kind||'tap'];
+ try{if(navigator.vibrate&&!/iPhone|iPad|iPod/.test(navigator.userAgent)){navigator.vibrate(pat);return}}catch(e){}
+ try{if(!HAP.sw){const l=document.createElement('label');l.style.cssText='position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';l.setAttribute('aria-hidden','true');const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);document.body.appendChild(l);HAP.sw=l}
+  const n=Array.isArray(pat)?Math.ceil(pat.length/2):1;for(let k=0;k<n;k++)setTimeout(()=>HAP.sw.click(),k*90)}catch(e){}}
+(function(){
+ // taps on main buttons, tab bar, chips, swipe actions, toggles
+ document.addEventListener('click',e=>{const t=e.target.closest('button,.chip,[role=button],label,input[type=checkbox],select');if(!t||t.closest('[aria-hidden="true"]'))return;
+  if(t.matches('input[type=checkbox]')||t.matches('label')&&t.querySelector('input[type=checkbox]'))return haptic('select');
+  if(t.closest('nav.tabs,.stabs,#fchips,.seg2,.wseg,#anseg'))return haptic('select');
+  if(/del|remove|wRemove|Del\(/i.test(t.getAttribute('onclick')||'')||t.classList.contains('wrm')||t.classList.contains('scx'))return haptic('warn');
+  if(t.classList.contains('pri')||t.closest('.wsc,.hx-acts,.wfg,.swa,#pfab,.hx-fab'))return haptic('tap')},true);
+ // success / error toasts
+ const am=window.alertMsg;window.alertMsg=function(m){try{const s=String(m||'');if(/wrong|error|failed|could not|couldn|enter |first|not set|offline/i.test(s))haptic('error');else if(/saved|✓|converted|copied|added|sent|updated|done|ready/i.test(s))haptic('success')}catch(e){}return am.apply(this,arguments)};
+ // long-press to edit Home
+ const we=window.wEdit;if(we)window.wEdit=function(on){if(on)haptic('heavy');return we.apply(this,arguments)};
+ // setting in Look & feel
+ const look=document.querySelector('[data-sp="look"]');if(look&&!$('hapt')){const a=$('anseg');const html=`<label id="hapt" style="display:flex;flex-direction:row;align-items:center;gap:10px;margin:12px 0"><input type="checkbox" ${HAP.on()?'checked':''} onchange="ls.set('lal_hap',this.checked);if(this.checked)haptic('success')" style="width:20px;height:20px"> Vibration on taps, saves and errors</label>`;(a&&a.parentElement?a.parentElement:look).insertAdjacentHTML(a?'afterend':'beforeend',html)}
+})();
 </script></body></html>
