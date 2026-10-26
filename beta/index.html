@@ -2015,7 +2015,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='10.1';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='10.2';const APP_DATE='18 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3813,4 +3813,13 @@ try{hxRender()}catch(e){}
 /* v10.1: PDF render at 100% (preview zoom was shifting/cutting the PDF) + pinch zoom works over the page */
 (function(){const mk=window.makePdf;window.makePdf=async function(){const W=$('pvw'),S=$('pvs');const z=W?W.style.zoom:'',sl=S?S.scrollLeft:0,stp=S?S.scrollTop:0;if(W)W.style.zoom=1;if(S){S.scrollLeft=0;S.scrollTop=0}
  try{return await mk.apply(this,arguments)}finally{if(W)W.style.zoom=z;try{fit()}catch(e){}if(S){S.scrollLeft=sl;S.scrollTop=stp}}}})();
+/* v10.2: advance received → booking confirmed; quotation prints as Booking Confirmation */
+(function(){const d0=window.data;window.data=function(){const o=d0.apply(this,arguments);try{const paid=(+o.adv||0)+(o.pays||[]).reduce((a,p)=>a+(+p.amt||0),0);
+ if(paid>0&&['Enquiry','Draft','Sent',''].includes(o.status||'')){const from=o.status||'Draft';o.status='Confirmed';o.follow='';if($('status')){$('status').value='Confirmed';try{stColor()}catch(e){}}if($('follow'))$('follow').value='';
+  o.hist=Array.isArray(o.hist)?o.hist:[];if(!o.hist.some(h=>h.t==='Confirmed'&&h.r==='Advance received'))o.hist.push({d:new Date().toISOString(),f:from,t:'Confirmed',r:'Advance received'});if(!o.acceptedAt)o.acceptedAt=new Date().toISOString();
+  if(!window._advNote){window._advNote=1;setTimeout(()=>{window._advNote=0;alertMsg('Advance received — booking marked Confirmed ✓')},200)}}}catch(e){}return o}})();
+function confTitle(root){if(!root)return;const st=$('status')?$('status').value:'',dt=$('doctype')?$('doctype').value:'';if(!['Confirmed','Completed'].includes(st)||!/^quotation$/i.test(dt))return;
+ root.querySelectorAll('h1,h3,.ct').forEach(h=>{if(/^\s*quotation\s*$/i.test(h.textContent)){h.textContent=h.classList.contains('ct')?'Booking Confirmation':'BOOKING CONFIRMATION';if(!h.parentElement.querySelector('.cfbadge'))h.insertAdjacentHTML('afterend','<div class="cfbadge" style="display:inline-block;margin:4px 0 6px;padding:3px 10px;border-radius:999px;background:#e2f5e7;color:#1d7a3a;font:700 11px sans-serif;letter-spacing:.04em">✓ CONFIRMED · ADVANCE RECEIVED</div>')}});
+ root.querySelectorAll('.l,b').forEach(e=>{const t=e.textContent.trim();if(/^Quotation No\.?$/i.test(t))e.textContent='Booking No.';if(/^Valid till$/i.test(t)&&e.parentElement&&e.parentElement.children.length<=2)e.parentElement.remove()})}
+(function(){const sp=window.showPv;window.showPv=function(){try{confTitle($('cs'));confTitle($('sheet'))}catch(e){}return sp.apply(this,arguments)}})();
 </script></body></html>
