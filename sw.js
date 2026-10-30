@@ -1,5 +1,5 @@
 // Lalitha Quotation Maker – offline cache. Change VERSION on every release.
-const VERSION = 'led-12.1';
+const VERSION = 'led-12.2';
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 const CORE = ['./', 'index.html', 'c.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).catch(() => {}).then(() => self.skipWaiting())); });
