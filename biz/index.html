@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='12.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='12.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4286,7 +4286,7 @@ function modeUI(){const b=$('modeseg');if(!b)return;b.querySelectorAll('button')
 (function(){const look=document.querySelector('[data-sp="look"]');if(look&&!$('modeseg')){look.insertAdjacentHTML('afterbegin',`<div class="card" style="margin-bottom:12px"><h2>App mode</h2><p class="mut" style="margin:4px 0 10px">Simple shows only the basics — good for family or staff using this phone. ${'Pro shows everything.'}</p><div class="seg2" id="modeseg"><button data-m="simple" onclick="modeSet('simple')">Simple</button><button data-m="pro" onclick="modeSet('pro')">Pro</button></div></div>`);modeUI()}if(typeof SET_EXTRA!=='undefined')SET_EXTRA.look+=' simple pro mode easy basic'})();
 modeApply();
 /* ---- What's new ---- */
-const WHATSNEW=[['12.3',['🍽 Faster menu entry – numbered list, type + Enter, tap suggestions to add']],['12.2',['🍽 Sessions in a quote – e.g. Tiffin / Lunch / Dinner on different days, per plate or fixed price','📋 Saved menus, 👩‍🍳 kitchen sheet, ⧉ copy session, 📤 send updated plate count']],['11.8',['📷 Photos now saved in the phone\'s large photo storage — no more running out of space','Existing photos moved across automatically']],['11.7',['⭐ Repeat-customer hint + loyalty discount; Best customers widget','📲 Staff app links (Settings → Staff & team)','Public package price page (Settings → Items & packages)','GST summary download (Reports)']],['11.6',['↶ Undo for 10 seconds after any change','Offline bar shows unsynced changes','Simple / Pro mode (Settings → Look & feel)','This What\'s new card after updates']],['11.5',['App opens about 3× faster','Data health check + photo saver (Settings → Backup & sharing)','Every update is fully tested before it reaches you']],['11.4',['✨ AI on every screen (purple button)','Scan a bill, voice note → tasks, AI search','Morning AI drafts for follow-ups and thank-yous']],['11.2',['✨ AI tools: chat → enquiry, photo → quote, Instagram posts, review replies']]];
+const WHATSNEW=[['12.4',['🍽 Choose Decor, Catering or Both for each quote']],['12.3',['🍽 Faster menu entry – numbered list, type + Enter, tap suggestions to add']],['12.2',['🍽 Sessions in a quote – e.g. Tiffin / Lunch / Dinner on different days, per plate or fixed price','📋 Saved menus, 👩‍🍳 kitchen sheet, ⧉ copy session, 📤 send updated plate count']],['11.8',['📷 Photos now saved in the phone\'s large photo storage — no more running out of space','Existing photos moved across automatically']],['11.7',['⭐ Repeat-customer hint + loyalty discount; Best customers widget','📲 Staff app links (Settings → Staff & team)','Public package price page (Settings → Items & packages)','GST summary download (Reports)']],['11.6',['↶ Undo for 10 seconds after any change','Offline bar shows unsynced changes','Simple / Pro mode (Settings → Look & feel)','This What\'s new card after updates']],['11.5',['App opens about 3× faster','Data health check + photo saver (Settings → Backup & sharing)','Every update is fully tested before it reaches you']],['11.4',['✨ AI on every screen (purple button)','Scan a bill, voice note → tasks, AI search','Morning AI drafts for follow-ups and thank-yous']],['11.2',['✨ AI tools: chat → enquiry, photo → quote, Instagram posts, review replies']]];
 (function(){const seen=ls.get('lal_seenver','');if(seen===APP_VERSION)return;ls.set('lal_seenver',APP_VERSION);if(!seen||window.__DEMO)return;const L=WHATSNEW.filter(w=>w[0]>seen.replace(/^(\d+\.\d+).*/,'$1')||w[0]===APP_VERSION).slice(0,3);if(!L.length)return;
  setTimeout(()=>{const d=aiSheet(`What's new in v${APP_VERSION}`,`${L.map(([v,items])=>`<h3 class="plh">v${v}</h3><ul class="wn">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('')}<button class="pri" style="width:100%;margin-top:12px" onclick="this.closest('.mdl').remove()">Got it</button>`,350)},2500)})();
 
@@ -4434,10 +4434,6 @@ function kitchenSheet(){const o=data();const L=sesSort(SES||[]);if(!L.length)ret
  const ip=document.getElementById('itbl');if(ip&&!$('sesbox'))ip.insertAdjacentHTML('beforebegin','<div id="sesbox"></div>');
  const sb=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='+ Section');if(sb&&!$('sesadd'))sb.insertAdjacentHTML('afterend','<button class="ghost" id="sesadd" onclick="sesAdd()">+ Session</button>')})();
 
-(function(){const isCat=()=>/cater/i.test((ls.get('lal_b',{}).btag||'')+' '+(C().bizName||''));
- const n1=window.newQ;window.newQ=function(){const r=n1.apply(this,arguments);if(isCat()&&!SES.length){sesAdd({name:'Lunch'})}return r};
- if(isCat()){const st=document.createElement('style');st.textContent='#itbl,#itbl+.flex>button:not(#sesadd){display:none}#sesadd{font-weight:700}';document.head.appendChild(st);
-  const ip=$('itbl');if(ip&&!$('itshow'))ip.insertAdjacentHTML('beforebegin','<button class="ghost sm" id="itshow" style="margin:6px 0" onclick="this.remove();document.querySelectorAll(\'style\').forEach(s=>{if(s.textContent.startsWith(\'#itbl,\'))s.remove()})">+ Extra items (tables, staff, transport…)</button>')}})();
 
 /* =================== v12.3: fast numbered menu entry =================== */
 function smnFreq(){const M={};const add=t=>{t=t.trim();if(!t)return;const k=t.toLowerCase();M[k]=M[k]||{t,n:0};M[k].n++};
@@ -4464,4 +4460,25 @@ function smnDel(i,k){const L=sesMenu(SES[i]);L.splice(k,1);smnSave(i,L);smnPaint
 .sma .smno{background:transparent;color:inherit;border:1.5px dashed currentColor;opacity:.5;line-height:23px}
 .sml input,.sma input{flex:1;min-width:0;height:40px;font-size:16px}.smx{flex:0 0 36px;height:36px;padding:0;background:transparent;box-shadow:none;opacity:.55}
 .sma button{flex:0 0 auto;height:40px}.smc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.smc button{padding:6px 10px;font-size:14px;border-radius:16px;height:auto;min-height:0}`;document.head.appendChild(st)})();
+
+/* =================== v12.4: quote kind – Decor / Catering / Both =================== */
+let QK='dec',QK_NEXT='';const bizCat=()=>!!window.__BIZ&&/cater/i.test(ls.get('lal_b',{}).btag||'');
+const QKL={dec:'Decor',cat:'Catering',both:'Both'};
+function qkChips(sel,fn){return `<div class="qkc">${Object.entries(QKL).map(([k,l])=>`<button type="button" class="${k===sel?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`}
+function setKind(k,quiet){QK=k;document.body.classList.toggle('qcat',k==='cat');if(k!=='dec'&&!(SES||[]).length)sesAdd({name:'Lunch'});const b=$('qkbar');if(b)b.innerHTML=qkChips(k,'setKind');if(!quiet)try{haptic&&haptic();sesDirty()}catch(e){}}
+(function(){
+ const d0=window.data;window.data=function(){const o=d0.apply(this,arguments);o.kind=QK;return o};
+ const f0=window.fill;window.fill=function(o){const r=f0.apply(this,arguments);const named=(o&&o.rows||[]).some(x=>!x.sec&&(x.name||'').trim());const ns=(o&&o.ses||[]).length;
+  setKind(o&&o.kind||(ns?(named?'both':'cat'):'dec'),1);return r};
+ const n0=window.newQ;window.newQ=function(){const r=n0.apply(this,arguments);const k=QK_NEXT||(bizCat()?'cat':'dec');QK_NEXT='';setKind(k,1);return r};
+ const c0=window.convertFrom;if(c0)window.convertFrom=function(){const k=QK_NEXT;const r=c0.apply(this,arguments);if(k){QK_NEXT='';setTimeout(()=>setKind(k,1),80)}return r};
+ const e0=window.enqOpen;window.enqOpen=function(){const r=e0.apply(this,arguments);QK_NEXT=bizCat()?'cat':'';const host=$('eq_name');const box=host&&host.closest('.mdl,.sheet,#eq,form,div');
+  const old=document.getElementById('eqkind');if(old)old.remove();
+  if(host){const lab=host.closest('label')||host;lab.insertAdjacentHTML('beforebegin',`<div id="eqkind" style="margin-bottom:10px"><div class="mut" style="margin-bottom:4px">What is this for?</div>${qkChips(QK_NEXT||'dec','eqKind')}</div>`)}return r};
+})();
+function eqKind(k){QK_NEXT=k==='dec'?'':k;const e=$('eqkind');if(e)e.querySelector('.qkc').outerHTML=qkChips(k,'eqKind');try{haptic&&haptic()}catch(e){}}
+(function(){const ip=$('sesbox');if(ip&&!$('qkbar'))ip.insertAdjacentHTML('beforebegin','<div id="qkbar"></div>');const b=$('qkbar');if(b)b.innerHTML=qkChips(QK,'setKind');
+ const st=document.createElement('style');st.textContent=`.qkc{display:flex;gap:6px;margin:4px 0 8px;width:100%}.qkc button{flex:1 1 0;padding:8px 4px;font-size:15px;min-height:42px;white-space:nowrap;width:auto}.qkc button.on{background:var(--acc,#c8102e);color:#fff}
+ body.qcat #itbl,body.qcat #qchips,body.qcat #pcbtn,body.qcat #itbl+.flex>button:not(#sesadd),body.qcat #itbl+.flex>select{display:none}body.qcat #qkextra{display:block}#qkextra{display:none;margin:4px 0 10px}#eqkind{width:100%;flex:1 1 100%;grid-column:1/-1}#eqkind .qkc button{flex:1 1 33%}`;document.head.appendChild(st);
+ const it=$('itbl');if(it&&!$('qkextra'))it.insertAdjacentHTML('beforebegin','<button class="ghost sm" id="qkextra" onclick="setKind(\'both\')">+ Add decor / extra items (tables, staff, transport…)</button>')})();
 </script></body></html>
