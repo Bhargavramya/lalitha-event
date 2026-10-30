@@ -1542,7 +1542,7 @@ const $=id=>document.getElementById(id);
 const LSC=new Map();const PHK=new Set(['lal_ph','lal_evph','lal_stph','lal_exph','lal_bgph']);
 addEventListener('storage',e=>{if(e.key){if(!PHK.has(e.key))LSC.delete(e.key)}else[...LSC.keys()].forEach(k=>PHK.has(k)||LSC.delete(k))});
 const PDB={ok:false,ready:false,q:{},db:null,
-open(){return new Promise(r=>{try{const rq=indexedDB.open('lal_photos'+(window.__DEMO?'_demo':''),1);rq.onupgradeneeded=()=>rq.result.createObjectStore('kv');rq.onsuccess=()=>{this.db=rq.result;this.ok=true;r()};rq.onerror=()=>r()}catch(e){r()}})},
+open(){return new Promise(r=>{try{const rq=indexedDB.open('lal_photos'+(window.__DEMO?'_demo':window.__BIZ?'_biz':''),1);rq.onupgradeneeded=()=>rq.result.createObjectStore('kv');rq.onsuccess=()=>{this.db=rq.result;this.ok=true;r()};rq.onerror=()=>r()}catch(e){r()}})},
 put(k,v){return new Promise(r=>{try{const t=this.db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>r(true);t.onerror=t.onabort=()=>r(false)}catch(e){r(false)}})},
 get(k){return new Promise(r=>{try{const g=this.db.transaction('kv').objectStore('kv').get(k);g.onsuccess=()=>r(g.result);g.onerror=()=>r(undefined)}catch(e){r(undefined)}})}};
 const ls={get(k,d){if(LSC.has(k)){const v=LSC.get(k);return v??d}try{const v=JSON.parse(localStorage.getItem(k));LSC.set(k,v);return v??d}catch(e){return d}},set(k,v){if(PHK.has(k)&&PDB.ok!==null){LSC.set(k,v);if(PDB.ready&&PDB.ok){PDB.put(k,v).then(ok=>{if(!ok)try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}})}else if(PDB.ready){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}else PDB.q[k]=v;return}LSC.set(k,v);try{localStorage.setItem(k,JSON.stringify(v))}catch(e){LSC.delete(k)}},del(k){LSC.delete(k);if(PHK.has(k)){delete PDB.q[k];if(PDB.ok)try{PDB.db.transaction('kv','readwrite').objectStore('kv').delete(k)}catch(e){}}try{localStorage.removeItem(k)}catch(e){}}};
@@ -1625,7 +1625,7 @@ $('sheet').innerHTML=`<div class="hd"><img src="${LOGO}"><div class="co">${esc(b
 <div><b>No:</b> ${esc(o.no)}<br><b>Date:</b> ${dd(o.date)}${o.valid?'<br><b>Valid till:</b> '+dd(o.valid):''}<br>${o.etype?'<b>Event:</b> '+esc(o.etype)+'<br>':''}${o.edate?'<b>Event date:</b> '+dd(o.edate)+'<br>':''}${o.venue?'<b>Venue:</b> '+esc(o.venue):''}${mapOk(o.vmap)?' <a href="'+esc(o.vmap)+'" target="_blank" style="color:inherit">📍 Map</a>':''}${o.guests?'<br><b>Guests:</b> '+esc(o.guests):''}</div></div>
 <table><thead><tr><th>S.No</th><th>Item name</th><th>Size/UOM</th><th>Qty</th>${hasDays()?'<th>Days</th>':''}<th>Unit cost</th><th>Amount</th></tr></thead><tbody>${tr}${tt}</tbody></table>
 <div class="words">Amount in words: Rupees ${words(t.tot)} only.</div>${o.notes?`<p><b>Notes:</b> ${esc(o.notes)}</p>`:''}${b.bbank?`<p><b>Payment:</b> ${esc(b.bbank)}</p>`:''}
-${o.terms?`<b>Terms & Conditions</b><div class="terms">${esc(o.terms)}</div>`:''}<div class="sign"><div>Client signature</div><div>For <b>Lalitha Event Decors</b><br><br><br>Authorised signatory</div></div>`;
+${o.terms?`<b>Terms & Conditions</b><div class="terms">${esc(o.terms)}</div>`:''}<div class="sign"><div>Client signature</div><div>For <b>${esc(C().bizName||'Lalitha Event Decors')}</b><br><br><br>Authorised signatory</div></div>`;
 const old=document.title;document.title=(o.doctype+' '+o.no+' '+o.client).replace(/[\/]/g,'-');if(PV){PV=0;document.title=old;return showPv()}setTimeout(()=>{print();document.title=old},100)}
 function printCorp(){lastFn=doPrint;const cf=C();const t=totals(),o=data(),b={};B.forEach(k=>b[k]=$(k).value);let n=0,cur=null,html='';const secT=[];
 rows.forEach((r,i)=>{if(r.sec){cur={i,t:0};secT.push(cur)}else if(cur&&!r.opt)cur.t+=amt(r)});
@@ -1662,7 +1662,7 @@ document.body.classList.add('corp');
 if(b.bupi&&cf.showQR&&cf.showBank&&window.QRCode){try{new QRCode($('qr'),{text:`upi://pay?pa=${b.bupi}&pn=${encodeURIComponent(b.bacname||'Lalitha Event Decors')}&am=${t.bal>0?Math.round(t.bal):t.tot}&cu=INR&tn=${encodeURIComponent(o.no)}`,width:120,height:120,correctLevel:QRCode.CorrectLevel.M})}catch(e){}}
 const old=document.title;document.title=(o.doctype+' '+o.no+' '+o.client).replace(/[\/]/g,'-');if(PV){PV=0;document.title=old;return setTimeout(showPv,350)}setTimeout(()=>{print();document.title=old;document.body.classList.remove('corp')},300)}
 const hasDays=()=>rows.some(r=>!r.sec&&(r.days||1)!==1);
-function share(){const t=totals(),o=data();let n=0;let s=`*Lalitha Event Decors* — ${o.doctype}\nNo: ${o.no} | Date: ${dd(o.date)}\nClient: ${o.client}\n${o.venue?'Venue: '+o.venue+'\n':''}${mapOk(o.vmap)?'Map: '+o.vmap+'\n':''}${o.edate?'Event date: '+dd(o.edate)+'\n':''}\n`;
+function share(){const t=totals(),o=data();let n=0;let s=`*${C().bizName||'Lalitha Event Decors'}* — ${o.doctype}\nNo: ${o.no} | Date: ${dd(o.date)}\nClient: ${o.client}\n${o.venue?'Venue: '+o.venue+'\n':''}${mapOk(o.vmap)?'Map: '+o.vmap+'\n':''}${o.edate?'Event date: '+dd(o.edate)+'\n':''}\n`;
 rows.forEach(r=>{s+=r.sec?`\n*${r.name}*\n`:r.opt?`(Optional) ${r.name} = ${fmt(amt(r))}\n`:`${++n}. ${r.name}${r.uom?' ('+r.uom+')':''} × ${r.qty} = ${fmt(amt(r))}\n`});
 s+=`\nSubtotal: ${fmt(t.sub)}\n${t.d?'Discount: −'+fmt(t.d)+'\n':''}${t.x?o.xlabel+': '+fmt(t.x)+'\n':''}${t.g?'GST '+t.g+'%: '+fmt(t.gst)+'\n':''}*Total: ${fmt(t.tot)}*${t.adv?'\nAdvance: '+fmt(t.adv)+'\nBalance: '+fmt(t.bal):''}`;
 wa(o.phone,s,null,'WhatsApp text summary')}
@@ -1674,6 +1674,7 @@ const DEFCFG={prefix:'LED/{YYYY}/',digits:'3',validDays:10,defType:'Quotation',d
 etypes:'Wedding\nReception\nEngagement\nBirthday\nHalf Saree / Dhoti Function\nCorporate Event\nSchool / College Function\nClub Meeting\nHouse Warming\nExhibition',
 acc:'#d9161c',gold:'#9a7a1c',bizName:'Lalitha Event Decors',signText:'Authorised signatory',clientSign:'Accepted by client — Name, signature & date',footText:'Thank you for choosing Lalitha Event Decors',payLabels:'On booking confirmation, Before setup on event day, After event completion',
 invPrefix:'LED/INV/{YYYY}/',reviewLink:'',wm:'1',about:'Lalitha Event Decors has been decorating weddings, receptions and corporate events since 1985. Four decades of trust, creativity and on-time setup.',termsTe:'1. బుకింగ్ నిర్ధారణకు 50% అడ్వాన్స్ చెల్లించాలి; మిగిలినది ఈవెంట్ రోజున.\n2. విద్యుత్ మరియు వేదిక అనుమతులు క్లయింట్ ఏర్పాటు చేయాలి.',calGuests:'',waAddLine:true,waSaveLine:'',halls:[],cardStyle:'glass',cardOwner:'',cardRole:'Proprietor',cardMembers:'',cardSince:'1985',cardPhone:'',cardWa:'',cardEmail:'',cardWeb:'',cardAddr:'',cardMaps:'',cardInsta:'',cardFb:'',cardYt:'',cardBase:'',cardServices:'Wedding stage decoration\nReception & engagement\nCorporate events\nBirthday & theme parties\nFresh flower decoration\nLighting, sound & LED walls',cardAbout:'',cardGreet:'',cardGallery:'',cardNotes:false,cardHallPrices:true,cardUpi:false,splash:'glass',showTag:true,showSecTot:true,showDesc:true,showSched:true,showBank:true,showQR:true,showWords:true,showTerms:true,showSign:true,showFoot:true};
+if(window.__BIZ){Object.assign(DEFCFG,{bizName:'',footText:'Thank you for your business',about:'',termsTe:'',cardSince:'',cardServices:'',cardRole:'Owner',prefix:'Q/{YYYY}/',invPrefix:'INV/{YYYY}/'});DEFCAT.length=0}
 const C=()=>Object.assign({},DEFCFG,ls.get('lal_cfg',{}));
 function applyCfg(){const c=C();document.documentElement.style.setProperty('--acc',c.acc);document.documentElement.style.setProperty('--gold',c.gold);
 $('etypes').innerHTML=c.etypes.split('\n').filter(Boolean).map(x=>`<option>${esc(x.trim())}</option>`).join('')}
@@ -1896,7 +1897,7 @@ if(st.business&&st.business.at>ls.get('lal_set_at_business',0)){ls.set('lal_b',s
 if(!curId&&!$('client').value)$('no').value=nextNo();
 ls.set('lal_last',Date.now());showLast();list();stat('synced ✓ '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));if(show)alertMsg('Synced with Google Sheets')}catch(e){stat('could not reach Google Sheets');}}
 syncNow();addEventListener('online',()=>syncNow());document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
-$('hlogo').src=LOGO;
+$('hlogo').src=window.__BIZ?(ls.get('lal_bizlogo','')||'icon-192.png'):LOGO;
 $('date').addEventListener('change',()=>{const d=new Date($('date').value);if(!isNaN(d)){d.setDate(d.getDate()+(+C().validDays||10));$('valid').value=d.toISOString().slice(0,10)}});
 let view=(()=>{const v=ls.get('lal_view','auto');return v==='auto'?null:v})();const mq=matchMedia('(max-width:760px)');
 function applyView(){const m=view?view==='mobile':mq.matches;document.body.classList.toggle('mobile',m);$('vbtn').textContent=m?'💻':'📱 Mobile view';$('vbtn').title=m?'Switch to PC view':'Switch to mobile view'}
@@ -2092,7 +2093,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='11.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='11.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -3521,7 +3522,7 @@ function haptic(kind){if(!HAP.on())return;const pat={tap:8,select:12,success:[12
 /* v8.9: phone notifications via OneSignal */
 const OS_APP='d6498cce-e33a-4eb8-847f-789cc1c1d8a9';
 window.OneSignalDeferred=window.OneSignalDeferred||[];
-(function(){if(location.protocol!=='https:'||window.__DEMO)return;const base=location.pathname.replace(/[^/]*$/,'');
+(function(){if(location.protocol!=='https:'||window.__DEMO||window.__BIZ)return;const base=location.pathname.replace(/[^/]*$/,'');
  const s=document.createElement('script');s.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';s.defer=true;document.head.appendChild(s);
  OneSignalDeferred.push(async OS=>{try{await OS.init({appId:OS_APP,serviceWorkerPath:base.slice(1)+'sw.js',serviceWorkerParam:{scope:base},notifyButton:{enable:false},promptOptions:{slidedown:{prompts:[]}}});window._OS=OS;OS.User.addTag('role','owner');OS.Notifications.addEventListener('permissionChange',()=>ntfUI());ntfUI()}catch(e){console.warn('OneSignal',e)}})})();
 function ntfState(){const OS=window._OS;if(!('Notification' in window))return /iPhone|iPad/.test(navigator.userAgent)&&!navigator.standalone?'home':'no';if(!OS)return 'loading';if(Notification.permission==='denied')return 'denied';return OS.User.PushSubscription.optedIn?'on':'off'}
@@ -4307,4 +4308,32 @@ function gstExport(ym){ym=ym||today().slice(0,7);const Q=Object.values(allQ()).f
  const csv='﻿'+[H,...R].map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\r\n');const name=`GST summary ${ym}.csv`;const blob=new Blob([csv],{type:'text/csv'});const f=new File([blob],name,{type:'text/csv'});
  (async()=>{try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e.name==='AbortError')return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()})();alertMsg(`${Q.length} invoice${Q.length===1?'':'s'} in ${ym}`)}
 (function(){const rc=window.repCharts;window.repCharts=function(){const r=rc.apply(this,arguments);const el=$('rep');if(el&&!el.querySelector('.gstx')){const opts=[0,1,2,3,4,5].map(i=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);const v=d.toISOString().slice(0,7);return `<option value="${v}">${d.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</option>`}).join('');el.insertAdjacentHTML('beforeend',`<div class="rch gstx"><b>GST summary for your accountant</b><p class="mut" style="font-size:12.5px;margin:4px 0 8px">All invoices of the month with taxable value, CGST, SGST, IGST — opens in Excel / Google Sheets. Tax is worked out from each invoice total; please have your accountant check.</p><div style="display:flex;gap:8px"><select id="gstm" style="flex:1;margin:0">${opts}</select><button class="pri" onclick="gstExport($('gstm').value)">Download</button></div></div>`)}return r}})();
+
+/* =================== v11.9: business setup (shared app for other businesses) =================== */
+function bizSetup(){if(!window.__BIZ||$('bizsu'))return;const c=C(),b=ls.get('lal_b',{});const d=document.createElement('div');d.id='bizsu';
+d.style.cssText='position:fixed;inset:0;z-index:99999;background:var(--bg,#fff);overflow:auto;-webkit-overflow-scrolling:touch';
+const T=['Event decoration','Catering','Photography','Tent house','Flower shop','Other'];
+d.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) 16px 40px"><h1 style="margin:0 0 4px">Set up your business</h1><p class="mut" style="margin:0 0 16px">This shows on your quotes, PDFs and WhatsApp messages. You can change it later in Settings.</p>
+<div class="card"><div class="grid" style="grid-template-columns:1fr">
+<label>Business name *<input id="su_n" value="${esc(c.bizName||'')}" placeholder="e.g. Sri Sai Decorators"></label>
+<label>Type of business<select id="su_t">${T.map(t=>`<option${b.btag===t?' selected':''}>${t}</option>`).join('')}</select></label>
+<label>Your name<input id="su_o" value="${esc(c.cardOwner||'')}"></label>
+<label>Phone<input id="su_p" inputmode="tel" value="${esc(b.bphone||'')}"></label>
+<label>Address<input id="su_a" value="${esc(b.baddr||'')}"></label>
+<label>Logo (optional)<input id="su_l" type="file" accept="image/*"></label><img id="su_li" style="max-height:70px;${ls.get('lal_bizlogo','')?'':'display:none'}" src="${ls.get('lal_bizlogo','')}">
+</div></div>
+<div class="card"><h2 style="margin-top:0">Google Sheet sync</h2><p class="mut" style="margin:0 0 8px">Paste the Web app link from your own Google Sheet (see the setup guide). Leave empty to use the app on this phone only.</p><div class="grid" style="grid-template-columns:1fr">
+<label>Web app link<input id="su_u" value="${esc(localStorage.getItem('lal_bizurl')||'')}" placeholder="https://script.google.com/macros/s/…/exec"></label>
+<label>Password (same as in your script)<input id="su_k" type="password" value="${esc(ls.get('lal_key',''))}"></label></div></div>
+<button class="pri" id="su_go" style="width:100%;margin-top:8px">Save and start</button></div>`;
+document.body.appendChild(d);let logo=null;
+$('su_l').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{const k=Math.min(1,400/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);logo=cv.toDataURL('image/png');$('su_li').src=logo;$('su_li').style.display=''};im.src=URL.createObjectURL(f)};
+$('su_go').onclick=()=>{const n=$('su_n').value.trim();if(!n){$('su_n').focus();return}const u=$('su_u').value.trim();if(u&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(u)){alert('That web app link does not look right. It should start with https://script.google.com/macros/s/ and end with /exec');return}
+const cf=ls.get('lal_cfg',{});Object.assign(cf,{bizName:n,cardOwner:$('su_o').value.trim(),footText:'Thank you for choosing '+n});ls.set('lal_cfg',cf);
+const bb=ls.get('lal_b',{});Object.assign(bb,{bphone:$('su_p').value.trim(),baddr:$('su_a').value.trim(),btag:$('su_t').value,bacname:bb.bacname||n});ls.set('lal_b',bb);
+if(logo)ls.set('lal_bizlogo',logo);try{u?localStorage.setItem('lal_bizurl',u):localStorage.removeItem('lal_bizurl')}catch(e){}
+ls.set('lal_key',$('su_k').value);const cf2=ls.get('lal_cfg',{});if(!cf2.cardBase){cf2.cardBase=location.origin+location.pathname.replace(/[^/]*$/,'')+'c';ls.set('lal_cfg',cf2)}if(!ls.get('lal_bizok',0))ls.set('lal_cat',[]);ls.set('lal_bizok',1);location.replace(location.pathname)}}
+if(window.__BIZ){const _cl=cardLink;cardLink=function(t,o){const L=_cl(t,o),u=localStorage.getItem('lal_bizurl')||'';return L&&u?L+(L.includes('?')?'&':'?')+'api='+encodeURIComponent(u):L};
+ document.title=(C().bizName||'Business')+' – Quotes';if(!ls.get('lal_bizok',0)||/[?&]setup=1/.test(location.search))setTimeout(bizSetup,50);
+ setTimeout(()=>{const box=$('connedit');if(box&&!$('bizsetbtn'))box.insertAdjacentHTML('afterend','<button id="bizsetbtn" onclick="bizSetup()">Business setup</button>')},800)}
 </script></body></html>
