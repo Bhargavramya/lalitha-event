@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='13.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='13.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4334,20 +4334,21 @@ function bizLogin(msg){if(!window.__BIZ)return;const inv=bizInvite();
  ${msg?`<p style="color:#c00">${esc(msg)}</p>`:''}<div class="card"><div class="grid" style="grid-template-columns:1fr">
  ${inv?'<label>Business name *<input id="li_b" placeholder="e.g. Sri Sai Decorators"></label>':''}
  <label>Email<input id="li_e" type="email" inputmode="email" autocomplete="email" value="${esc(ls.get('lal_bizemail',''))}"></label>
+ ${inv?'':`<details id="li_own"><summary style="cursor:pointer;margin:2px 0 6px">🔑 New business? Owner approval</summary><p class="mut" style="margin:0 0 6px">The app owner types the admin password here to create the account.</p><label>Business name<input id="li_ob" placeholder="e.g. Sri Sai Caterers"></label><label>Admin password (owner)<input id="li_oa" type="password" autocomplete="off" autocapitalize="off"></label></details>`}
  <button class="pri" id="li_s">Send code</button>
  <label id="li_cl" hidden>Code from your email<input id="li_c" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"></label>
  <button class="pri" id="li_v" hidden>Log in</button><p id="li_m" class="mut" style="margin:0"></p></div></div>
  <button id="li_off" style="width:100%;margin-top:8px">Use without account (this phone only)</button>`);
  const m=t=>$('li_m').textContent=t;
  $('li_s').onclick=async()=>{const e=$('li_e').value.trim();if(inv&&!$('li_b').value.trim()){$('li_b').focus();return}if(!e){$('li_e').focus();return}
-  $('li_s').disabled=true;m('Sending…');try{const r=await hubCall({action:'code',email:e,invite:inv});if(!r.ok){m(r.error);$('li_s').disabled=false;return}
+  $('li_s').disabled=true;m('Sending…');try{const own=$('li_oa')&&$('li_oa').value.trim();if(own&&!$('li_ob').value.trim()){m('Type the business name');$('li_ob').focus();$('li_s').disabled=false;return}const r=await hubCall({action:'code',email:e,invite:inv,admin:own||''});if(!r.ok){m(r.error);$('li_s').disabled=false;return}
   m('Code sent to '+e+'. Check your inbox (and spam).');$('li_cl').hidden=$('li_v').hidden=false;$('li_s').textContent='Send again';$('li_s').disabled=false;$('li_c').focus()}catch(x){m(navigator.onLine?x.message:'You are offline. Connect to the internet and try again.');$('li_s').disabled=false}};
  $('li_v').onclick=async()=>{const c=$('li_c').value.trim();if(c.length<6)return $('li_c').focus();$('li_v').disabled=true;m('Checking…');
-  try{const r=await hubCall({action:'verify',email:$('li_e').value.trim(),code:c,invite:inv,biz:inv?$('li_b').value.trim():''});if(!r.ok){m(r.error);$('li_v').disabled=false;return}
+  try{const own=$('li_oa')&&$('li_oa').value.trim();const r=await hubCall({action:'verify',email:$('li_e').value.trim(),code:c,invite:inv,admin:own||'',biz:inv?$('li_b').value.trim():(own?$('li_ob').value.trim():'')});if(!r.ok){m(r.error);$('li_v').disabled=false;return}
   ls.set('lal_key',r.token);ls.set('lal_bizemail',r.email);try{localStorage.setItem('lal_bizurl',HUB+'?u='+r.id+'&')}catch(e){}
   const cf=ls.get('lal_cfg',{});if(!cf.bizName&&r.biz){cf.bizName=r.biz;cf.footText='Thank you for choosing '+r.biz;ls.set('lal_cfg',cf)}
   if(!cf.cardBase){cf.cardBase=location.origin+location.pathname.replace(/[^/]*$/,'')+'c';ls.set('lal_cfg',cf)}
-  if(inv){if(!ls.get('lal_bizok',0))ls.set('lal_cat',[]);bizSetup(true)}else{ls.set('lal_bizok',1);location.replace(location.pathname)}}catch(x){m(x.message);$('li_v').disabled=false}};
+  if(inv||own){if(!ls.get('lal_bizok',0))ls.set('lal_cat',[]);bizSetup(true)}else{ls.set('lal_bizok',1);location.replace(location.pathname)}}catch(x){m(x.message);$('li_v').disabled=false}};
  $('li_c').addEventListener('input',()=>{if($('li_c').value.trim().length===6)$('li_v').click()});
  $('li_off').onclick=()=>bizSetup(true)}
 function bizSetup(force){if(!window.__BIZ)return;if(!force&&!ls.get('lal_key','')&&!ls.get('lal_bizok',0))return bizLogin();const c=C(),b=ls.get('lal_b',{});
@@ -4587,18 +4588,20 @@ const HUBJ='https://bhargavramya.github.io/lalitha-event/biz/hub.json';let HUBU=
 async function hubAdm(b){if(!HUBU){try{HUBU=(await fetch(HUBJ+'?'+Date.now()).then(r=>r.json())).url||''}catch(e){}}if(!HUBU)throw new Error('Business hub not reachable');
  const r=await fetch(HUBU,{method:'POST',body:JSON.stringify(Object.assign({admin:ls.get('lal_hubadmin','')},b))}).then(r=>r.json());if(!r.ok&&/admin key/i.test(r.error||''))ls.set('lal_hubadmin','');return r}
 function hubOpen(){if(window.__BIZ||window.__DEMO)return;const d=mdl('👥 Businesses using your app',`<div id="bzb"><p class="mut">Loading…</p></div>`);hubPaint()}
-async function hubPaint(){const b=$('bzb');if(!b)return;if(!ls.get('lal_hubadmin','')){b.innerHTML=`<p class="mut" style="margin:0 0 8px">Enter your hub admin key once. It stays on this phone.</p><input id="bzk" type="text" placeholder="Admin key (16 letters/numbers)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;font-family:monospace;font-size:18px;letter-spacing:1px"><button class="pri" style="width:100%;margin-top:8px" id="bzks">Save</button>`;
-  $('bzks').onclick=()=>{const v=$('bzk').value.replace(/[^0-9a-z]/gi,'').toLowerCase();if(!v)return;ls.set('lal_hubadmin',v);hubPaint()};return}
+async function hubPaint(){const b=$('bzb');if(!b)return;if(!ls.get('lal_hubadmin','')){b.innerHTML=`<p class="mut" style="margin:0 0 8px">Enter your admin password once. It stays on this phone.</p><input id="bzk" type="password" placeholder="Admin password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;font-size:18px"><label style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" style="width:auto" onchange="$('bzk').type=this.checked?'text':'password'"> Show</label><button class="pri" style="width:100%;margin-top:8px" id="bzks">Save</button>`;
+  $('bzks').onclick=()=>{const v=$('bzk').value.trim();if(!v)return;ls.set('lal_hubadmin',v);hubPaint()};return}
  b.innerHTML='<p class="mut">Loading…</p>';let r;try{r=await hubAdm({action:'accounts'})}catch(e){b.innerHTML=`<p>${esc(e.message)}</p>`;return}
- if(!r.ok){b.innerHTML=`<p style="color:#c00">${/admin key/i.test(r.error||'')?'That key did not match. Please type it again.':esc(r.error)}</p><button onclick="hubPaint()">Type the key again</button>`;return}
+ if(!r.ok){b.innerHTML=`<p style="color:#c00">${/admin key/i.test(r.error||'')?'That admin password did not match. Please type it again.':esc(r.error)}</p><button onclick="hubPaint()">Type the key again</button>`;return}
  const open=(r.invites||[]).filter(x=>!x.used);
- b.innerHTML=`<button class="pri" style="width:100%" onclick="hubInvite()">＋ Invite a business</button>
+ b.innerHTML=`<button class="pri" style="width:100%" onclick="hubInvite()">＋ Invite a business (send link)</button><p class="mut" style="margin:8px 2px 0;font-size:13px">Or on your friend's phone: open the business app → Log in → 🔑 Owner approval → type your admin password.</p><button class="sm ghost" style="margin-top:8px" onclick="hubPw()">🔑 Change admin password</button>
  <h3 style="margin:16px 0 6px">Joined (${r.accounts.length})</h3>${r.accounts.length?r.accounts.map(a=>`<label class="svcr"><span class="svcl"><b>${esc(a.biz)}</b><br><small class="mut">${esc(a.email)}${a.last?' · last login '+fdS(a.last):''}</small></span><input type="checkbox" class="svct" ${a.active?'checked':''} onchange="hubActive('${esc(a.email)}',this.checked)"></label>`).join(''):'<p class="mut">No one has joined yet.</p>'}
  ${open.length?`<h3 style="margin:16px 0 6px">Invites not used yet (${open.length})</h3>${open.map(x=>`<div class="svcr"><span class="svcl">${esc(x.note||x.code)}<br><small class="mut">${esc(x.code)}</small></span><button class="sm" onclick="hubShare('${esc(x.link)}','${esc(x.note||'')}')">Send again</button></div>`).join('')}`:''}`}
 async function hubInvite(){const n=prompt('Who is this invite for? (friend or business name)','');if(n===null)return;alertMsg('Creating invite…');
  try{const r=await hubAdm({action:'invite',note:n.trim()});if(!r.ok)return alertMsg(r.error||'Could not create invite');hubShare(r.link,n.trim());hubPaint()}catch(e){alertMsg(e.message)}}
 function hubShare(link,who){const msg=`Hi${who?' '+who:''}! Here's the quotation app for your business 👇\n${link}\n\n1. Open the link in Safari on your iPhone\n2. Type your business name and email → Send code\n3. Enter the 6-digit code from your email (check spam)\n4. Fill in your details and set a 4-digit PIN\n5. In Safari tap Share → Add to Home Screen`;
  if(navigator.share){navigator.share({text:msg}).catch(()=>{})}else open('https://wa.me/?text='+encodeURIComponent(msg))}
+async function hubPw(){const n=prompt('New admin password (at least 6 characters)');if(n===null)return;if(n.trim().length<6)return alertMsg('Use at least 6 characters');const n2=prompt('Type it again');if(n2===null)return;if(n2.trim()!==n.trim())return alertMsg('The two passwords did not match');
+ try{const r=await hubAdm({action:'setAdmin',newAdmin:n.trim()});if(r.ok){ls.set('lal_hubadmin',n.trim());alertMsg('Admin password changed ✓')}else alertMsg(r.error)}catch(e){alertMsg(e.message)}}
 async function hubActive(email,on){try{const r=await hubAdm({action:'setActive',email,on});alertMsg(r.ok?(on?'Access turned on':'Access turned off'):r.error)}catch(e){alertMsg(e.message)}}
 (function(){if(window.__BIZ||window.__DEMO)return;const add=()=>{const box=$('svcbox');if(box&&!$('bzrow'))box.insertAdjacentHTML('afterend',`<div class="card" id="bzrow"><h2>Businesses using your app</h2><p class="mut" style="margin:0 0 8px">Invite friends to use their own copy, with their own data.</p><button class="pri" style="width:100%" onclick="hubOpen()">👥 Open</button></div>`)};
  add();const t0=window.tab;window.tab=function(n){const r=t0.apply(this,arguments);if(n==='set')setTimeout(add,80);return r}})();

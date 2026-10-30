@@ -60,10 +60,12 @@ function setupHub() {
 }
 // Run once: makes the admin key that lets your own app create invites. The key is shown in the Execution log.
 function makeAdminKey() { const k = rnd_(16); HP_().setProperty('ADMIN', k); Logger.log('ADMIN KEY: ' + k); return k; }
+const adminOk_ = x => { const k = HP_().getProperty('ADMIN'); return !!k && String(x || '').trim() === k; };
 function admin_(b) {
   const k = HP_().getProperty('ADMIN');
-  if (!k || String(b.admin || '') !== k) return { ok: false, error: 'Wrong admin key' };
+  if (!adminOk_(b.admin)) return { ok: false, error: 'Wrong admin password' };
   if (b.action === 'invite') { const code = rnd_(8).toUpperCase(), link = APP_URL + '?invite=' + code; inv_().appendRow([code, link, new Date(), '', '', String(b.note || '')]); return { ok: true, code, link }; }
+  if (b.action === 'setAdmin') { const n = String(b.newAdmin || '').trim(); if (n.length < 6) return { ok: false, error: 'Use at least 6 characters' }; HP_().setProperty('ADMIN', n); return { ok: true }; }
   if (b.action === 'setActive') { const a = accRow_(1, b.email); if (!a) return { ok: false, error: 'Not found' }; a.s.getRange(a.row, 3).setValue(b.on ? 'yes' : 'no'); return { ok: true }; }
   const acc = acc_().getDataRange().getValues().slice(1).filter(r => r[1]).map(r => ({ biz: r[0], email: r[1], active: String(r[2]).toLowerCase() !== 'no', sheet: r[3], joined: r[4] ? new Date(r[4]).toISOString().slice(0, 10) : '', last: r[5] ? new Date(r[5]).toISOString().slice(0, 10) : '' }));
   const inv = inv_().getDataRange().getValues().slice(1).filter(r => r[0]).map(r => ({ code: r[0], link: r[1], used: r[3] || '', note: r[5] || '' }));
@@ -86,7 +88,7 @@ function sendCode_(b) {
   if (!mailOk_(email)) return { ok: false, error: 'Please type a valid email' };
   const a = accRow_(1, email);
   if (a && String(a.r[2]).toLowerCase() === 'no') return { ok: false, error: 'This account is turned off' };
-  if (!a && !inviteRow_(b.invite)) return { ok: false, error: b.invite ? 'This invite link is already used or not valid' : 'No account for this email. Ask for an invite link.' };
+  if (!a && !inviteRow_(b.invite) && !adminOk_(b.admin)) return { ok: false, error: b.invite ? 'This invite link is already used or not valid' : 'No account for this email. Ask the owner to approve with the admin password.' };
   const P = HP_(), k = 'otp:' + email, old = JSON.parse(P.getProperty(k) || '{}');
   if (old.n >= 5 && Date.now() - old.first < 3600e3) return { ok: false, error: 'Too many codes. Try again in an hour.' };
   const c = String(Math.floor(100000 + Math.random() * 900000));
@@ -102,11 +104,11 @@ function verify_(b) {
   P.setProperty(k, JSON.stringify({ n: o.n, first: o.first }));
   let a = accRow_(1, email);
   if (!a) {
-    const iv = inviteRow_(b.invite); if (!iv) return { ok: false, error: 'This invite link is already used or not valid' };
+    const iv = inviteRow_(b.invite); if (!iv && !adminOk_(b.admin)) return { ok: false, error: 'This invite link is already used or not valid' };
     const biz = String(b.biz || '').trim() || email, f = SpreadsheetApp.create(biz + ' – Quotes'), file = DriveApp.getFileById(f.getId());
     folder_().addFile(file); DriveApp.getRootFolder().removeFile(file);
     acc_().appendRow([biz, email, 'yes', f.getUrl(), new Date(), '', rnd_(10), f.getId()]);
-    iv.s.getRange(iv.row, 4, 1, 2).setValues([[email, new Date()]]);
+    if (iv) iv.s.getRange(iv.row, 4, 1, 2).setValues([[email, new Date()]]);
     a = accRow_(1, email);
   }
   if (String(a.r[2]).toLowerCase() === 'no') return { ok: false, error: 'This account is turned off' };
@@ -240,7 +242,7 @@ function doGet(e) {
 /* ---------- write ---------- */
 function doPost(e) {
   const b = JSON.parse(e.postData.contents);
-  if (b.action === 'invite' || b.action === 'accounts' || b.action === 'setActive') return out_(admin_(b));
+  if (b.action === 'invite' || b.action === 'accounts' || b.action === 'setActive' || b.action === 'setAdmin') return out_(admin_(b));
   if (b.action === 'code') return out_(sendCode_(b));
   if (b.action === 'verify') return out_(verify_(b));
   if (b.action === 'logout') { if (b.key) HP_().deleteProperty('ses:' + b.key); return out_({ ok: true }); }
