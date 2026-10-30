@@ -2099,7 +2099,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='11.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='12.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4315,11 +4315,36 @@ function gstExport(ym){ym=ym||today().slice(0,7);const Q=Object.values(allQ()).f
  (async()=>{try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e.name==='AbortError')return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()})();alertMsg(`${Q.length} invoice${Q.length===1?'':'s'} in ${ym}`)}
 (function(){const rc=window.repCharts;window.repCharts=function(){const r=rc.apply(this,arguments);const el=$('rep');if(el&&!el.querySelector('.gstx')){const opts=[0,1,2,3,4,5].map(i=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);const v=d.toISOString().slice(0,7);return `<option value="${v}">${d.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</option>`}).join('');el.insertAdjacentHTML('beforeend',`<div class="rch gstx"><b>GST summary for your accountant</b><p class="mut" style="font-size:12.5px;margin:4px 0 8px">All invoices of the month with taxable value, CGST, SGST, IGST — opens in Excel / Google Sheets. Tax is worked out from each invoice total; please have your accountant check.</p><div style="display:flex;gap:8px"><select id="gstm" style="flex:1;margin:0">${opts}</select><button class="pri" onclick="gstExport($('gstm').value)">Download</button></div></div>`)}return r}})();
 
-/* =================== v11.9: business setup (shared app for other businesses) =================== */
-function bizSetup(){if(!window.__BIZ||$('bizsu'))return;const c=C(),b=ls.get('lal_b',{});const d=document.createElement('div');d.id='bizsu';
-d.style.cssText='position:fixed;inset:0;z-index:99999;background:var(--bg,#fff);overflow:auto;-webkit-overflow-scrolling:touch';
+/* =================== v12.0: business app – email-code login via hub =================== */
+let HUB='';const hubP=window.__BIZ?fetch('hub.json?'+Date.now()).then(r=>r.json()).then(j=>HUB=j.url||'').catch(()=>''):Promise.resolve('');
+async function hubCall(b){await hubP;if(!HUB)throw new Error('Login is not set up yet. Ask the person who shared this app.');const r=await fetch(HUB,{method:'POST',body:JSON.stringify(b)});return r.json()}
+const bizInvite=()=>(new URLSearchParams(location.search).get('invite')||'').toUpperCase();
+function bizShell(html){let d=$('bizsu');if(!d){d=document.createElement('div');d.id='bizsu';d.style.cssText='position:fixed;inset:0;z-index:99999;background:var(--bg,#fff);overflow:auto;-webkit-overflow-scrolling:touch';document.body.appendChild(d)}
+ d.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) 16px 40px">${html}</div>`;return d}
+function bizLogin(msg){if(!window.__BIZ)return;const inv=bizInvite();
+ bizShell(`<h1 style="margin:0 0 4px">${inv?'Create your business account':'Log in'}</h1><p class="mut" style="margin:0 0 16px">${inv?'You have been invited. Use your email – we will send you a 6-digit code.':'Use the email of your business account. We will send you a 6-digit code.'}</p>
+ ${msg?`<p style="color:#c00">${esc(msg)}</p>`:''}<div class="card"><div class="grid" style="grid-template-columns:1fr">
+ ${inv?'<label>Business name *<input id="li_b" placeholder="e.g. Sri Sai Decorators"></label>':''}
+ <label>Email<input id="li_e" type="email" inputmode="email" autocomplete="email" value="${esc(ls.get('lal_bizemail',''))}"></label>
+ <button class="pri" id="li_s">Send code</button>
+ <label id="li_cl" hidden>Code from your email<input id="li_c" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"></label>
+ <button class="pri" id="li_v" hidden>Log in</button><p id="li_m" class="mut" style="margin:0"></p></div></div>
+ <button id="li_off" style="width:100%;margin-top:8px">Use without account (this phone only)</button>`);
+ const m=t=>$('li_m').textContent=t;
+ $('li_s').onclick=async()=>{const e=$('li_e').value.trim();if(inv&&!$('li_b').value.trim()){$('li_b').focus();return}if(!e){$('li_e').focus();return}
+  $('li_s').disabled=true;m('Sending…');try{const r=await hubCall({action:'code',email:e,invite:inv});if(!r.ok){m(r.error);$('li_s').disabled=false;return}
+  m('Code sent to '+e+'. Check your inbox (and spam).');$('li_cl').hidden=$('li_v').hidden=false;$('li_s').textContent='Send again';$('li_s').disabled=false;$('li_c').focus()}catch(x){m(navigator.onLine?x.message:'You are offline. Connect to the internet and try again.');$('li_s').disabled=false}};
+ $('li_v').onclick=async()=>{const c=$('li_c').value.trim();if(c.length<6)return $('li_c').focus();$('li_v').disabled=true;m('Checking…');
+  try{const r=await hubCall({action:'verify',email:$('li_e').value.trim(),code:c,invite:inv,biz:inv?$('li_b').value.trim():''});if(!r.ok){m(r.error);$('li_v').disabled=false;return}
+  ls.set('lal_key',r.token);ls.set('lal_bizemail',r.email);try{localStorage.setItem('lal_bizurl',HUB+'?u='+r.id+'&')}catch(e){}
+  const cf=ls.get('lal_cfg',{});if(!cf.bizName&&r.biz){cf.bizName=r.biz;cf.footText='Thank you for choosing '+r.biz;ls.set('lal_cfg',cf)}
+  if(!cf.cardBase){cf.cardBase=location.origin+location.pathname.replace(/[^/]*$/,'')+'c';ls.set('lal_cfg',cf)}
+  if(inv){if(!ls.get('lal_bizok',0))ls.set('lal_cat',[]);bizSetup(true)}else{ls.set('lal_bizok',1);location.replace(location.pathname)}}catch(x){m(x.message);$('li_v').disabled=false}};
+ $('li_c').addEventListener('input',()=>{if($('li_c').value.trim().length===6)$('li_v').click()});
+ $('li_off').onclick=()=>bizSetup(true)}
+function bizSetup(force){if(!window.__BIZ)return;if(!force&&!ls.get('lal_key','')&&!ls.get('lal_bizok',0))return bizLogin();const c=C(),b=ls.get('lal_b',{});
 const T=['Event decoration','Catering','Photography','Tent house','Flower shop','Other'];
-d.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) 16px 40px"><h1 style="margin:0 0 4px">Set up your business</h1><p class="mut" style="margin:0 0 16px">This shows on your quotes, PDFs and WhatsApp messages. You can change it later in Settings.</p>
+bizShell(`<h1 style="margin:0 0 4px">Your business</h1><p class="mut" style="margin:0 0 16px">This shows on your quotes, PDFs and WhatsApp messages.${ls.get('lal_bizemail','')?' Logged in as '+esc(ls.get('lal_bizemail','')):''}</p>
 <div class="card"><div class="grid" style="grid-template-columns:1fr">
 <label>Business name *<input id="su_n" value="${esc(c.bizName||'')}" placeholder="e.g. Sri Sai Decorators"></label>
 <label>Type of business<select id="su_t">${T.map(t=>`<option${b.btag===t?' selected':''}>${t}</option>`).join('')}</select></label>
@@ -4327,19 +4352,23 @@ d.innerHTML=`<div style="max-width:520px;margin:0 auto;padding:max(24px,env(safe
 <label>Phone<input id="su_p" inputmode="tel" value="${esc(b.bphone||'')}"></label>
 <label>Address<input id="su_a" value="${esc(b.baddr||'')}"></label>
 <label>Logo (optional)<input id="su_l" type="file" accept="image/*"></label><img id="su_li" style="max-height:70px;${ls.get('lal_bizlogo','')?'':'display:none'}" src="${ls.get('lal_bizlogo','')}">
-</div></div>
-<div class="card"><h2 style="margin-top:0">Google Sheet sync</h2><p class="mut" style="margin:0 0 8px">Paste the Web app link from your own Google Sheet (see the setup guide). Leave empty to use the app on this phone only.</p><div class="grid" style="grid-template-columns:1fr">
-<label>Web app link<input id="su_u" value="${esc(localStorage.getItem('lal_bizurl')||'')}" placeholder="https://script.google.com/macros/s/…/exec"></label>
-<label>Password (same as in your script)<input id="su_k" type="password" value="${esc(ls.get('lal_key',''))}"></label></div></div>
-<button class="pri" id="su_go" style="width:100%;margin-top:8px">Save and start</button></div>`;
-document.body.appendChild(d);let logo=null;
+</div></div><button class="pri" id="su_go" style="width:100%;margin-top:8px">Save and start</button>
+${ls.get('lal_key','')?'<button id="su_out" style="width:100%;margin-top:8px">Log out of this phone</button>':'<button id="su_in" style="width:100%;margin-top:8px">Log in to sync with an account</button>'}
+${ls.get('lal_bizok',0)?'<button id="su_x" style="width:100%;margin-top:8px">Close</button>':''}`);
+let logo=null;
 $('su_l').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{const k=Math.min(1,400/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);logo=cv.toDataURL('image/png');$('su_li').src=logo;$('su_li').style.display=''};im.src=URL.createObjectURL(f)};
-$('su_go').onclick=()=>{const n=$('su_n').value.trim();if(!n){$('su_n').focus();return}const u=$('su_u').value.trim();if(u&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(u)){alert('That web app link does not look right. It should start with https://script.google.com/macros/s/ and end with /exec');return}
-const cf=ls.get('lal_cfg',{});Object.assign(cf,{bizName:n,cardOwner:$('su_o').value.trim(),footText:'Thank you for choosing '+n});ls.set('lal_cfg',cf);
+if($('su_x'))$('su_x').onclick=()=>$('bizsu').remove();if($('su_in'))$('su_in').onclick=()=>bizLogin();if($('su_out'))$('su_out').onclick=bizLogout;
+$('su_go').onclick=()=>{const n=$('su_n').value.trim();if(!n){$('su_n').focus();return}
+const cf=ls.get('lal_cfg',{});Object.assign(cf,{bizName:n,cardOwner:$('su_o').value.trim()});if(!cf.footText||/^Thank you for choosing /.test(cf.footText))cf.footText='Thank you for choosing '+n;ls.set('lal_cfg',cf);
 const bb=ls.get('lal_b',{});Object.assign(bb,{bphone:$('su_p').value.trim(),baddr:$('su_a').value.trim(),btag:$('su_t').value,bacname:bb.bacname||n});ls.set('lal_b',bb);
-if(logo)ls.set('lal_bizlogo',logo);try{u?localStorage.setItem('lal_bizurl',u):localStorage.removeItem('lal_bizurl')}catch(e){}
-ls.set('lal_key',$('su_k').value);const cf2=ls.get('lal_cfg',{});if(!cf2.cardBase){cf2.cardBase=location.origin+location.pathname.replace(/[^/]*$/,'')+'c';ls.set('lal_cfg',cf2)}if(!ls.get('lal_bizok',0))ls.set('lal_cat',[]);ls.set('lal_bizok',1);location.replace(location.pathname)}}
+if(logo)ls.set('lal_bizlogo',logo);if(!ls.get('lal_bizok',0)&&!Array.isArray(ls.get('lal_cat',null)))ls.set('lal_cat',[]);ls.set('lal_bizok',1);location.replace(location.pathname)}}
+async function bizLogout(){if(!confirm('Log out? This phone forgets your data. It stays safe in your account – log in again any time to get it back.'))return;
+ try{await hubCall({action:'logout',key:ls.get('lal_key','')})}catch(e){}
+ const K=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k)K.push(k)}K.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+ try{indexedDB.deleteDatabase('lal_photos_biz')}catch(e){}location.replace(location.pathname)}
 if(window.__BIZ){const _cl=cardLink;cardLink=function(t,o){const L=_cl(t,o),u=localStorage.getItem('lal_bizurl')||'';return L&&u?L+(L.includes('?')?'&':'?')+'api='+encodeURIComponent(u):L};
- document.title=(C().bizName||'Business')+' – Quotes';if(!ls.get('lal_bizok',0)||/[?&]setup=1/.test(location.search))setTimeout(bizSetup,50);
- setTimeout(()=>{const box=$('connedit');if(box&&!$('bizsetbtn'))box.insertAdjacentHTML('afterend','<button id="bizsetbtn" onclick="bizSetup()">Business setup</button>')},800)}
+ document.title=(C().bizName||'Business')+' – Quotes';
+ setTimeout(()=>{if(bizInvite()&&!ls.get('lal_key',''))return bizLogin();if(!ls.get('lal_bizok',0)&&!ls.get('lal_key',''))return bizLogin();if(/[?&]setup=1/.test(location.search))bizSetup(true)},50);
+ setTimeout(async()=>{const k=ls.get('lal_key','');if(!k||!navigator.onLine)return;try{const r=await hubCall({action:'me',key:k});if(r&&r.ok===false&&/log in/i.test(r.error||''))bizLogin('Please log in again.')}catch(e){}},2500);
+ setTimeout(()=>{const box=$('connedit');if(box&&!$('bizsetbtn'))box.insertAdjacentHTML('afterend','<button id="bizsetbtn" onclick="bizSetup(true)">Business & account</button>')},800)}
 </script></body></html>
