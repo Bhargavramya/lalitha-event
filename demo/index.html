@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='13.5';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='13.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4623,8 +4623,19 @@ function hubShare(link,who){const msg=`Hi${who?' '+who:''}! Here's the quotation
  if(navigator.share){navigator.share({text:msg}).catch(()=>{})}else open('https://wa.me/?text='+encodeURIComponent(msg))}
 async function hubPw(){const n=prompt('New admin password (at least 6 characters)');if(n===null)return;if(n.trim().length<6)return alertMsg('Use at least 6 characters');const n2=prompt('Type it again');if(n2===null)return;if(n2.trim()!==n.trim())return alertMsg('The two passwords did not match');
  try{const r=await hubAdm({action:'setAdmin',newAdmin:n.trim()});if(r.ok){ls.set('lal_hubadmin',n.trim());alertMsg('Admin password changed ✓')}else alertMsg(r.error)}catch(e){alertMsg(e.message)}}
+function hubAsk(){const msg=`Hi! 🙏 I'm setting up a free quotation app for your business. Please send me:
+
+1. Business name
+2. Your email (you will log in with this)
+3. Phone number
+4. Business address
+5. Type of business (decoration / catering / function hall / other)
+6. Your name
+7. Your logo (send as photo)
+
+I'll create your account and send you the link.`;if(navigator.share)navigator.share({text:msg}).catch(()=>{});else open('https://wa.me/?text='+encodeURIComponent(msg))}
 function hubCreate(){const T=['Event decoration','Catering','Function hall','Photography','Tent house','Flower shop','Other'];
- const d=mdl('Create account for a friend',`<div class="grid" style="grid-template-columns:1fr">
+ const d=mdl('Create account for a friend',`<button style="width:100%;margin-bottom:12px" onclick="hubAsk()">📲 Ask friend for these details on WhatsApp</button><div class="grid" style="grid-template-columns:1fr">
  <label>Business name *<input id="hc_b" placeholder="e.g. Sri Sai Caterers"></label>
  <label>His email * <small class="mut">(he logs in with this)</small><input id="hc_e" type="email" inputmode="email" autocapitalize="off"></label>
  <label>Type of business<select id="hc_t">${T.map(t=>`<option>${t}</option>`).join('')}</select></label>
