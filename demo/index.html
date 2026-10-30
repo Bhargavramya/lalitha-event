@@ -2117,7 +2117,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='12.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='12.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4388,5 +4388,6 @@ if(window.__BIZ){const _cl=cardLink;cardLink=function(t,o){const L=_cl(t,o),u=lo
  document.title=(C().bizName||'Business')+' – Quotes';
  setTimeout(()=>{if(bizInvite()&&!ls.get('lal_key',''))return bizLogin();if(!ls.get('lal_bizok',0)&&!ls.get('lal_key',''))return bizLogin();if(/[?&]setup=1/.test(location.search))bizSetup(true)},50);
  setTimeout(async()=>{const k=ls.get('lal_key','');if(!k||!navigator.onLine)return;try{const r=await hubCall({action:'me',key:k});if(r&&r.ok===false&&/log in/i.test(r.error||''))bizLogin('Please log in again.')}catch(e){}},2500);
+ setTimeout(()=>{if(ls.get('lal_bizok',0)&&!ls.get('lal_pin','')&&!$('bizsu')&&typeof pinSet==='function'){pinSet();const h=document.querySelector('.mdl h2,.mdl h3');if(h)h.textContent='Set a 4-digit PIN to keep your business safe'}},1800);
  setTimeout(()=>{const box=$('connedit');if(box&&!$('bizsetbtn'))box.insertAdjacentHTML('afterend','<button id="bizsetbtn" onclick="bizSetup(true)">Business & account</button>')},800)}
 </script></body></html>
