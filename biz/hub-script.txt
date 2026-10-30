@@ -67,6 +67,16 @@ function admin_(b) {
   const k = HP_().getProperty('ADMIN');
   if (!adminOk_(b.admin)) return { ok: false, error: 'Wrong admin password' };
   if (b.action === 'invite') { const code = rnd_(8).toUpperCase(), link = APP_URL + '?invite=' + code; inv_().appendRow([code, link, new Date(), '', '', String(b.note || '')]); return { ok: true, code, link }; }
+  if (b.action === 'createAcc') {
+    const email = String(b.email || '').trim().toLowerCase(), biz = String(b.biz || '').trim();
+    if (!mailOk_(email)) return { ok: false, error: 'Type a valid email' }; if (!biz) return { ok: false, error: 'Type the business name' };
+    if (accRow_(1, email)) return { ok: false, error: 'This email already has an account' };
+    const f = SpreadsheetApp.create(biz + ' – Quotes'), file = DriveApp.getFileById(f.getId()); folder_().addFile(file); DriveApp.getRootFolder().removeFile(file);
+    const id = rnd_(10); acc_().appendRow([biz, email, 'yes', f.getUrl(), new Date(), '', id, f.getId()]);
+    CUR_ = f; CU_ = id; const now = Date.now(), cfg = Object.assign({ bizName: biz, footText: 'Thank you for choosing ' + biz }, b.cfg || {}), bus = Object.assign({ bacname: biz }, b.business || {});
+    if (b.svc) cfg.svc = b.svc; kvWrite_(set_(), 'config', JSON.stringify(cfg)); kvWrite_(set_(), 'business', JSON.stringify(bus)); if (b.logo) kvWrite_(set_(), 'bizlogo', JSON.stringify(b.logo));
+    return { ok: true, email, link: APP_URL + '?email=' + encodeURIComponent(email) };
+  }
   if (b.action === 'setAdmin') { const n = String(b.newAdmin || '').trim(); if (n.length < 6) return { ok: false, error: 'Use at least 6 characters' }; HP_().setProperty('ADMIN', n); return { ok: true }; }
   if (b.action === 'setActive') { const a = accRow_(1, b.email); if (!a) return { ok: false, error: 'Not found' }; a.s.getRange(a.row, 3).setValue(b.on ? 'yes' : 'no'); return { ok: true }; }
   const acc = acc_().getDataRange().getValues().slice(1).filter(r => r[1]).map(r => ({ biz: r[0], email: r[1], active: String(r[2]).toLowerCase() !== 'no', sheet: r[3], joined: r[4] ? new Date(r[4]).toISOString().slice(0, 10) : '', last: r[5] ? new Date(r[5]).toISOString().slice(0, 10) : '' }));
@@ -246,7 +256,7 @@ function doPost(e) {
   const b = JSON.parse(e.postData.contents);
   if (b.action === 'adminState') return out_({ ok: true, open: HP_().getProperty('ADMIN_OPEN') === '1' });
   if (b.action === 'createAdmin') { const P = HP_(); if (P.getProperty('ADMIN_OPEN') !== '1') return out_({ ok: false, error: 'Admin password already created' }); const n = String(b.newAdmin || '').trim(); if (n.length < 6) return out_({ ok: false, error: 'Use at least 6 characters' }); P.setProperty('ADMIN', n); P.deleteProperty('ADMIN_OPEN'); return out_({ ok: true }); }
-  if (b.action === 'invite' || b.action === 'accounts' || b.action === 'setActive' || b.action === 'setAdmin') return out_(admin_(b));
+  if (b.action === 'invite' || b.action === 'accounts' || b.action === 'setActive' || b.action === 'setAdmin' || b.action === 'createAcc') return out_(admin_(b));
   if (b.action === 'code') return out_(sendCode_(b));
   if (b.action === 'verify') return out_(verify_(b));
   if (b.action === 'logout') { if (b.key) HP_().deleteProperty('ses:' + b.key); return out_({ ok: true }); }
