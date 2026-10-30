@@ -42,7 +42,7 @@ let CUR_ = null, CU_ = '';
 const hub_ = () => SpreadsheetApp.getActiveSpreadsheet();
 const ss_ = () => { if (!CUR_) throw new Error('No account'); return CUR_; };
 const ACC_H = ['Business', 'Email', 'Active', 'Sheet link', 'Joined', 'Last login', 'ID (do not edit)', 'Sheet ID (do not edit)'];
-const INV_H = ['Invite code', 'Link', 'Created', 'Used by', 'Used at'];
+const INV_H = ['Invite code', 'Link', 'Created', 'Used by', 'Used at', 'For'];
 function tab_(n, h) {
   let s = hub_().getSheetByName(n);
   if (!s) { s = hub_().insertSheet(n); s.appendRow(h); s.setFrozenRows(1); s.getRange(1, 1, 1, h.length).setFontWeight('bold').setBackground('#f3eee0'); s.setColumnWidths(1, h.length, 170); }
@@ -57,6 +57,17 @@ function setupHub() {
   ScriptApp.newTrigger('weeklyBackup').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(23).inTimezone('Asia/Kolkata').create();
   MailApp.getRemainingDailyQuota(); folder_();
   Logger.log('Hub ready. Now Deploy → New deployment → Web app.');
+}
+// Run once: makes the admin key that lets your own app create invites. The key is shown in the Execution log.
+function makeAdminKey() { const k = rnd_(16); HP_().setProperty('ADMIN', k); Logger.log('ADMIN KEY: ' + k); return k; }
+function admin_(b) {
+  const k = HP_().getProperty('ADMIN');
+  if (!k || String(b.admin || '') !== k) return { ok: false, error: 'Wrong admin key' };
+  if (b.action === 'invite') { const code = rnd_(8).toUpperCase(), link = APP_URL + '?invite=' + code; inv_().appendRow([code, link, new Date(), '', '', String(b.note || '')]); return { ok: true, code, link }; }
+  if (b.action === 'setActive') { const a = accRow_(1, b.email); if (!a) return { ok: false, error: 'Not found' }; a.s.getRange(a.row, 3).setValue(b.on ? 'yes' : 'no'); return { ok: true }; }
+  const acc = acc_().getDataRange().getValues().slice(1).filter(r => r[1]).map(r => ({ biz: r[0], email: r[1], active: String(r[2]).toLowerCase() !== 'no', sheet: r[3], joined: r[4] ? new Date(r[4]).toISOString().slice(0, 10) : '', last: r[5] ? new Date(r[5]).toISOString().slice(0, 10) : '' }));
+  const inv = inv_().getDataRange().getValues().slice(1).filter(r => r[0]).map(r => ({ code: r[0], link: r[1], used: r[3] || '', note: r[5] || '' }));
+  return { ok: true, accounts: acc, invites: inv };
 }
 function onOpen() { SpreadsheetApp.getUi().createMenu('Business Hub').addItem('Create invite link', 'createInvite').addToUi(); }
 function createInvite() {
@@ -229,6 +240,7 @@ function doGet(e) {
 /* ---------- write ---------- */
 function doPost(e) {
   const b = JSON.parse(e.postData.contents);
+  if (b.action === 'invite' || b.action === 'accounts' || b.action === 'setActive') return out_(admin_(b));
   if (b.action === 'code') return out_(sendCode_(b));
   if (b.action === 'verify') return out_(verify_(b));
   if (b.action === 'logout') { if (b.key) HP_().deleteProperty('ses:' + b.key); return out_({ ok: true }); }
