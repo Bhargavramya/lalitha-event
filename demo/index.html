@@ -2118,7 +2118,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='12.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='12.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4304,7 +4304,7 @@ function modeUI(){const b=$('modeseg');if(!b)return;b.querySelectorAll('button')
 (function(){const look=document.querySelector('[data-sp="look"]');if(look&&!$('modeseg')){look.insertAdjacentHTML('afterbegin',`<div class="card" style="margin-bottom:12px"><h2>App mode</h2><p class="mut" style="margin:4px 0 10px">Simple shows only the basics — good for family or staff using this phone. ${'Pro shows everything.'}</p><div class="seg2" id="modeseg"><button data-m="simple" onclick="modeSet('simple')">Simple</button><button data-m="pro" onclick="modeSet('pro')">Pro</button></div></div>`);modeUI()}if(typeof SET_EXTRA!=='undefined')SET_EXTRA.look+=' simple pro mode easy basic'})();
 modeApply();
 /* ---- What's new ---- */
-const WHATSNEW=[['12.2',['🍽 Sessions in a quote – e.g. Tiffin / Lunch / Dinner on different days, per plate or fixed price','📋 Saved menus, 👩‍🍳 kitchen sheet, ⧉ copy session, 📤 send updated plate count']],['11.8',['📷 Photos now saved in the phone\'s large photo storage — no more running out of space','Existing photos moved across automatically']],['11.7',['⭐ Repeat-customer hint + loyalty discount; Best customers widget','📲 Staff app links (Settings → Staff & team)','Public package price page (Settings → Items & packages)','GST summary download (Reports)']],['11.6',['↶ Undo for 10 seconds after any change','Offline bar shows unsynced changes','Simple / Pro mode (Settings → Look & feel)','This What\'s new card after updates']],['11.5',['App opens about 3× faster','Data health check + photo saver (Settings → Backup & sharing)','Every update is fully tested before it reaches you']],['11.4',['✨ AI on every screen (purple button)','Scan a bill, voice note → tasks, AI search','Morning AI drafts for follow-ups and thank-yous']],['11.2',['✨ AI tools: chat → enquiry, photo → quote, Instagram posts, review replies']]];
+const WHATSNEW=[['12.3',['🍽 Faster menu entry – numbered list, type + Enter, tap suggestions to add']],['12.2',['🍽 Sessions in a quote – e.g. Tiffin / Lunch / Dinner on different days, per plate or fixed price','📋 Saved menus, 👩‍🍳 kitchen sheet, ⧉ copy session, 📤 send updated plate count']],['11.8',['📷 Photos now saved in the phone\'s large photo storage — no more running out of space','Existing photos moved across automatically']],['11.7',['⭐ Repeat-customer hint + loyalty discount; Best customers widget','📲 Staff app links (Settings → Staff & team)','Public package price page (Settings → Items & packages)','GST summary download (Reports)']],['11.6',['↶ Undo for 10 seconds after any change','Offline bar shows unsynced changes','Simple / Pro mode (Settings → Look & feel)','This What\'s new card after updates']],['11.5',['App opens about 3× faster','Data health check + photo saver (Settings → Backup & sharing)','Every update is fully tested before it reaches you']],['11.4',['✨ AI on every screen (purple button)','Scan a bill, voice note → tasks, AI search','Morning AI drafts for follow-ups and thank-yous']],['11.2',['✨ AI tools: chat → enquiry, photo → quote, Instagram posts, review replies']]];
 (function(){const seen=ls.get('lal_seenver','');if(seen===APP_VERSION)return;ls.set('lal_seenver',APP_VERSION);if(!seen||window.__DEMO)return;const L=WHATSNEW.filter(w=>w[0]>seen.replace(/^(\d+\.\d+).*/,'$1')||w[0]===APP_VERSION).slice(0,3);if(!L.length)return;
  setTimeout(()=>{const d=aiSheet(`What's new in v${APP_VERSION}`,`${L.map(([v,items])=>`<h3 class="plh">v${v}</h3><ul class="wn">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('')}<button class="pri" style="width:100%;margin-top:12px" onclick="this.closest('.mdl').remove()">Got it</button>`,350)},2500)})();
 
@@ -4407,7 +4407,7 @@ function sesRender(){const b=$('sesbox');if(!b)return;if(!SES.length){b.innerHTM
  <div class="sesr"><label style="flex:1">Plates<input type="number" inputmode="numeric" value="${x.plates||''}" oninput="sesPlates(${i},this.value)"></label>
  <label style="flex:1">Price<select onchange="SES[${i}].mode=this.value;sesRender();sesDirty()"><option value="plate"${x.mode!=='fixed'?' selected':''}>per plate</option><option value="fixed"${x.mode==='fixed'?' selected':''}>fixed amount</option></select></label>
  <label style="flex:1">₹<input type="number" inputmode="decimal" value="${x.price||''}" oninput="SES[${i}].price=+this.value;sesAmtShow(${i});sesDirty()"></label></div>
- <label>Menu (${m.length} item${m.length===1?'':'s'}) – one per line<textarea rows="3" oninput="SES[${i}].menu=this.value;sesDirty()" onblur="sesRender()" placeholder="Idli&#10;Vada&#10;Chutney">${esc(x.menu||'')}</textarea></label>
+ <div class="smn" id="smn${i}">${smnHtml(i)}</div>
  <div class="sesr sesf"><b id="sesa${i}">${fmt(sesAmt(x))}</b>${x.p0!=null&&+x.p0!==+x.plates?`<span class="mut">plates changed from ${x.p0}</span>`:''}<span style="flex:1"></span>
  <button class="sm ghost" onclick="sesMenuPick(${i})">📋 Menu</button><button class="sm ghost" onclick="sesCopy(${i})">⧉ Copy</button><button class="sm ghost" onclick="sesDel(${i})">✕</button></div></div>`}).join('')+
  `<datalist id="sesnl">${SESN.map(n=>`<option value="${n}">`).join('')}</datalist><div class="flex" style="margin:6px 0 12px"><button class="ghost sm" onclick="sesAdd()">+ Session</button><button class="ghost sm" onclick="kitchenSheet()">👩‍🍳 Kitchen sheet</button>${SES.some(x=>x.p0!=null&&+x.p0!==+x.plates)?'<button class="ghost sm" onclick="sesSendUpdate()">📤 Send updated plates</button>':''}</div>`}
@@ -4456,4 +4456,30 @@ function kitchenSheet(){const o=data();const L=sesSort(SES||[]);if(!L.length)ret
  const n1=window.newQ;window.newQ=function(){const r=n1.apply(this,arguments);if(isCat()&&!SES.length){sesAdd({name:'Lunch'})}return r};
  if(isCat()){const st=document.createElement('style');st.textContent='#itbl,#itbl+.flex>button:not(#sesadd){display:none}#sesadd{font-weight:700}';document.head.appendChild(st);
   const ip=$('itbl');if(ip&&!$('itshow'))ip.insertAdjacentHTML('beforebegin','<button class="ghost sm" id="itshow" style="margin:6px 0" onclick="this.remove();document.querySelectorAll(\'style\').forEach(s=>{if(s.textContent.startsWith(\'#itbl,\'))s.remove()})">+ Extra items (tables, staff, transport…)</button>')}})();
+
+/* =================== v12.3: fast numbered menu entry =================== */
+function smnFreq(){const M={};const add=t=>{t=t.trim();if(!t)return;const k=t.toLowerCase();M[k]=M[k]||{t,n:0};M[k].n++};
+ Object.values(allQ()).forEach(o=>(o.ses||[]).forEach(x=>sesMenu(x).forEach(add)));menusGet().forEach(m=>sesMenu(m).forEach(add));(SES||[]).forEach(x=>sesMenu(x).forEach(add));
+ return Object.values(M).sort((a,b)=>b.n-a.n).map(x=>x.t)}
+function smnHtml(i,q){const x=SES[i],m=sesMenu(x),have=new Set(m.map(t=>t.toLowerCase()));q=(q||'').trim().toLowerCase();
+ const sug=smnFreq().filter(t=>!have.has(t.toLowerCase())&&(!q||t.toLowerCase().includes(q))).slice(0,q?8:12);
+ return `<div class="smh"><b>Menu</b><span class="mut">${m.length} item${m.length===1?'':'s'}</span></div>
+ <ol class="sml">${m.map((t,k)=>`<li><span class="smno">${k+1}</span><input value="${esc(t)}" enterkeyhint="next" onchange="smnSet(${i},${k},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();smnFocus(${i})}"><button class="smx" tabindex="-1" onclick="smnDel(${i},${k})" aria-label="Remove">✕</button></li>`).join('')}</ol>
+ <div class="sma"><span class="smno">${m.length+1}</span><input id="smi${i}" placeholder="Type item, press Enter" enterkeyhint="enter" autocomplete="off" autocapitalize="words" value="${esc(q?arguments[1]:'')}" oninput="smnType(${i},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();smnAdd(${i},this.value)}"><button class="sm pri" onclick="smnAdd(${i},$('smi${i}').value)">Add</button></div>
+ ${sug.length?`<div class="smc">${sug.map(t=>`<button tabindex="-1" onclick="smnAdd(${i},this.dataset.t,1)" data-t="${esc(t)}">+ ${esc(t)}</button>`).join('')}</div>`:''}`}
+function smnSave(i,L){SES[i].menu=L.join('\n');sesDirty()}
+function smnPaint(i,q,focus){const b=$('smn'+i);if(!b)return;b.innerHTML=smnHtml(i,q);if(focus){const f=$('smi'+i);if(f){f.focus();const v=f.value;f.setSelectionRange(v.length,v.length)}}}
+function smnFocus(i){const f=$('smi'+i);if(f)f.focus()}
+function smnAdd(i,v,keep){const parts=String(v||'').split(/\n|,|;/).map(t=>t.trim()).filter(Boolean);if(!parts.length)return smnFocus(i);
+ const L=sesMenu(SES[i]),have=new Set(L.map(t=>t.toLowerCase()));parts.forEach(t=>{t=t.charAt(0).toUpperCase()+t.slice(1);if(!have.has(t.toLowerCase())){L.push(t);have.add(t.toLowerCase())}});
+ smnSave(i,L);try{haptic&&haptic()}catch(e){}smnPaint(i,'',!keep||document.activeElement&&document.activeElement.id==='smi'+i)}
+function smnType(i,v){if(/[,\n]/.test(v)){smnAdd(i,v);return}clearTimeout(window._smt);window._smt=setTimeout(()=>{const b=$('smn'+i);if(!b)return;const f=$('smi'+i),pos=f.selectionStart;const c=b.querySelector('.smc');const tmp=document.createElement('div');tmp.innerHTML=smnHtml(i,v);const nc=tmp.querySelector('.smc');if(c)c.remove();if(nc)b.appendChild(nc)},120)}
+function smnSet(i,k,v){const L=sesMenu(SES[i]);v=v.trim();if(v)L[k]=v;else L.splice(k,1);smnSave(i,L);smnPaint(i)}
+function smnDel(i,k){const L=sesMenu(SES[i]);L.splice(k,1);smnSave(i,L);smnPaint(i)}
+(function(){const st=document.createElement('style');st.textContent=`.smn{margin:4px 0 6px}.smh{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 6px}
+.sml{list-style:none;margin:0;padding:0}.sml li,.sma{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.smno{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:var(--acc,#c8102e);color:#fff;font:600 12px/26px system-ui;text-align:center}
+.sma .smno{background:transparent;color:inherit;border:1.5px dashed currentColor;opacity:.5;line-height:23px}
+.sml input,.sma input{flex:1;min-width:0;height:40px;font-size:16px}.smx{flex:0 0 36px;height:36px;padding:0;background:transparent;box-shadow:none;opacity:.55}
+.sma button{flex:0 0 auto;height:40px}.smc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.smc button{padding:6px 10px;font-size:14px;border-radius:16px;height:auto;min-height:0}`;document.head.appendChild(st)})();
 </script></body></html>
