@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='12.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='12.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4554,4 +4554,25 @@ input.svct:checked{background:#34c759!important}input.svct:checked::after{left:2
 #eqkind{width:100%;flex:1 1 100%;grid-column:1/-1}.hbar{padding:10px;margin:0 0 10px}.kb{font-size:13px;margin-left:2px}`;document.head.appendChild(st);
  kFilterUI();svcSettings();const t0=window.tab;if(t0)window.tab=function(n){const r=t0.apply(this,arguments);if(n==='biz'||n==='set')setTimeout(svcSettings,50);if(n==='saved')kFilterUI();return r};kApply()})();
 (function(){const l0=window.list;window.list=function(){const r=l0.apply(this,arguments);try{const Q=allQ();document.querySelectorAll('#saved .qi,#saved .qi2').forEach(c=>{if(c.querySelector('.kb'))return;const m=(c.getAttribute('onclick')||'').match(/'([^']+)'/);if(!m||!Q[m[1]])return;const h=kindBadges(Q[m[1]]);if(!h)return;const b=c.querySelector('b');b?b.insertAdjacentHTML('afterend',h):c.insertAdjacentHTML('afterbegin',h)})}catch(e){}return r}})();
+
+/* =================== v12.9: settings search finds any text =================== */
+(function(){
+ const own=el=>{let t='';el.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent+' '});return t.replace(/\s+/g,' ').trim()};
+ window.setIndex=function(){const R=[];SETM.forEach(([k,i,t,sub])=>R.push({k,t,sub,txt:(t+' '+sub+' '+(SET_EXTRA[k]||'')).toLowerCase(),el:null,w:3}));
+  const root=$('t-set')||document;const seen=new Set();
+  root.querySelectorAll('*').forEach(el=>{if(el.closest('#setsr,.setsw,script,style'))return;
+   const pg=el.closest('[data-sp]');const k=pg?pg.dataset.sp:null;const m=k?SETM.find(x=>x[0]===k):null;const where=m?m[2]:'Settings';
+   let t=own(el);if(['INPUT','TEXTAREA'].includes(el.tagName))t=el.placeholder||'';if(el.tagName==='OPTION'||el.tagName==='SVG'||el.closest('svg'))return;
+   if(!t||t.length<2||t.length>140)return;const key=k+'|'+t.toLowerCase();if(seen.has(key))return;seen.add(key);
+   const lab=el.closest('label,summary,h2,h3,h4');const title=lab&&lab!==el?own(lab)||t:t;
+   R.push({k,t:title.length>70?title.slice(0,68)+'…':title,sub:where,txt:(t+' '+title+' '+where).toLowerCase(),el,w:/^(H2|H3|H4|SUMMARY|LABEL)$/.test(el.tagName)?2:1})});return R};
+ window.setSearch=function(q){const box=$('setsr');if(!box)return;q=q.trim().toLowerCase();const list=document.querySelector('#sethome .setlist')||$('sethome').lastElementChild;if(!q){box.innerHTML='';box.hidden=true;if(list)list.style.display='';return}
+  const words=q.split(/\s+/);const seen=new Set();
+  const R=setIndex().filter(r=>words.every(w=>r.txt.includes(w))).map(r=>Object.assign(r,{sc:r.w*10+(r.t.toLowerCase().startsWith(q)?20:0)+(r.t.toLowerCase().includes(q)?10:0)-r.t.length/20})).sort((a,b)=>b.sc-a.sc)
+   .filter(r=>{const id=(r.k||'')+'|'+r.t.toLowerCase();if(seen.has(id))return false;seen.add(id);return true}).slice(0,25);window._setR=R;
+  const hl=t=>{let h=esc(t);words.forEach(w=>{if(w.length<2)return;h=h.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>')});return h};
+  if(list)list.style.display='none';box.hidden=false;box.innerHTML=R.length?R.map((r,i)=>`<button class="ssr" onclick="setGo(${i})"><b>${hl(r.t)}</b><small>${r.el?'in '+esc(r.sub):esc(r.sub)}</small></button>`).join(''):`<p class="mut" style="text-align:center;margin:14px 0">Nothing found for “${esc(q)}”</p>`};
+ window.setGo=function(i){const r=(window._setR||[])[i];if(!r)return;const q=$('setq');if(r.k)stab(r.k);if(q)q.value='';setSearch('');if(r.el)setTimeout(()=>{const d=r.el.closest('details');if(d)d.open=true;const t=r.el.closest('label,.card,details,.hall')||r.el;t.scrollIntoView({behavior:'smooth',block:'center'});t.classList.remove('sethl');void t.offsetWidth;t.classList.add('sethl');const f=r.el.matches('input,select,textarea')?r.el:t.querySelector('input,select,textarea');if(f&&f.type!=='checkbox'&&f.type!=='file')setTimeout(()=>f.focus({preventScroll:true}),450)},250)};
+ const st=document.createElement('style');st.textContent='#setsr mark{background:#ffe08a;color:inherit;border-radius:3px;padding:0 1px}';document.head.appendChild(st);
+ const ph=$('setq');if(ph)ph.placeholder='Search anything in settings…'})();
 </script></body></html>
