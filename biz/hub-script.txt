@@ -1,0 +1,683 @@
+/**
+ * BUSINESS HUB – one script for many businesses. Each business logs in with email + a code
+ * sent by email, and gets its own Google Sheet in the folder "Business accounts".
+ * Setup (once):
+ *  1. Create a blank Google Sheet named "Business Hub". Extensions → Apps Script → paste this file. Save.
+ *  2. Choose  setupHub  in the function list → ▶ Run → allow permissions.
+ *  3. Deploy → New deployment → Web app, Execute as: Me, Who has access: Anyone → copy the /exec link.
+ * Invite someone: in the Sheet, menu  Business Hub → Create invite link  → send the link on WhatsApp.
+ * Turn someone off: Accounts tab → Active = no.
+ *
+ * Original notes – My Business – Estimate Maker: Google Sheets storage (v4: customer page + staff attendance)
+ * All app data lives in this spreadsheet:
+ *   Estimates  – one row per estimate/invoice (full data in the last column)
+ *   Items      – every line item of every estimate (for your own analysis)
+ *   Payments   – every payment received
+ *   Clients    – client list (name, phone, address, GSTIN)
+ *   Catalog    – your item catalog. You can edit this tab directly in Sheets.
+ *   Packages   – saved packages
+ *   Photos     – catalog photos and seal/signature image
+ *   Settings   – business details, layout settings, number counters
+ *
+ * Setup / update:
+ * 1. Extensions → Apps Script → paste this file (replace everything). Set SECRET.
+ * 2. Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy
+ *    (first time: Deploy → New deployment → Web app, Execute as Me, Access Anyone).
+ */
+// no password here: every business logs in with email + code
+// Google Calendar: confirmed bookings are added to this calendar automatically.
+const CALENDAR_SYNC = true;   // set to false to switch off
+const CALENDAR_ID = '';       // '' = your main Google Calendar, or paste another calendar's ID
+
+// Phone notifications (OneSignal). Paste your REST API key between the quotes.
+const ONESIGNAL_APP_ID = '';
+const ONESIGNAL_KEY = '';
+// AI assistant (Google Gemini). Paste your free key from aistudio.google.com between the quotes.
+const GEMINI_KEY = '';
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
+const APP_URL = 'https://bhargavramya.github.io/lalitha-event/biz/';
+
+const CHUNK = 45000; // Google Sheets cell limit is 50,000 characters
+let CUR_ = null, CU_ = '';
+const hub_ = () => SpreadsheetApp.getActiveSpreadsheet();
+const ss_ = () => { if (!CUR_) throw new Error('No account'); return CUR_; };
+const ACC_H = ['Business', 'Email', 'Active', 'Sheet link', 'Joined', 'Last login', 'ID (do not edit)', 'Sheet ID (do not edit)'];
+const INV_H = ['Invite code', 'Link', 'Created', 'Used by', 'Used at'];
+function tab_(n, h) {
+  let s = hub_().getSheetByName(n);
+  if (!s) { s = hub_().insertSheet(n); s.appendRow(h); s.setFrozenRows(1); s.getRange(1, 1, 1, h.length).setFontWeight('bold').setBackground('#f3eee0'); s.setColumnWidths(1, h.length, 170); }
+  return s;
+}
+const acc_ = () => tab_('Accounts', ACC_H), inv_ = () => tab_('Invites', INV_H);
+const HP_ = () => PropertiesService.getScriptProperties();
+const rnd_ = n => { let x = ''; while (x.length < n) x += Utilities.getUuid().replace(/-/g, ''); return x.slice(0, n); };
+function setupHub() {
+  acc_(); inv_(); try { hub_().deleteSheet(hub_().getSheetByName('Sheet1')); } catch (x) { }
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('weeklyBackup').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(23).inTimezone('Asia/Kolkata').create();
+  MailApp.getRemainingDailyQuota(); folder_();
+  Logger.log('Hub ready. Now Deploy → New deployment → Web app.');
+}
+function onOpen() { SpreadsheetApp.getUi().createMenu('Business Hub').addItem('Create invite link', 'createInvite').addToUi(); }
+function createInvite() {
+  const code = rnd_(8).toUpperCase(), link = APP_URL + '?invite=' + code;
+  inv_().appendRow([code, link, new Date(), '', '']);
+  const ui = SpreadsheetApp.getUi();
+  ui.showModalDialog(HtmlService.createHtmlOutput('<p style="font-family:sans-serif">Send this one-time link to your friend (it works once):</p><textarea style="width:100%;height:70px" onclick="this.select()">' + link + '</textarea><p style="font-family:sans-serif"><a target="_blank" href="https://wa.me/?text=' + encodeURIComponent('Here is your link to set up your business app: ' + link) + '">Send on WhatsApp</a></p>').setWidth(420).setHeight(200), 'Invite link');
+}
+function folder_() { const it = DriveApp.getFoldersByName('Business accounts'); return it.hasNext() ? it.next() : DriveApp.createFolder('Business accounts'); }
+const mailOk_ = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+function accRow_(by, val) { const s = acc_(), v = s.getDataRange().getValues(); for (let i = 1; i < v.length; i++) if (String(v[i][by]).trim().toLowerCase() === String(val).trim().toLowerCase() && val) return { s, row: i + 1, r: v[i] }; return null; }
+function open_(a) { if (!a || String(a.r[2]).toLowerCase() === 'no') return false; CUR_ = SpreadsheetApp.openById(a.r[7]); CU_ = a.r[6]; return true; }
+function inviteRow_(code) { const s = inv_(), v = s.getDataRange().getValues(); for (let i = 1; i < v.length; i++) if (code && String(v[i][0]) === String(code).toUpperCase() && !v[i][3]) return { s, row: i + 1 }; return null; }
+function sendCode_(b) {
+  const email = String(b.email || '').trim().toLowerCase();
+  if (!mailOk_(email)) return { ok: false, error: 'Please type a valid email' };
+  const a = accRow_(1, email);
+  if (a && String(a.r[2]).toLowerCase() === 'no') return { ok: false, error: 'This account is turned off' };
+  if (!a && !inviteRow_(b.invite)) return { ok: false, error: b.invite ? 'This invite link is already used or not valid' : 'No account for this email. Ask for an invite link.' };
+  const P = HP_(), k = 'otp:' + email, old = JSON.parse(P.getProperty(k) || '{}');
+  if (old.n >= 5 && Date.now() - old.first < 3600e3) return { ok: false, error: 'Too many codes. Try again in an hour.' };
+  const c = String(Math.floor(100000 + Math.random() * 900000));
+  const n = old.first && Date.now() - old.first < 3600e3 ? (old.n || 0) + 1 : 1;
+  P.setProperty(k, JSON.stringify({ c, exp: Date.now() + 10 * 60e3, tries: 0, n, first: n === 1 ? Date.now() : old.first }));
+  MailApp.sendEmail({ to: email, subject: 'Your login code: ' + c, htmlBody: '<div style="font-family:sans-serif;font-size:16px">Your login code is<br><b style="font-size:32px;letter-spacing:4px">' + c + '</b><br><br>It works for 10 minutes. If you did not ask for it, ignore this email.</div>' });
+  return { ok: true, isNew: !a };
+}
+function verify_(b) {
+  const email = String(b.email || '').trim().toLowerCase(), P = HP_(), k = 'otp:' + email, o = JSON.parse(P.getProperty(k) || '{}');
+  if (!o.c || Date.now() > o.exp) return { ok: false, error: 'Code expired. Send a new one.' };
+  if (String(b.code || '').trim() !== o.c) { o.tries = (o.tries || 0) + 1; if (o.tries >= 5) o.exp = 0; P.setProperty(k, JSON.stringify(o)); return { ok: false, error: 'Wrong code' }; }
+  P.setProperty(k, JSON.stringify({ n: o.n, first: o.first }));
+  let a = accRow_(1, email);
+  if (!a) {
+    const iv = inviteRow_(b.invite); if (!iv) return { ok: false, error: 'This invite link is already used or not valid' };
+    const biz = String(b.biz || '').trim() || email, f = SpreadsheetApp.create(biz + ' – Quotes'), file = DriveApp.getFileById(f.getId());
+    folder_().addFile(file); DriveApp.getRootFolder().removeFile(file);
+    acc_().appendRow([biz, email, 'yes', f.getUrl(), new Date(), '', rnd_(10), f.getId()]);
+    iv.s.getRange(iv.row, 4, 1, 2).setValues([[email, new Date()]]);
+    a = accRow_(1, email);
+  }
+  if (String(a.r[2]).toLowerCase() === 'no') return { ok: false, error: 'This account is turned off' };
+  a.s.getRange(a.row, 6).setValue(new Date());
+  const tok = rnd_(40); P.setProperty('ses:' + tok, a.r[6]);
+  return { ok: true, token: tok, id: a.r[6], biz: a.r[0], email };
+}
+// private calls: key = login token.  public pages: u = account ID
+function auth_(tok) { const id = tok ? HP_().getProperty('ses:' + tok) : null; return id && open_(accRow_(6, id)); }
+// links look like  /exec?u=ID&?view=…  → tidy the parameter names
+const par_ = e => { const p = {}; Object.keys(e.parameter || {}).forEach(k => p[k.replace(/^\?/, '')] = e.parameter[k]); return p; };
+const accounts_ = () => acc_().getDataRange().getValues().slice(1).filter(r => r[7] && String(r[2]).toLowerCase() !== 'no');
+function eachAcc_(fn) { accounts_().forEach(r => { try { CUR_ = SpreadsheetApp.openById(r[7]); CU_ = r[6]; fn(r); } catch (x) { } }); }
+function findAcc_(id) { let hit = false; accounts_().some(r => { try { CUR_ = SpreadsheetApp.openById(r[7]); CU_ = r[6]; if (findEst_(id)) return hit = true; } catch (x) { } return false; }); if (!hit) throw new Error('Invalid link'); }
+function sh_(name, head) {
+  let s = ss_().getSheetByName(name);
+  if (!s) { s = ss_().insertSheet(name); s.appendRow(head); s.setFrozenRows(1); s.getRange(1, 1, 1, head.length).setFontWeight('bold').setBackground('#f3eee0'); }
+  return s;
+}
+const EST_H = ['ID', 'Number', 'Type', 'Date', 'Client', 'Phone', 'Event', 'Event date', 'Venue', 'Status', 'Grand total', 'Paid', 'Balance', 'Saved at', 'Deleted', 'Data (do not edit)'];
+const est_ = () => sh_('Estimates', EST_H);
+const items_ = () => sh_('Items', ['Estimate ID', 'Number', 'Event date', 'Status', 'Section', 'Item', 'Size', 'Qty', 'Days', 'Rate', 'Amount', 'Optional']);
+const pays_ = () => sh_('Payments', ['Estimate ID', 'Number', 'Client', 'Date', 'Amount', 'Mode', 'Note']);
+const clients_ = () => sh_('Clients', ['Client', 'Phone', 'Address', 'GSTIN', 'Contact person', 'Last estimate', 'Updated']);
+const CAT_H = ['Item', 'Size', 'Rate', 'Description', 'Peak rate', 'Telugu name', 'Stock owned', 'My cost', 'Rate type'];
+const cat_ = () => sh_('Catalog', CAT_H);
+const pkg_ = () => sh_('Packages', ['Package', 'Items', 'Value', 'Data (do not edit)']);
+const ph_ = () => sh_('Photos', ['Name', 'Updated', 'Image data (do not edit) →']);
+const set_ = () => sh_('Settings', ['Key', 'Updated', 'Value (do not edit) →']);
+const out_ = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+const props_ = () => { const P = PropertiesService.getScriptProperties(), k = x => CU_ + ':' + x; return { getProperty: x => P.getProperty(k(x)), setProperty: (x, y) => P.setProperty(k(x), y) }; };
+const chunks_ = s => { s = String(s); const a = []; for (let i = 0; i < s.length; i += CHUNK) a.push(s.slice(i, i + CHUNK)); return a.length ? a : ['']; };
+
+/* ---------- key/value rows split over several cells ---------- */
+function kvRead_(sheet) {
+  const v = sheet.getDataRange().getValues(), o = {};
+  for (let i = 1; i < v.length; i++) if (v[i][0] !== '') o[v[i][0]] = { at: +v[i][1] || 0, raw: v[i].slice(2).join('') };
+  return o;
+}
+function kvWrite_(sheet, key, str) {
+  const v = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues().map(r => r[0]);
+  let i = v.indexOf(key), row;
+  if (i > 0) { row = i + 1; const lc = sheet.getLastColumn(); if (lc > 2) sheet.getRange(row, 3, 1, lc - 2).clearContent(); }
+  else { row = sheet.getLastRow() + 1; }
+  const c = chunks_(str), now = Date.now();
+  sheet.getRange(row, 1, 1, 2 + c.length).setValues([[key, now].concat(c)]);
+  return now;
+}
+function kvDelete_(sheet, key) {
+  const v = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues().map(r => r[0]);
+  const i = v.indexOf(key); if (i > 0) sheet.deleteRow(i + 1);
+}
+
+/* ---------- catalog as a normal table ---------- */
+function catRead_() {
+  const v = cat_().getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return v.map(r => [String(r[0]), String(r[1]), +r[2] || 0, String(r[3]), r[4] === '' ? '' : +r[4], String(r[5]), r[6] === '' ? '' : +r[6], r[7] === '' ? '' : +r[7], String(r[8])]);
+}
+function catWrite_(rows) {
+  const s = cat_(); const n = s.getLastRow(); if (n > 1) s.getRange(2, 1, n - 1, CAT_H.length).clearContent();
+  if (rows.length) s.getRange(2, 1, rows.length, CAT_H.length).setValues(rows.map(r => { r = (r || []).slice(0, 9); while (r.length < 9) r.push(''); return r; }));
+  props_().setProperty('catalogAt', String(Date.now()));
+}
+/* Edits made directly in the Catalog or Packages tab are picked up by the app */
+function onEdit(e) { return; }
+function onEditOld_(e) {
+  const n = e && e.range && e.range.getSheet().getName();
+  if (n === 'Catalog') props_().setProperty('catalogAt', String(Date.now()));
+}
+
+/* ---------- packages ---------- */
+function pkgRead_() { return pkg_().getDataRange().getValues().slice(1).filter(r => r[0] !== '' && r[3]).map(r => JSON.parse(r[3])); }
+function pkgWrite_(list) {
+  const s = pkg_(); const n = s.getLastRow(); if (n > 1) s.getRange(2, 1, n - 1, 4).clearContent();
+  const rows = (list || []).map(p => { const it = (p.rows || []).filter(r => !r.sec); const val = it.filter(r => !r.opt).reduce((a, r) => a + (+r.amount || (+r.qty || 0) * (+r.rate || 0) * (+r.days || 1)), 0); return [p.name, it.map(r => r.name).join(', '), val, JSON.stringify(p)]; });
+  if (rows.length) s.getRange(2, 1, rows.length, 4).setValues(rows);
+  props_().setProperty('packagesAt', String(Date.now()));
+}
+
+/* ---------- derived tables for an estimate ---------- */
+function deleteRowsWhere_(sheet, id) {
+  const v = sheet.getDataRange().getValues();
+  for (let i = v.length - 1; i >= 1; i--) if (v[i][0] === id) sheet.deleteRow(i + 1);
+}
+function writeDerived_(id, d) {
+  const it = items_(), py = pays_();
+  deleteRowsWhere_(it, id); deleteRowsWhere_(py, id);
+  if (!d) return;
+  let sec = ''; const rows = [];
+  (d.rows || []).forEach(r => { if (r.sec) { sec = r.name; return; } rows.push([id, d.no || '', d.edate || '', d.status || '', sec, r.name || '', r.uom || '', +r.qty || 0, +r.days || 1, +r.rate || 0, +r.amount || 0, r.opt ? 'yes' : '']); });
+  if (rows.length) it.getRange(it.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  const p = (d.pays || []).filter(x => +x.amt).map(x => [id, d.no || '', d.client || '', x.date || '', +x.amt || 0, x.mode || '', x.note || '']);
+  if (p.length) py.getRange(py.getLastRow() + 1, 1, p.length, p[0].length).setValues(p);
+  if (d.client) {
+    const c = clients_(), v = c.getDataRange().getValues(); let i = -1;
+    for (let k = 1; k < v.length; k++) if (String(v[k][0]).trim().toLowerCase() === d.client.trim().toLowerCase()) { i = k; break; }
+    const row = [d.client.trim(), d.phone || '', d.addr || '', d.cgst || '', d.attn || '', d.no || '', new Date()];
+    if (i > 0) c.getRange(i + 1, 1, 1, row.length).setValues([row]); else c.appendRow(row);
+  }
+}
+
+/* ---------- read everything ---------- */
+function doGet(e) {
+  const p0 = par_(e); e = { parameter: p0 };
+  const pub = p0.view || p0.staff || p0.team || p0.menu !== undefined || p0.card !== undefined;
+  const ok = pub ? open_(accRow_(6, p0.u)) : auth_(String(p0.key || ''));
+  if (!ok) return pub ? HtmlService.createHtmlOutput('This link is not valid') : out_({ ok: false, error: 'Please log in again' });
+  ensureV2_();
+  if (e.parameter.view) return clientView_(e.parameter.view, e.parameter.t);
+  if (e.parameter.staff) return staffView_(e.parameter.staff, e.parameter.t);
+  if (e.parameter.menu !== undefined) return menuView_();
+  if (e.parameter.team) return teamView_(String(e.parameter.team));
+  if (e.parameter.card !== undefined) return out_(cardData_(String(e.parameter.card || ''), e.parameter.p === '1'));
+  const q = {};
+  est_().getDataRange().getValues().slice(1).forEach(r => {
+    if (!r[0]) return;
+    if (r[14]) { q[r[0]] = { deleted: true, saved: +r[13] }; return; }
+    try { q[r[0]] = JSON.parse(r[15]); } catch (x) { }
+  });
+  const st = {};
+  const kv = kvRead_(set_());
+  for (const k in kv) { try { st[k] = { value: JSON.parse(kv[k].raw), at: kv[k].at }; } catch (x) { } }
+  const ph = kvRead_(ph_());
+  for (const k in ph) st[k === '__stamp' ? 'stamp' : 'ph:' + k] = { value: ph[k].raw, at: ph[k].at };
+  const P = props_();
+  st.catalog = { value: catRead_(), at: +P.getProperty('catalogAt') || 1 };
+  st.packages = { value: pkgRead_(), at: +P.getProperty('packagesAt') || 1 };
+  return out_({ ok: true, estimates: q, settings: st, sheet: ss_().getUrl(), name: ss_().getName() });
+}
+
+/* ---------- write ---------- */
+function doPost(e) {
+  const b = JSON.parse(e.postData.contents);
+  if (b.action === 'code') return out_(sendCode_(b));
+  if (b.action === 'verify') return out_(verify_(b));
+  if (b.action === 'logout') { if (b.key) HP_().deleteProperty('ses:' + b.key); return out_({ ok: true }); }
+  if (!auth_(String(b.key || ''))) return out_({ ok: false, error: 'Please log in again' });
+  if (b.action === 'me') { const a = accRow_(6, CU_); return out_({ ok: true, biz: a.r[0], email: a.r[1] }); }
+  if (b.action === 'ai') return out_(aiCall_(b));
+  ensureV2_();
+  const lock = LockService.getScriptLock(); lock.waitLock(25000);
+  try {
+    if (b.action === 'save' || b.action === 'delete') {
+      const s = est_(), ids = s.getRange(1, 1, s.getLastRow(), 1).getValues().map(r => r[0]);
+      const d = b.data || {}, i = ids.indexOf(b.id);
+      if (b.action === 'save' && i > 0) { try { mergeRemote_(d, JSON.parse(s.getRange(i + 1, 16).getValue() || '{}')); } catch (x) { } }
+      const paid = (+d.adv || 0) + (d.pays || []).reduce((a, p) => a + (+p.amt || 0), 0);
+      const row = b.action === 'delete'
+        ? [b.id, '', '', '', '', '', '', '', '', '', '', '', '', Date.now(), 'yes', '']
+        : [b.id, d.no || '', d.doctype || '', d.date || '', d.client || '', d.phone || '', d.ename || d.etype || '', d.edate || '', d.venue || '', d.status || 'Draft', +d.total || 0, paid, (+d.total || 0) - paid, d.saved || Date.now(), '', JSON.stringify(d)];
+      if (i > 0) s.getRange(i + 1, 1, 1, row.length).setValues([row]); else s.appendRow(row);
+      writeDerived_(b.id, b.action === 'delete' ? null : d);
+      try { calSync_(b.id, b.action === 'delete' ? null : d); } catch (x) { }
+    } else if (b.action === 'calsyncall') {
+      return out_({ ok: true, count: calSyncAll_() });
+    } else if (b.action === 'setting') {
+      const n = b.name;
+      if (n === 'catalog') catWrite_(b.value || []);
+      else if (n === 'packages') pkgWrite_(b.value || []);
+      else if (n === 'stamp' || n.indexOf('ph:') === 0) {
+        const key = n === 'stamp' ? '__stamp' : n.slice(3);
+        if (b.value) kvWrite_(ph_(), key, b.value); else kvDelete_(ph_(), key);
+      } else if (n === 'seq' || n === 'iseq') {
+        const kv = kvRead_(set_()), cur = kv[n] ? +JSON.parse(kv[n].raw) : 0;
+        if (+b.value > cur) kvWrite_(set_(), n, JSON.stringify(+b.value));
+      } else kvWrite_(set_(), n, JSON.stringify(b.value));
+    }
+    return out_({ ok: true });
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- old v1 layout: rename old tabs, the app re-uploads its data ---------- */
+function ensureV2_() {
+  const st = ss_().getSheetByName('Settings');
+  if (st && st.getRange(1, 2).getValue() === 'Value (do not edit)') st.setName('Settings_old_' + Date.now());
+  const e = ss_().getSheetByName('Estimates');
+  if (e && e.getRange(1, 2).getValue() === 'Estimate No') e.setName('Estimates_old_' + Date.now());
+}
+
+/* ---------- Client accept page ---------- */
+function findEst_(id) {
+  const s = est_(), v = s.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) if (v[i][0] === id && !v[i][14] && v[i][15]) return { sheet: s, row: i + 1, data: JSON.parse(v[i][15]) };
+  return null;
+}
+const inr_ = n => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
+const h_ = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function clientViewOld_(id, t) {
+  const f = findEst_(id);
+  if (!f || !f.data.tok || f.data.tok !== t) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;padding:20px">This link is not valid.</p>');
+  const d = f.data, done = ['Confirmed', 'Completed'].includes(d.status);
+  let n = 0;
+  const rows = (d.rows || []).map(r => r.sec ? `<tr><td colspan="3" class="s">${h_(r.name)}</td></tr>` :
+    `<tr class="${r.opt ? 'o' : ''}"><td>${++n}. ${h_(r.name)}${r.opt ? ' <i>(optional)</i>' : ''}<br><small>${h_(r.uom || '')}</small></td><td>${r.qty}</td><td>${inr_(r.amount)}</td></tr>`).join('');
+  const btn = done ? '<div class="ok">✓ Accepted. Thank you!</div>'
+    : `<button id="b">✓ Accept this ${h_(String(d.doctype || 'quotation').toLowerCase())}</button><p><small>Tapping accept confirms the booking as per the terms shared with you.</small></p>`;
+  const html = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f4f1ec;color:#222}.w{max-width:560px;margin:0 auto;padding:16px}.c{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+h1{font-size:20px;margin:0 0 4px;color:#d9161c}table{width:100%;border-collapse:collapse}td{padding:6px 4px;border-bottom:1px solid #eee;vertical-align:top}td:nth-child(2),td:nth-child(3){text-align:right;white-space:nowrap}
+.s{font-weight:700;color:#d9161c;text-transform:uppercase;font-size:12px}.o{color:#999}.t{display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-top:10px}
+button{width:100%;padding:14px;font-size:17px;border:0;border-radius:10px;background:#1d7a3a;color:#fff;font-weight:700}.ok{background:#e2f5e7;color:#1d7a3a;padding:14px;border-radius:10px;text-align:center;font-weight:700}
+small{color:#888}</style></head><body><div class="w"><div class="c"><h1>My Business</h1><div>${h_(d.doctype)} <b>${h_(d.no)}</b></div>
+<div>For: <b>${h_(d.client)}</b></div><div>${h_(d.ename || d.etype || '')} ${d.edate ? '· ' + h_(d.edate.split('-').reverse().join('-')) : ''} ${d.venue ? '· ' + h_(d.venue) : ''}</div></div>
+<div class="c"><table>${rows}</table><div class="t"><span>Total</span><span>${inr_(d.total)}</span></div><small>Optional items are not included in the total.</small></div>
+<div class="c" id="act">${btn}</div></div>
+<script>var b=document.getElementById('b');if(b)b.onclick=function(){b.disabled=true;b.textContent='Please wait…';google.script.run.withSuccessHandler(function(){document.getElementById('act').innerHTML='<div class=ok>✓ Accepted. Thank you! We will contact you shortly.</div>'}).withFailureHandler(function(){b.disabled=false;b.textContent='Try again'}).accept(${JSON.stringify(id)},${JSON.stringify(t)})};</script></body></html>`;
+  return HtmlService.createHtmlOutput(html).setTitle('My Business – ' + d.no).addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+function accept(id, t) { findAcc_(id); return accept0_(id, t); }
+function accept0_(id, t) {
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const f = findEst_(id); if (!f || f.data.tok !== t) throw new Error('Invalid link');
+    f.data.status = 'Confirmed'; f.data.follow = ''; f.data.acceptedAt = new Date().toISOString(); f.data.saved = Date.now();
+    f.sheet.getRange(f.row, 10).setValue('Confirmed'); f.sheet.getRange(f.row, 14).setValue(f.data.saved); f.sheet.getRange(f.row, 16).setValue(JSON.stringify(f.data));
+    writeDerived_(id, f.data);
+    try { calSync_(id, f.data); } catch (x) { }
+    push_('🎉 Quotation accepted', (f.data.client || 'Customer') + ' accepted ' + (f.data.no || 'the quotation') + (f.data.edate ? ' for ' + f.data.edate : ''));
+    return true;
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- Google Calendar ---------- */
+function cal_() { return CALENDAR_ID ? CalendarApp.getCalendarById(CALENDAR_ID) : CalendarApp.getDefaultCalendar(); }
+function calGuests_() {
+  try { const kv = kvRead_(set_()); const c = kv.config ? JSON.parse(kv.config.raw) : {}; return String(c.calGuests || '').split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x)); } catch (x) { return []; }
+}
+function calSync_(id, d) { return; }
+function calSyncOld_(id, d) {
+  if (!CALENDAR_SYNC) return;
+  const guests = calGuests_();
+  const P = props_(), key = 'cal_' + id, evId = P.getProperty(key), cal = cal_();
+  let ev = null; if (evId) { try { ev = cal.getEventById(evId); } catch (x) { ev = null; } }
+  const want = d && d.edate && ['Confirmed', 'Completed'].includes(d.status);
+  if (!want) { if (ev) ev.deleteEvent(); P.deleteProperty(key); return; }
+  const [y, m, dd] = d.edate.split('-').map(Number);
+  const title = '🎉 ' + (d.client || 'Event') + ' – ' + (d.ename || d.etype || 'Decoration') + ' (' + (d.no || '') + ')';
+  const paid = (+d.adv || 0) + (d.pays || []).reduce((a, p) => a + (+p.amt || 0), 0);
+  let n = 0;
+  const items = (d.rows || []).filter(r => !r.opt).map(r => r.sec ? '\n' + String(r.name).toUpperCase() : (++n) + '. ' + r.name + (r.uom ? ' (' + r.uom + ')' : '') + ' × ' + r.qty).join('\n');
+  const vmap = /^https?:\/\//.test(String(d.vmap || '').trim()) ? String(d.vmap).trim() : '';
+  const ll = (vmap.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) || []);
+  const loc = ll[1] ? (d.venue ? d.venue + ' (' + ll[1] + ',' + ll[2] + ')' : ll[1] + ',' + ll[2]) : (d.venue || '');
+  const desc = [(d.doctype || 'Quotation') + ' ' + (d.no || ''), vmap ? '📍 Map: ' + vmap : '', 'Client: ' + (d.client || '') + (d.phone ? ' · ' + d.phone : ''), d.attn ? 'Contact: ' + d.attn : '', d.guests ? 'Guests: ' + d.guests : '',
+    d.setup ? 'Setup: ' + d.setup : '', d.team ? 'Team: ' + d.team : '', d.vehicle ? 'Vehicle: ' + d.vehicle : '',
+    'Total: ' + inr_(d.total) + ' · Paid: ' + inr_(paid) + ' · Balance: ' + inr_((+d.total || 0) - paid), '', 'Items:' + '\n' + items, d.notes ? '\nNotes: ' + d.notes : ''].filter(x => x !== '').join('\n');
+  let start, end, allDay = !d.etime;
+  if (!allDay) { const [h, mi] = d.etime.split(':').map(Number); start = new Date(y, m - 1, dd, h, mi); end = new Date(start.getTime() + 4 * 3600 * 1000); }
+  else start = new Date(y, m - 1, dd);
+  if (ev && ev.isAllDayEvent() !== allDay) { ev.deleteEvent(); ev = null; }
+  if (!ev) {
+    const opt = { location: loc, description: desc, guests: guests.join(','), sendInvites: guests.length > 0 };
+    ev = allDay ? cal.createAllDayEvent(title, start, opt) : cal.createEvent(title, start, end, opt);
+    ev.addPopupReminder(24 * 60); ev.addPopupReminder(3 * 60);
+    P.setProperty(key, ev.getId());
+  } else {
+    ev.setTitle(title); ev.setLocation(loc); ev.setDescription(desc);
+    if (allDay) ev.setAllDayDate(start); else ev.setTime(start, end);
+  }
+  try { const have = ev.getGuestList().map(g => g.getEmail().toLowerCase()); guests.forEach(g => { if (have.indexOf(g) < 0) ev.addGuest(g); }); have.forEach(g => { if (guests.indexOf(g) < 0) ev.removeGuest(g); }); } catch (x) { }
+  try { ev.setColor(d.status === 'Completed' ? CalendarApp.EventColor.GRAY : CalendarApp.EventColor.RED); } catch (x) { }
+}
+function calSyncAll_() { return 0; }
+function calSyncAllOld_() {
+  let c = 0;
+  est_().getDataRange().getValues().slice(1).forEach(r => { if (!r[0] || r[14] || !r[15]) return; try { const d = JSON.parse(r[15]); calSync_(r[0], d); if (d.edate && ['Confirmed', 'Completed'].includes(d.status)) c++; } catch (x) { } });
+  return c;
+}
+/* Run this once from the Apps Script editor to give calendar permission */
+function authorizeCalendar() { return cal_().getName(); }
+
+/* ---------- Public visiting card data (no password; only card-safe fields) ---------- */
+function cardData_(tok, withPrices) {
+  const kv = kvRead_(set_()), J = k => { try { return kv[k] ? JSON.parse(kv[k].raw) : {}; } catch (x) { return {}; } };
+  const c = J('config'), b = J('business');
+  const pick = (a, d) => (a !== undefined && a !== '' ? a : d || '');
+  const mem = [{ name: pick(c.cardOwner), role: pick(c.cardRole), phone: pick(c.cardPhone, b.bphone), wa: pick(c.cardWa, c.cardPhone || b.bphone) }];
+  String(c.cardMembers || '').split('\n').map(x => x.trim()).filter(Boolean).forEach(l => { const p = l.split(',').map(x => x.trim()); const ph = p.length > 1 ? p[p.length - 1] : ''; if (p[0] && ph.replace(/\D/g, '').length >= 10) mem.push({ name: p[0], role: p.length > 2 ? p.slice(1, -1).join(', ') : '', phone: ph, wa: ph }); });
+  const card = {
+    members: mem, style: pick(c.cardStyle, 'glass'), name: pick(c.bizName, 'My Business'), tagline: pick(b.btag, ''),
+    owner: pick(c.cardOwner), role: pick(c.cardRole), phone: pick(c.cardPhone, b.bphone), wa: pick(c.cardWa, c.cardPhone || b.bphone),
+    email: pick(c.cardEmail, b.bmail), addr: pick(c.cardAddr, b.baddr), maps: pick(c.cardMaps), web: pick(c.cardWeb, b.bweb),
+    insta: pick(c.cardInsta), fb: pick(c.cardFb), yt: pick(c.cardYt), review: pick(c.reviewLink),
+    services: String(c.cardServices || '').split('\n').map(x => x.trim()).filter(Boolean),
+    about: pick(c.cardAbout, c.about), greet: pick(c.cardGreet, 'Dear {name}, thank you for your enquiry. We would love to decorate your {event}.'),
+    upi: c.cardUpi ? pick(b.bupi) : '', since: pick(c.cardSince, ''), halls: Array.isArray(c.halls) ? c.halls.filter(h => h && h.name).map(h => (!withPrices && (h.hidePrice || c.cardHallPrices === false)) ? Object.assign({}, h, { rent: '', maint: '', power: '' }) : h) : [], acc: pick(c.acc, '#d9161c'), gold: pick(c.gold, '#9a7a1c'), photos: []
+  };
+  const names = String(c.cardGallery || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 9);
+  if (names.length) { const ph = kvRead_(ph_()); names.forEach(n => { if (ph[n]) card.photos.push({ name: n, src: ph[n].raw }); }); }
+  let enq = null;
+  if (tok && tok.length >= 4) {
+    const v = est_().getDataRange().getValues();
+    for (let i = 1; i < v.length; i++) {
+      if (v[i][14] || !v[i][15] || String(v[i][15]).indexOf(tok) < 0) continue;
+      try {
+        const d = JSON.parse(v[i][15]); if (d.ctok !== tok) continue;
+        enq = { no: d.no || '', client: d.client || '', event: d.ename || d.etype || '', etype: d.etype || '', edate: d.edate || '', etime: d.etime || '', venue: d.venue || '', guests: d.guests || '', notes: c.cardNotes ? (d.notes || '') : '', halls: Array.isArray(d.hallq) ? d.hallq : [] };
+      } catch (x) { }
+      break;
+    }
+  }
+  return { ok: true, card: card, enq: enq };
+}
+
+
+/* ---------- v4: keep changes made by customer / staff on their pages ---------- */
+function mergeRemote_(d, old) {
+  if (old.acceptedAt && !d.acceptedAt) { d.acceptedAt = old.acceptedAt; if (!['Completed', 'Lost'].includes(d.status)) d.status = 'Confirmed'; }
+  (old.staff || []).forEach(os => {
+    const ns = (d.staff || []).find(x => (os.tk && x.tk === os.tk) || (x.n || '').toLowerCase() === (os.n || '').toLowerCase());
+    if (!ns) return;
+    if (os.tk && !ns.tk) ns.tk = os.tk;
+    if (os.att) { ns.att = ns.att || {}; ['seen', 'reached', 'done'].forEach(k => { if (os.att[k] && !ns.att[k]) ns.att[k] = os.att[k]; }); }
+    (os.tasks || []).forEach(ot => { const nt = (ns.tasks || []).find(t => t.t === ot.t); if (nt && ot.d && ot.by === 'staff' && !nt.d) { nt.d = 1; nt.by = 'staff'; } });
+  });
+}
+const biz_ = () => { const kv = kvRead_(set_()), J = k => { try { return kv[k] ? JSON.parse(kv[k].raw) : {}; } catch (x) { return {}; } }; return { c: J('config'), b: J('business') }; };
+const page_ = (title, body, js) => HtmlService.createHtmlOutput(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;background:#f6efec;color:#2a1f1d}.w{max-width:560px;margin:0 auto;padding:14px}
+.hd{background:linear-gradient(150deg,#c8102e,#7a0a1c);color:#fff;border-radius:22px;padding:20px;margin-bottom:12px}.hd small{color:#fff!important;opacity:.85;letter-spacing:.08em;font-size:12px;font-weight:700}.hd h1{margin:6px 0 2px;font-size:24px}
+.c{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px #0000000d}h2{font-size:15px;margin:0 0 8px}
+table{width:100%;border-collapse:collapse}td{padding:7px 4px;border-bottom:1px solid #f0e8e4;vertical-align:top}td:last-child{text-align:right;white-space:nowrap}
+.s{font-weight:800;color:#c8102e;text-transform:uppercase;font-size:11px;letter-spacing:.06em}.o{color:#999}.r{display:flex;justify-content:space-between;padding:4px 0}.big{font-size:20px;font-weight:800}
+.bar{height:9px;border-radius:5px;background:#eee;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:#1f8a4c}
+button,.btn{display:block;width:100%;box-sizing:border-box;padding:15px;font-size:17px;border:0;border-radius:14px;background:#1f8a4c;color:#fff;font-weight:800;text-align:center;text-decoration:none;margin-top:8px}
+.btn.alt{background:#2f6fd6}.btn.gr{background:#eee;color:#2a1f1d}.ok{background:#e2f5e7;color:#1d7a3a;padding:14px;border-radius:14px;text-align:center;font-weight:800}
+.cd{display:flex;gap:8px;justify-content:center;margin-top:12px}.cd div{background:#ffffff26;border-radius:12px;padding:8px 10px;min-width:54px;text-align:center}.cd b{display:block;font-size:22px}.cd span{font-size:10px;opacity:.85}
+.tk{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #f0e8e4;font-size:16px}.tk input{width:26px;height:26px;accent-color:#1f8a4c}.tk.d span{text-decoration:line-through;color:#999}
+small{color:#888}</style></head><body><div class="w">${body}</div><script>${js || ''}</script></body></html>`).setTitle(title).addMetaTag('viewport', 'width=device-width, initial-scale=1');
+const dmy_ = d => d ? String(d).split('-').reverse().join('-') : '';
+function clientView_(id, t) {
+  const f = findEst_(id);
+  if (!f || !f.data.tok || f.data.tok !== t) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;padding:20px">This link is not valid.</p>');
+  const d = f.data, Z = biz_(), name = Z.c.bizName || 'My Business', done = ['Confirmed', 'Completed'].includes(d.status) || d.acceptedAt;
+  const acc = /^#[0-9a-f]{6}$/i.test(Z.c.acc || '') ? Z.c.acc : '#c8102e', tz = 'Asia/Kolkata', td = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  let PH = {}; try { PH = kvRead_(ph_()); } catch (x) { }
+  const img = k => PH[k] && PH[k].raw && /^data:image/.test(PH[k].raw) ? PH[k].raw : '';
+  let PL = {}; try { const kv = kvRead_(set_()); PL = kv.plan ? JSON.parse(kv.plan.raw) : {}; } catch (x) { }
+  const cover = PL.cover && PL.cover[id] ? img(PL.cover[id]) : '', ideas = ((PL.mb || {})[id] || []).slice(0, 9).map(i => img('mb_' + i)).filter(Boolean);
+  // items, proposal style: photo per item where available
+  let n = 0, shown = 0; const seen = {};
+  const rows = (d.rows || []).map(r => { if (r.sec) return `<div class="sec">${h_(r.name)}</div>`; const ph = !seen[r.name] && shown < 14 ? img(r.name) : ''; if (ph) { seen[r.name] = 1; shown++; }
+    return `<div class="it ${r.opt ? 'o' : ''}">${ph ? `<img src="${ph}">` : `<span class="num">${++n}</span>`}<div><b>${h_(r.name)}${r.opt ? ' <i>(optional)</i>' : ''}</b><small>${h_([r.uom, r.qty ? 'Qty ' + r.qty : ''].filter(Boolean).join(' · '))}${r.desc ? '<br>' + h_(r.desc) : ''}</small></div><b>${inr_(r.amount)}</b></div>`; }).join('');
+  const tot = +d.total || 0, paid = (+d.adv || 0) + (d.pays || []).reduce((a, p) => a + (+p.amt || 0), 0), bal = Math.max(0, tot - paid);
+  // payment schedule
+  const pc = String(d.sched || Z.c.defSched || '100').split(',').map(Number).filter(x => x > 0), lab = String(Z.c.payLabels || '').split(',').map(x => x.trim());
+  const conf = done ? (String(d.acceptedAt || '').slice(0, 10) || d.date || td) : ''; let cum = 0;
+  const S = tot ? pc.map((p, i) => { const amt = i === pc.length - 1 ? tot - cum : Math.round(tot * p / 100); cum += amt; const due = !conf ? '' : i === 0 ? conf : i === pc.length - 1 ? (d.edate || '') : (d.edate ? Utilities.formatDate(new Date(new Date(d.edate + 'T00:00:00').getTime() - 3 * 864e5), tz, 'yyyy-MM-dd') : ''); return { p, amt, cum, due, lab: lab[i] || 'Payment ' + (i + 1) }; }) : [];
+  const dueNow = Math.max(0, S.filter(x => x.due && x.due <= td).reduce((a, x) => Math.max(a, x.cum), 0) - paid), payAmt = dueNow || bal;
+  const upi = Z.b.bupi && payAmt ? `upi://pay?pa=${encodeURIComponent(Z.b.bupi)}&pn=${encodeURIComponent(Z.b.bacname || name)}&am=${payAmt}&cu=INR&tn=${encodeURIComponent(d.no || '')}` : '';
+  const map = d.vmap && /^https?:/.test(d.vmap) ? d.vmap : (d.venue ? 'https://maps.google.com/?q=' + encodeURIComponent(d.venue) : '');
+  const pays = (+d.adv ? `<div class="r"><span>Advance</span><b>${inr_(d.adv)}</b></div>` : '') + (d.pays || []).filter(p => +p.amt).map(p => `<div class="r"><span>${h_(dmy_(p.date))} · ${h_(p.mode || '')}</span><b>${inr_(p.amt)}</b></div>`).join('');
+  // step tracker
+  const past = d.edate && d.edate < td, evDay = d.edate === td;
+  const steps = [['Booked', done], ['Advance paid', paid > 0], ['Design ready', ideas.length > 0 || paid > 0 && done], ['Event day', past || evDay || d.status === 'Completed'], ['Completed', d.status === 'Completed' || past && bal === 0]];
+  const curI = steps.findIndex(x => !x[1]);
+  const tracker = `<div class="steps">${steps.map((x, i) => `<div class="${x[1] ? 'dn' : i === curI ? 'cur' : ''}"><i>${x[1] ? '✓' : i + 1}</i><span>${x[0]}</span></div>`).join('')}</div>`;
+  // quick replies to business WhatsApp
+  const wa = String(Z.c.cardWa || Z.c.cardPhone || Z.b.bphone || '').replace(/\D/g, ''), waN = wa.length === 10 ? '91' + wa : wa;
+  const q = m => waN ? `https://wa.me/${waN}?text=${encodeURIComponent(m + ' — ' + (d.client || '') + ' (' + (d.no || '') + ')')}` : '';
+  const quick = waN ? `<div class="c"><h2>Need something?</h2><div class="qr">${[['📞 Please call me', 'Please call me about my booking'], ['📅 Change date', 'I would like to change the event date'], ['✏️ Need changes', 'I need some changes in the quotation'], ['💬 Ask a question', 'I have a question']].map(x => `<a href="${q(x[1])}">${x[0]}</a>`).join('')}</div></div>` : '';
+  const review = Z.c.reviewLink && (past || d.status === 'Completed') ? `<div class="c" style="text-align:center"><h2>How did we do? ⭐</h2><p><small>Your review helps other families find us.</small></p><a class="btn" style="background:#e0a100" href="${h_(Z.c.reviewLink)}">Leave a Google review</a></div>` : '';
+  const body = `<div class="hd" style="${cover ? `background:linear-gradient(180deg,#0000 0%,#000a 85%),url('${cover}') center/cover` : `background:linear-gradient(150deg,${acc},#2a0508)`}"><small>${h_(name).toUpperCase()}</small>${Z.b.btag ? `<div class="tag">${h_(Z.b.btag)}</div>` : ''}<h1>${h_(d.client || '')}${d.etype ? ' — ' + h_(d.etype) : ''}</h1><div>${h_(dmy_(d.edate))}${d.venue ? ' · ' + h_(d.venue) : ''}</div>${d.edate && !past ? '<div class="cd" id="cd"></div>' : ''}</div>
+${done ? tracker : ''}
+${ideas.length ? `<div class="c"><h2>Design ideas for you</h2><div class="gal">${ideas.map(x => `<img src="${x}" onclick="z(this.src)">`).join('')}</div></div>` : ''}
+<div class="c"><h2>${h_(d.doctype || 'Quotation')} ${h_(d.no || '')}</h2>${rows}<div class="r big" style="margin-top:10px;border-top:2px solid ${acc};padding-top:10px"><span>Total</span><span>${inr_(tot)}</span></div></div>
+${tot ? `<div class="c"><h2>Payments</h2>${S.length > 1 ? `<div class="sch">${S.map(x => { const ok = paid >= x.cum, late = !ok && x.due && x.due <= td; return `<div class="${ok ? 'ok2' : late ? 'late' : ''}"><i>${ok ? '✓' : late ? '!' : '○'}</i><span><b>${h_(x.lab)}</b><small>${x.p}%${x.due ? ' · ' + (ok ? 'paid' : 'due ' + dmy_(x.due)) : ''}</small></span><b>${inr_(x.amt)}</b></div>`; }).join('')}</div>` : ''}${pays ? '<h2 style="margin-top:12px">Received</h2>' + pays : ''}<div class="bar"><i style="width:${Math.min(100, Math.round(paid / tot * 100))}%;background:${acc}"></i></div><div class="r"><span>Paid ${inr_(paid)}</span><b style="color:${bal ? acc : '#1f8a4c'}">${bal ? inr_(bal) + ' balance' : 'Fully paid ✓'}</b></div>${upi && done ? `<a class="btn" style="background:${acc}" href="${upi}">Pay ${inr_(payAmt)} by UPI${dueNow ? ' (due now)' : ''}</a>` : ''}</div>` : ''}
+${map ? `<a class="btn alt" href="${h_(map)}">📍 Open venue in Maps</a>` : ''}
+<div class="c" id="act" style="margin-top:12px">${done ? '<div class="ok">✓ Booking confirmed. Thank you!</div>' : `<button id="b" style="background:${acc}">✓ Accept this ${h_(String(d.doctype || 'quotation').toLowerCase())}</button><p><small>Tapping accept confirms the booking as per the terms shared with you.</small></p>`}</div>
+${review}${quick}
+${Z.c.cardPhone ? `<a class="btn gr" href="tel:${h_(Z.c.cardPhone)}">📞 Call ${h_(name)}</a>` : ''}
+<p style="text-align:center;margin:18px 0 6px"><small>${h_(name)}${Z.b.bphone ? ' · ' + h_(Z.b.bphone) : ''}</small></p>
+<div id="zm" onclick="this.style.display='none'"><img id="zi"></div>
+<style>.hd small{color:#fff!important;opacity:.9}.hd .tag{font-size:12px;opacity:.85;margin-top:2px}.hd{min-height:150px;display:flex;flex-direction:column;justify-content:flex-end}
+.steps{display:flex;justify-content:space-between;background:#fff;border-radius:18px;padding:14px 10px;margin-bottom:12px;box-shadow:0 4px 14px #0000000d}.steps div{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;font-size:10.5px;text-align:center;color:#999}.steps div:not(:last-child)::after{content:'';position:absolute;top:13px;left:60%;right:-40%;height:3px;background:#eee}.steps div.dn:not(:last-child)::after{background:${acc}}
+.steps i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#eee;font-weight:800;color:#888;z-index:1}.steps .dn i{background:${acc};color:#fff}.steps .dn,.steps .cur{color:#2a1f1d;font-weight:700}.steps .cur i{background:#fff;border:3px solid ${acc};color:${acc}}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
+.sec{font-weight:800;color:${acc};text-transform:uppercase;font-size:11px;letter-spacing:.06em;margin:12px 0 4px}
+.it{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0e8e4}.it img{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none}.it .num{width:28px;height:28px;border-radius:50%;background:#f6efec;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}.it>div{flex:1}.it b{font-size:15px}.it small{display:block}.it.o{opacity:.6}
+.sch>div{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0e8e4}.sch i{font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#eee;font-weight:800;font-size:12px;flex:none}.sch span{flex:1;display:flex;flex-direction:column}.sch .ok2 i{background:#1f8a4c;color:#fff}.sch .late i{background:${acc};color:#fff}.sch .late small{color:${acc}}
+.qr{display:grid;grid-template-columns:1fr 1fr;gap:8px}.qr a{padding:12px 8px;border-radius:14px;background:#f6efec;color:#2a1f1d;text-decoration:none;font-weight:700;font-size:14px;text-align:center}
+#zm{display:none;position:fixed;inset:0;background:#000d;z-index:9;align-items:center;justify-content:center}#zm img{max-width:100%;max-height:100%}</style>`;
+  const js = `function z(s){var m=document.getElementById('zm');document.getElementById('zi').src=s;m.style.display='flex'}var ed=${JSON.stringify(d.edate || '')};function tk(){var c=document.getElementById('cd');if(!c||!ed)return;var ms=new Date(ed+'T00:00:00')-new Date();if(ms<0){c.innerHTML='<div><b>🎉</b><span>EVENT DAY</span></div>';return}var D=Math.floor(ms/864e5),H=Math.floor(ms/36e5)%24,M=Math.floor(ms/6e4)%60;c.innerHTML='<div><b>'+D+'</b><span>DAYS</span></div><div><b>'+H+'</b><span>HRS</span></div><div><b>'+M+'</b><span>MIN</span></div>'}tk();setInterval(tk,30000);
+var b=document.getElementById('b');if(b)b.onclick=function(){b.disabled=true;b.textContent='Please wait…';google.script.run.withSuccessHandler(function(){document.getElementById('act').innerHTML='<div class=ok>✓ Accepted. Thank you! We will contact you shortly.</div>';setTimeout(function(){location.reload()},1500)}).withFailureHandler(function(){b.disabled=false;b.textContent='Try again'}).accept(${JSON.stringify(id)},${JSON.stringify(t)})};`;
+  return page_(name + ' – ' + (d.no || ''), body, js);
+}
+/* ---------- staff work page: reached / done / tick tasks ---------- */
+function staffView_(id, t) {
+  const f = findEst_(id); const s = f && (f.data.staff || []).find(x => x.tk && x.tk === t);
+  if (!s) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;padding:20px">This link is not valid or has been removed.</p>');
+  const d = f.data, Z = biz_(), name = Z.c.bizName || 'My Business', a = s.att || {};
+  if (!a.seen) { try { staffMark(id, t, 'seen'); } catch (x) { } }
+  const map = d.vmap && /^https?:/.test(d.vmap) ? d.vmap : (d.venue ? 'https://maps.google.com/?q=' + encodeURIComponent(d.venue) : '');
+  const tm = x => x ? new Date(x).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : '';
+  const body = `<div class="hd"><small>${h_(name).toUpperCase()} · WORK LIST</small><h1>${h_(s.n)}${s.role ? ' — ' + h_(s.role) : ''}</h1><div>${h_(d.client || '')}${d.etype ? ' · ' + h_(d.etype) : ''}</div><div>${h_(dmy_(d.edate))}${d.etime ? ' · ' + h_(d.etime) : ''}${d.venue ? ' · ' + h_(d.venue) : ''}</div></div>
+${map ? `<a class="btn alt" href="${h_(map)}">Open venue in Maps</a>` : ''}
+<div class="c" style="margin-top:12px"><h2>Your work</h2>${(s.tasks || []).map((x, i) => `<label class="tk ${x.d ? 'd' : ''}"><input type="checkbox" data-i="${i}" ${x.d ? 'checked' : ''}><span>${h_(x.t)}</span></label>`).join('') || '<small>No tasks yet</small>'}</div>
+<div class="c" id="att">${a.reached ? `<div class="ok">✓ Reached venue ${tm(a.reached)}</div>` : '<button id="re">📍 I have reached the venue</button>'}
+${a.done ? `<div class="ok" style="margin-top:8px">✓ Work done ${tm(a.done)}</div>` : '<button id="dn" style="background:#2a1f1d">✅ All my work is done</button>'}</div>
+${Z.c.cardPhone ? `<a class="btn gr" href="tel:${h_(Z.c.cardPhone)}">Call supervisor</a>` : ''}`;
+  const js = `function go(w,i,cb){google.script.run.withSuccessHandler(cb||function(){location.reload()}).withFailureHandler(function(){alert('No internet – try again')}).staffMark(${JSON.stringify(id)},${JSON.stringify(t)},w,i)}
+var re=document.getElementById('re');if(re)re.onclick=function(){re.disabled=true;re.textContent='Saving…';go('reached')};
+var dn=document.getElementById('dn');if(dn)dn.onclick=function(){dn.disabled=true;dn.textContent='Saving…';go('done')};
+document.querySelectorAll('.tk input').forEach(function(c){c.onchange=function(){c.closest('.tk').classList.toggle('d',c.checked);go(c.checked?'tick':'untick',+c.dataset.i,function(){})}});`;
+  return page_(s.n + ' – work list', body, js);
+}
+function staffMark(id, t, what, i) { findAcc_(id); return staffMark0_(id, t, what, i); }
+function staffMark0_(id, t, what, i) {
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const f = findEst_(id); const s = f && (f.data.staff || []).find(x => x.tk && x.tk === t);
+    if (!s) throw new Error('Invalid link');
+    s.att = s.att || {};
+    if (what === 'seen' || what === 'reached' || what === 'done') { if (!s.att[what]) s.att[what] = new Date().toISOString(); }
+    if ((what === 'tick' || what === 'untick') && s.tasks && s.tasks[i]) { s.tasks[i].d = what === 'tick' ? 1 : 0; s.tasks[i].by = 'staff'; }
+    if (what === 'done') (s.tasks || []).forEach(x => { x.d = 1; x.by = 'staff'; });
+    const fresh = (what === 'reached' || what === 'done') && s.att[what] && Date.now() - new Date(s.att[what]).getTime() < 60000;
+    if (fresh) push_(what === 'reached' ? '📍 Staff reached' : '✅ Work done', (s.n || 'Staff') + (what === 'reached' ? ' reached ' : ' finished work at ') + (f.data.venue || f.data.client || 'the event'));
+    f.data.saved = Date.now();
+    f.sheet.getRange(f.row, 14).setValue(f.data.saved); f.sheet.getRange(f.row, 16).setValue(JSON.stringify(f.data));
+    return true;
+  } finally { lock.releaseLock(); }
+}
+
+
+/* ---------- Phone notifications (OneSignal) ---------- */
+function push_(title, msg) {
+  if (!ONESIGNAL_KEY) return;
+  try {
+    UrlFetchApp.fetch('https://api.onesignal.com/notifications', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { Authorization: 'Key ' + ONESIGNAL_KEY },
+      payload: JSON.stringify({ app_id: ONESIGNAL_APP_ID, target_channel: 'push', included_segments: ['Total Subscriptions'], headings: { en: title }, contents: { en: msg }, url: APP_URL }) });
+  } catch (x) { }
+}
+// Runs every morning (see installMorningReminder)
+function morningPush() {
+  const tz = 'Asia/Kolkata', td = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), tm = Utilities.formatDate(new Date(Date.now() + 864e5), tz, 'yyyy-MM-dd');
+  const ev = [], tmr = [], due = [], fu = [];
+  est_().getDataRange().getValues().slice(1).forEach(r => {
+    if (!r[0] || r[14]) return; let d = {}; try { d = JSON.parse(r[15]); } catch (x) { }
+    const st = r[9], ed = d.edate || '', bal = +r[12] || 0, conf = st === 'Confirmed' || st === 'Completed';
+    if (conf && ed === td) ev.push(d.client || 'Event');
+    if (conf && ed === tm) tmr.push(d.client || 'Event');
+    if (conf && ed && ed <= td && bal > 0) due.push(bal); else if (conf && bal > 0 && d.edate && Utilities.formatDate(new Date(new Date(d.edate + 'T00:00:00').getTime() - 3 * 864e5), tz, 'yyyy-MM-dd') === td) due.push(bal);
+    if (st === 'Enquiry' && d.follow && d.follow <= td) fu.push(d.client || '');
+  });
+  const L = [];
+  if (ev.length) L.push('Today: ' + ev.join(', '));
+  if (tmr.length) L.push('Tomorrow: ' + tmr.join(', '));
+  if (due.length) L.push('To collect: ' + inr_(due.reduce((a, b) => a + b, 0)) + ' from ' + due.length);
+  if (fu.length) L.push('Call back: ' + fu.length + ' enquir' + (fu.length > 1 ? 'ies' : 'y'));
+  const pl = plan_(), rm = pl.rem.filter(r => !r.done && remOn_(r, td)), tdo = pl.todo.filter(t => !t.done), by = pl.buy.filter(b => !b.done);
+  if (rm.length) L.push('Reminders: ' + rm.map(r => r.t).join(', '));
+  if (tdo.length) L.push(tdo.length + ' task' + (tdo.length > 1 ? 's' : '') + ' to do');
+  if (by.length) L.push(by.length + ' item' + (by.length > 1 ? 's' : '') + ' to buy');
+  if (L.length) push_('☀️ Good morning', L.join(' · '));
+}
+// Run this ONCE from the Apps Script editor (select it, press Run) to start the 8 am reminder.
+function installMorningReminder() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'morningPush').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('morningPush').timeBased().everyDays(1).atHour(8).inTimezone('Asia/Kolkata').create();
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'remindPush').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('remindPush').timeBased().everyMinutes(15).create();
+  ['eveningPush', 'weeklyPush', 'weeklyBackup'].forEach(n => ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === n).forEach(t => ScriptApp.deleteTrigger(t)));
+  ScriptApp.newTrigger('eveningPush').timeBased().everyDays(1).atHour(21).inTimezone('Asia/Kolkata').create();
+  ScriptApp.newTrigger('weeklyPush').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(19).inTimezone('Asia/Kolkata').create();
+  ScriptApp.newTrigger('weeklyBackup').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(23).inTimezone('Asia/Kolkata').create();
+}
+function plan_() { try { const kv = kvRead_(set_()); const p = kv.plan ? JSON.parse(kv.plan.raw) : {}; return { todo: p.todo || [], rem: p.rem || [], buy: p.buy || [], exp: p.exp || [] }; } catch (x) { return { todo: [], rem: [], buy: [], exp: [] }; } }
+// Runs every 15 minutes: sends a notification for reminders that are due (supports repeating reminders).
+function remOn_(r, td) {
+  if (!r.d || r.d > td) return false;
+  if (!r.rep) return true;
+  if (r.rep === 'd') return true;
+  const a = new Date(r.d + 'T00:00:00'), b = new Date(td + 'T00:00:00');
+  if (r.rep === 'w') return Math.round((b - a) / 864e5) % 7 === 0;
+  if (r.rep === 'm') return a.getDate() === b.getDate();
+  return false;
+}
+function remindPush() {
+  const tz = 'Asia/Kolkata', now = new Date(), td = Utilities.formatDate(now, tz, 'yyyy-MM-dd'), hm = Utilities.formatDate(now, tz, 'HH:mm');
+  const P = PropertiesService.getScriptProperties(), sent = JSON.parse(P.getProperty('remSent') || '{}');
+  plan_().rem.forEach(r => {
+    if (r.done || !remOn_(r, td)) return;
+    const day = r.rep ? td : r.d, key = r.id + '|' + day + '|' + (r.tm || '');
+    if (sent[key]) return;
+    if (day < td) { sent[key] = 1; return; }          // missed old one-off: don't flood
+    if ((r.tm || '08:00') > hm) return;              // not yet time
+    push_('⏰ ' + r.t, (r.note ? r.note + ' · ' : '') + (r.tm || 'Today'));
+    sent[key] = 1;
+  });
+  const keep = {}; Object.keys(sent).slice(-400).forEach(k => keep[k] = 1);
+  P.setProperty('remSent', JSON.stringify(keep));
+}
+// 9 pm: open tasks + tomorrow's events
+function eveningPush() {
+  const tz = 'Asia/Kolkata', td = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), tm = Utilities.formatDate(new Date(Date.now() + 864e5), tz, 'yyyy-MM-dd');
+  const pl = plan_(), open = pl.todo.filter(t => !t.done && (!t.due || t.due <= td)), ev = [];
+  est_().getDataRange().getValues().slice(1).forEach(r => { if (!r[0] || r[14]) return; let d = {}; try { d = JSON.parse(r[15]); } catch (x) { } if ((r[9] === 'Confirmed') && d.edate === tm) ev.push(d.client || 'Event'); });
+  const L = [];
+  if (ev.length) L.push('Tomorrow: ' + ev.join(', ') + ' — open My day to get ready');
+  if (open.length) L.push(open.length + ' task' + (open.length > 1 ? 's' : '') + ' still open — move to tomorrow?');
+  if (L.length) push_('🌙 Evening check', L.join(' · '));
+}
+// Sunday 7 pm: weekly summary
+function weeklyPush() {
+  const tz = 'Asia/Kolkata', now = new Date(), wk = Utilities.formatDate(new Date(now - 7 * 864e5), tz, 'yyyy-MM-dd'), td = Utilities.formatDate(now, tz, 'yyyy-MM-dd'), nx = Utilities.formatDate(new Date(+now + 7 * 864e5), tz, 'yyyy-MM-dd');
+  let booked = 0, nb = 0, next = 0; const paid = { v: 0 };
+  est_().getDataRange().getValues().slice(1).forEach(r => { if (!r[0] || r[14]) return; let d = {}; try { d = JSON.parse(r[15]); } catch (x) { }
+    if (d.acceptedAt && d.acceptedAt.slice(0, 10) >= wk) { nb++; booked += +r[10] || 0; }
+    (d.pays || []).forEach(p => { if (p.date && p.date >= wk && p.date <= td) paid.v += +p.amt || 0; });
+    if (r[9] === 'Confirmed' && d.edate > td && d.edate <= nx) next++; });
+  const pl = plan_(), spent = pl.exp.filter(e => e.d >= wk).reduce((a, e) => a + (+e.amt || 0), 0);
+  push_('📊 Your week', [nb + ' new booking' + (nb === 1 ? '' : 's') + (booked ? ' ' + inr_(booked) : ''), 'Collected ' + inr_(paid.v), 'Spent ' + inr_(spent), next + ' event' + (next === 1 ? '' : 's') + ' next week'].join(' · '));
+}
+// Sunday night: full copy of this spreadsheet into Drive folder "Lalitha backups" (keeps last 8)
+function weeklyBackup() { eachAcc_(r => backupOne_(r[0] || r[1])); }
+function backupOne_(label) {
+  const name = 'Business backups', it = DriveApp.getFoldersByName(name), f = it.hasNext() ? it.next() : DriveApp.createFolder(name);
+  const tz = 'Asia/Kolkata', stamp = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  DriveApp.getFileById(ss_().getId()).makeCopy(label + ' backup ' + stamp, f);
+  const files = []; const fi = f.getFiles(); while (fi.hasNext()) { const x = fi.next(); if (x.getName().indexOf(label + ' backup ') === 0) files.push(x); }
+  files.sort((a, b) => b.getDateCreated() - a.getDateCreated()).slice(8).forEach(x => x.setTrashed(true));
+}
+// Run to check notifications work.
+function testPush() { push_('Test', 'Notifications are working 👍'); }
+
+
+/* ---------- AI assistant (Gemini) ---------- */
+function aiCall_(b) {
+  if (!GEMINI_KEY) return { ok: false, error: 'AI key not set in Apps Script (GEMINI_KEY)' };
+  const P = PropertiesService.getScriptProperties(), good = P.getProperty('aiModel');
+  const list = good ? [good].concat(GEMINI_MODELS.filter(m => m !== good)) : GEMINI_MODELS;
+  const parts = [{ text: String(b.prompt || '').slice(0, 60000) }];
+  (b.images || (b.image ? [b.image] : [])).slice(0, 4).forEach(im => { const m = String(im).match(/^data:(image\/[a-z+]+);base64,(.+)$/); if (m) parts.push({ inline_data: { mime_type: m[1], data: m[2] } }); });
+  const body = { contents: [{ role: 'user', parts }], generationConfig: { temperature: b.json ? 0.2 : 0.6, maxOutputTokens: 8192 } };
+  if (b.system) body.system_instruction = { parts: [{ text: String(b.system).slice(0, 20000) }] };
+  if (b.json) body.generationConfig.responseMimeType = 'application/json';
+  let last = '';
+  for (const m of list) {
+    try {
+      const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', { method: 'post', contentType: 'application/json', muteHttpExceptions: true, headers: { 'x-goog-api-key': GEMINI_KEY }, payload: JSON.stringify(body) });
+      const code = r.getResponseCode(), j = JSON.parse(r.getContentText() || '{}');
+      if (code === 200) { const t = (((j.candidates || [])[0] || {}).content || {}).parts || []; P.setProperty('aiModel', m); return { ok: true, text: t.map(x => x.text || '').join(''), model: m }; }
+      last = (j.error && j.error.message) || ('HTTP ' + code);
+      if (code === 429) return { ok: false, error: 'AI daily free limit reached – try again later' };
+    } catch (x) { last = String(x); }
+  }
+  return { ok: false, error: 'AI not available: ' + last };
+}
+function testAI() { Logger.log(JSON.stringify(aiCall_({ prompt: 'Say hello in one short line.' }))); }
+
+
+/* ---------- Public package price list (share with customers) ---------- */
+function menuView_() {
+  const Z = biz_(), name = Z.c.bizName || 'My Business', acc = /^#[0-9a-f]{6}$/i.test(Z.c.acc || '') ? Z.c.acc : '#c8102e';
+  let PH = {}; try { PH = kvRead_(ph_()); } catch (x) { }
+  const img = k => PH[k] && /^data:image/.test(PH[k].raw || '') ? PH[k].raw : '';
+  const P = pkgRead_();
+  const wa = String(Z.c.cardWa || Z.c.cardPhone || Z.b.bphone || '').replace(/\D/g, ''), waN = wa.length === 10 ? '91' + wa : wa;
+  const cards = P.map(p => { const rows = (p.rows || []).filter(r => !r.sec && r.name); const tot = rows.reduce((a, r) => a + (+r.amount || 0), 0); const pic = rows.map(r => img(r.name)).find(Boolean) || '';
+    return `<div class="c">${pic ? `<img class="pk" src="${pic}">` : ''}<h2>${h_(p.name)}</h2><ul>${rows.slice(0, 12).map(r => `<li>${h_(r.name)}${r.uom ? ' <small>' + h_(r.uom) + '</small>' : ''}</li>`).join('')}</ul><div class="r big"><span>Starting at</span><span>${inr_(tot)}</span></div>${waN ? `<a class="btn" style="background:${acc}" href="https://wa.me/${waN}?text=${encodeURIComponent('Hi, I am interested in the ' + p.name + ' package')}">Enquire on WhatsApp</a>` : ''}</div>`; }).join('');
+  const body = `<div class="hd" style="background:linear-gradient(150deg,${acc},#2a0508)"><small>${h_(name).toUpperCase()}</small><h1>Decoration packages</h1><div>${h_(Z.b.btag || 'Event decorators')}</div></div>${cards || '<div class="c">Packages coming soon.</div>'}${Z.c.cardPhone ? `<a class="btn gr" href="tel:${h_(Z.c.cardPhone)}">📞 Call ${h_(name)}</a>` : ''}<p style="text-align:center"><small>Prices are indicative and may change with size, flowers and venue.</small></p><style>.pk{width:100%;height:180px;object-fit:cover;border-radius:14px;margin-bottom:10px}ul{margin:6px 0 10px;padding-left:18px;line-height:1.7}</style>`;
+  return page_(name + ' – Packages', body, '');
+}
+/* ---------- Staff app: each team member sees all their upcoming jobs ---------- */
+function teamView_(tk) {
+  const kv = kvRead_(set_()); let team = []; try { team = JSON.parse((kv.team || {}).raw || '[]'); } catch (x) { }
+  const m = team.find(t => t.tk && t.tk === tk);
+  if (!m) return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;padding:20px">This staff link is not valid.</p>');
+  const Z = biz_(), name = Z.c.bizName || 'My Business', tz = 'Asia/Kolkata', td = Utilities.formatDate(new Date(Date.now() - 864e5), tz, 'yyyy-MM-dd');
+  const s = est_(), v = s.getDataRange().getValues(), L = [];
+  for (let i = 1; i < v.length; i++) {
+    if (!v[i][0] || v[i][14] || !v[i][15]) continue; let d; try { d = JSON.parse(v[i][15]); } catch (x) { continue; }
+    if (!['Confirmed', 'Completed'].includes(d.status) || !d.edate || d.edate < td) continue;
+    const st = (d.staff || []).find(x => (x.n || '').trim().toLowerCase() === String(m.n || '').trim().toLowerCase()); if (!st) continue;
+    if (!st.tk) { st.tk = Utilities.getUuid().replace(/-/g, '').slice(0, 12); s.getRange(i + 1, 16).setValue(JSON.stringify(d)); }
+    L.push({ id: v[i][0], d, st });
+  }
+  L.sort((a, b) => a.d.edate < b.d.edate ? -1 : 1);
+  const url = ScriptApp.getService().getUrl() + '?u=' + encodeURIComponent(CU_) + '&';
+  const body = `<div class="hd"><small>${h_(name).toUpperCase()} · STAFF</small><h1>Namaste ${h_(m.n)} 🙏</h1><div>${L.length} upcoming job${L.length === 1 ? '' : 's'}</div></div>` + (L.map(x => { const d = x.d, t = x.st.tasks || [], done = t.filter(y => y.d).length; const map = d.vmap && /^https?:/.test(d.vmap) ? d.vmap : (d.venue ? 'https://maps.google.com/?q=' + encodeURIComponent(d.venue) : '');
+    return `<div class="c"><h2>${h_(dmy_(d.edate))}${d.etime ? ' · ' + h_(d.etime) : ''}</h2><div><b>${h_(d.etype || 'Event')}</b> — ${h_(d.client || '')}</div><div><small>${h_(d.venue || '')}</small></div><div class="r"><span>Work</span><b>${done}/${t.length} done</b></div><a class="btn" href="${url}?staff=${encodeURIComponent(x.id)}&t=${x.st.tk}" target="_top">Open job & mark work</a>${map ? `<a class="btn alt" href="${h_(map)}" target="_top">📍 Directions</a>` : ''}</div>`; }).join('') || '<div class="c">No jobs assigned right now.</div>');
+  return page_('My jobs – ' + name, body, '');
+}
