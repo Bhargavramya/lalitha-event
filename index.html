@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='15.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5613,4 +5613,6 @@ body.mobile{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))!importan
 <script id="v151js">(function(){const I={home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',saved:'<path d="M3 6h7l2 2h9v11H3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',rep:'<path d="M7 4h10M7 9h10M9 4c5 0 5 7 0 7H7l8 9"/>',set:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
 function fix(){document.querySelectorAll('nav.tabs-root>button').forEach(b=>{if(b.querySelector('.tbi'))return;const k=I[b.dataset.t];if(!k)return;const s=document.createElement('span');s.className='tbi';s.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+k+'</svg>';b.prepend(s)})}
 fix();setTimeout(fix,800);setTimeout(fix,2500)})();</script>
+<script id="v153js">(function(){function card(){const t=$('t-set');if(!t)return;let c=$('lockcard');if(!c){c=document.createElement('div');c.id='lockcard';c.className='card';c.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';t.prepend(c)}const on=!!ls.get('lal_pin','');c.innerHTML='<div style="flex:1;min-width:0"><b style="font-size:16px">App lock</b><div class="mut" style="font-size:13px;margin-top:2px">'+(on?'On. PIN asked when the app opens and after 2 minutes away.':'Off. Anyone with your phone can open the app.')+'</div></div>'+(on?'<button class="ghost" style="min-height:44px" onclick="pinSet()">Change PIN</button><button style="min-height:44px" onclick="pinOff()">Turn off</button>':'<button class="pri" style="min-height:44px" onclick="pinSet()">Turn on</button>')}
+const pu=window.pinUI;window.pinUI=function(){const r=pu&&pu.apply(this,arguments);card();return r};card();setTimeout(card,1500)})();</script>
 </body></html>
