@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5701,4 +5701,33 @@ const pz=window.pvZoom;if(pz){window.pvZoom=function(z,cx,cy){const s=$('pvs');i
 const hook2=()=>{const s=$('pvs');if(!s||s.dataset.zb)return;s.dataset.zb=1;bind(s,{noTouch:1,noWheel:1,z:()=>PVZ,zoom:(z,x,y)=>pvZoom(z,x,y),scroll:(dx,dy)=>{s.scrollLeft-=dx;s.scrollTop-=dy},dbl:(x,y)=>pvZoom(PVZ>1.3?1:2.2,x,y)})};
 hook2();setInterval(hook2,1500);
 })();</script>
+<style id="v160">
+body.cx #t-est .stp2 #pcbtn,body.cx #t-est .stp2 #afrb,body.cx #t-est .stp2 #sugg{display:none!important}
+body.cx #qkbar .qkc{display:inline-flex!important;gap:0!important;padding:3px!important;border-radius:10px!important;background:#f1f2f4!important;border:0!important;margin:4px 0 12px!important;width:auto!important}
+body.cx #qkbar .qkc button{flex:0 0 auto!important;min-height:36px!important;height:36px!important;padding:0 16px!important;border-radius:8px!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#4b5563!important;font-weight:600!important;font-size:14px!important}
+body.cx #qkbar .qkc button.on{background:#fff!important;color:#111!important;box-shadow:0 1px 3px rgba(0,0,0,.12)!important}
+body.cx #qchips{margin-bottom:8px!important}body.cx #qchips button{min-height:34px!important;padding:0 12px!important;font-size:14px!important;border-radius:999px!important;background:#fff!important;border:1px solid #e5e7eb!important;box-shadow:none!important;color:#111!important}
+body.cx #qchips button.on{background:#c8102e!important;border-color:#c8102e!important;color:#fff!important}
+body.cx table.items td input{border-bottom:1px solid transparent!important}body.cx table.items tr:hover td input,body.cx table.items td input:placeholder-shown{border-bottom-color:#e5e7eb!important}body.cx table.items td input:focus{border-bottom-color:#c8102e!important;background:#fff8f8!important}
+@media(hover:hover){body.cx #rows>tr td.rowbtns>*:not(:last-child){opacity:0;transition:opacity .12s}body.cx #rows>tr:hover td.rowbtns>*,body.cx #rows>tr:focus-within td.rowbtns>*{opacity:1}}
+body.cx #rows td.rowbtns .db{font-size:0!important;gap:0!important}body.cx #rows td.rowbtns .db svg{width:18px;height:18px}
+body.cx .fxhint{font-size:12px!important;color:#9ca3af!important}
+body.cx #paybox.empty{display:none!important}
+</style>
+<script id="v160js">(function(){
+/* 1. payment card always matches the totals */
+const up=()=>{try{payBox()}catch(e){}const b=$('paybox');if(b){let t=0;try{t=totals().tot||0}catch(e){}b.classList.toggle('empty',!(t>0))}};
+['calc','render'].forEach(n=>{const o=window[n];if(typeof o!=='function')return;window[n]=function(){const r=o.apply(this,arguments);clearTimeout(window._pbT);window._pbT=setTimeout(up,60);return r}});
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#t-est')){clearTimeout(window._pbT);window._pbT=setTimeout(up,120)}},true);
+document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#t-est')){clearTimeout(window._pbT);window._pbT=setTimeout(up,120)}},true);
+/* 2. move Price check, Fill empty rates, AI quote into Tools */
+function tools(){const m=document.querySelector('#t-est .stp2 .ch .menu');if(!m||m.dataset.v160)return;m.dataset.v160=1;const add=(t,f)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{b.closest('details').open=false;f()};m.prepend(b)};
+add('AI quote',()=>{const a=[...document.querySelectorAll('#sugg *')].find(x=>/AI quote/i.test(x.textContent)&&x.children.length<3);if(a)a.click();else if(window.aiQuote)aiQuote();else toast('Add a customer and event first')});
+add('Fill empty rates',()=>{const b=$('afrb');b&&b.click()});add('Price check',()=>{const b=$('pcbtn');b&&b.click()})}
+/* 3. plain words on Decor / Function hall / Catering, empty cells show a hint */
+function tidy(){document.querySelectorAll('#qkbar .qkc button').forEach(b=>{const t=b.textContent.replace(/[^\w\s/&]/g,'').trim();if(b.textContent!==t)b.textContent=t});
+document.querySelectorAll('#rows>tr').forEach(tr=>{const i=tr.querySelectorAll('input');if(i[3]&&!i[3].placeholder)i[3].placeholder='1';if(i[5]&&!i[5].placeholder)i[5].placeholder='Rate';if(i[2]&&!i[2].placeholder)i[2].placeholder='Size'});
+document.querySelectorAll('#qchips button').forEach(b=>{if(/₹\s*[\d.]+k\b/i.test(b.textContent))b.textContent=b.textContent.replace(/₹\s*([\d.]+)k\b/gi,(m,n)=>'₹'+Math.round(n*1000).toLocaleString('en-IN'))})}
+const run=()=>{if(!document.body.classList.contains('cx'))return;tools();tidy();up()};
+new MutationObserver(()=>{clearTimeout(window._v160);window._v160=setTimeout(run,80)}).observe(document.body,{childList:true,subtree:true});run()})();</script>
 </body></html>
