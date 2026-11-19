@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='15.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5635,4 +5635,10 @@ new MutationObserver(addLink).observe(document.body,{childList:true});
 })();</script>
 <script id="v155js">function keyCard(wrong){const t=$('t-set');if(!t)return;let c=$('keycard');if(G.key){c&&c.remove();return}if(!c){c=document.createElement('div');c.id='keycard';c.className='card';c.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';t.prepend(c)}c.innerHTML='<div style="flex:1;min-width:0"><b style="font-size:16px">Google Sheet not connected</b><div class="mut" style="font-size:13px;margin-top:2px">'+(wrong?'The saved sheet password was wrong. ':'')+'Quotes stay on this phone until you connect.</div></div><button class="pri" style="min-height:44px" onclick="askKey()">Connect</button>'}
 (function(){const a=window.askKey;if(a){const ok=()=>setTimeout(()=>{try{keyCard()}catch(e){}},300);document.addEventListener('click',e=>{if(e.target&&e.target.id==='keyok')setTimeout(ok,1500)},true)}keyCard()})();</script><script id="v156js">(function(){if(!ls.get('lal_key',''))ls.set('lal_key','open');window.keyCard=function(){const c=$('keycard');c&&c.remove()};window.askKey=function(){};const k=$('keyrow');k&&k.remove();keyCard();
-const st=window.stat;if(st)window.stat=function(m){if(/wrong password/i.test(String(m||''))){if(!ls.get('lal_key',''))ls.set('lal_key','open');m='Sheet not syncing: remove the password check in Code.gs'}return st.call(this,m)}})();</script></body></html>
+const st=window.stat;if(st)window.stat=function(m){if(/wrong password/i.test(String(m||''))){if(!ls.get('lal_key',''))ls.set('lal_key','open');m='Sheet not syncing: remove the password check in Code.gs'}return st.call(this,m)}})();</script><style id="v157">body.cx #splash{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;height:100lvh!important;min-height:100vh;background:#fff!important;transform:translateZ(0);will-change:opacity;overscroll-behavior:none;touch-action:none}
+body.cx #splash .gblob,body.cx #splash::before,body.cx #splash::after{display:none!important}
+body.cx #splash *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.cx #splash>div{background:transparent!important;box-shadow:none!important;border:0!important}
+html.splon,html.splon body{overflow:hidden!important}</style>
+<script id="v157js">(function(){const h=document.documentElement,sp=document.getElementById('splash');if(sp&&document.body.classList.contains('cx')){h.classList.add('splon');sp.querySelectorAll('.gblob').forEach(e=>e.remove());new MutationObserver((m,o)=>{if(!document.getElementById('splash')){h.classList.remove('splon');o.disconnect()}}).observe(document.body,{childList:true});setTimeout(()=>h.classList.remove('splon'),4000)}
+const ra=window.reloadApp;if(ra)window.reloadApp=async function(){if(document.body.classList.contains('cx')){try{toast('Updating…')}catch(e){}const s0=window.SPLASH0;window.SPLASH0='';try{return await ra.apply(this,arguments)}finally{window.SPLASH0=s0}}return ra.apply(this,arguments)}})();</script></body></html>
