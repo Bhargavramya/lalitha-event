@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='16.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5807,4 +5807,14 @@ function norm(root){if(!document.body.classList.contains('cx'))return;(root||doc
  if(s.boxShadow!=='none'&&!e.closest('nav,.stepnav,.mbar')&&!/fab|plus/i.test(e.className)&&e.tagName!=='BUTTON'||(e.tagName==='BUTTON'&&!e.classList.contains('pri')&&s.boxShadow!=='none'&&!/fab|plus/i.test(e.className)))e.style.setProperty('box-shadow','none','important')})}
 let q=0;new MutationObserver(()=>{if(q)return;q=1;setTimeout(()=>{q=0;norm()},150)}).observe(document.body,{childList:true,subtree:true});
 document.addEventListener('click',()=>setTimeout(norm,200),true);norm()})();</script>
+<script id="v164js">(function(){
+/* switching screens closes whatever popup, sheet, preview or full-screen view was left open */
+function closeAll(to){document.querySelectorAll('.mdl').forEach(m=>{if(m.closest('#lockv,#otpv')||m.classList.contains('keym'))return;m.remove()});
+const pv=$('pv');if(pv&&!pv.hidden){pv.hidden=true}const zb=$('pvzb');
+const eq=$('eq');if(eq&&!eq.hidden){try{enqClose()}catch(e){eq.hidden=true}}
+if(to!=='est')document.body.classList.remove('lvon');
+const nt=$('ntview');if(nt&&getComputedStyle(nt).display!=='none'&&to!=='notes'){try{window.ntClose?ntClose():nt.remove()}catch(e){}}
+document.body.style.overflow='';document.documentElement.classList.remove('splon')}
+const t0=window.tab;if(typeof t0==='function'){window.tab=function(to){if(!window._v164in){window._v164in=1;try{closeAll(to)}catch(e){}setTimeout(()=>window._v164in=0,0)}return t0.apply(this,arguments)}}
+})();</script>
 </body></html>
