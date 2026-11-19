@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='15.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5647,4 +5647,4 @@ body.cx #splash *{backdrop-filter:none!important;-webkit-backdrop-filter:none!im
 body.cx #splash>div{background:transparent!important;box-shadow:none!important;border:0!important}
 html.splon,html.splon body{overflow:hidden!important}</style>
 <script id="v157js">(function(){const h=document.documentElement,sp=document.getElementById('splash');if(sp&&document.body.classList.contains('cx')){h.classList.add('splon');sp.querySelectorAll('.gblob').forEach(e=>e.remove());new MutationObserver((m,o)=>{if(!document.getElementById('splash')){h.classList.remove('splon');o.disconnect()}}).observe(document.body,{childList:true});setTimeout(()=>h.classList.remove('splon'),4000)}
-const ra=window.reloadApp;if(ra)window.reloadApp=async function(){if(document.body.classList.contains('cx')){try{toast('Updating…')}catch(e){}const s0=window.SPLASH0;window.SPLASH0='';try{return await ra.apply(this,arguments)}finally{window.SPLASH0=s0}}return ra.apply(this,arguments)}})();</script></body></html>
+const ra=window.reloadApp;if(ra)window.reloadApp=async function(){if(document.body.classList.contains('cx')){try{toast('Updating…')}catch(e){}const s0=window.SPLASH0;window.SPLASH0='';try{return await ra.apply(this,arguments)}finally{window.SPLASH0=s0}}return ra.apply(this,arguments)}})();</script><script id="v158js">(function(){try{history.scrollRestoration='manual'}catch(e){}const t0=Date.now(),siv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){if(Date.now()-t0<4000||document.getElementById('splash'))return;return siv.apply(this,arguments)};const top=()=>{if(!document.querySelector('.mdl'))window.scrollTo(0,0)};top();addEventListener('load',top);setTimeout(top,600);setTimeout(top,1600);setTimeout(top,3000);new MutationObserver((m,o)=>{if(!document.getElementById('splash')){top();o.disconnect()}}).observe(document.body,{childList:true})})();</script></body></html>
