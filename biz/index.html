@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='15.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5621,4 +5621,22 @@ function fix(){document.querySelectorAll('nav.tabs-root>button').forEach(b=>{if(
 fix();setTimeout(fix,800);setTimeout(fix,2500)})();</script>
 <script id="v153js">(function(){function card(){const t=$('t-set');if(!t)return;let c=$('lockcard');if(!c){c=document.createElement('div');c.id='lockcard';c.className='card';c.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';t.prepend(c)}const on=!!ls.get('lal_pin','');c.innerHTML='<div style="flex:1;min-width:0"><b style="font-size:16px">App lock</b><div class="mut" style="font-size:13px;margin-top:2px">'+(on?'On. PIN asked when the app opens and after 2 minutes away.':'Off. Anyone with your phone can open the app.')+'</div></div>'+(on?'<button class="ghost" style="min-height:44px" onclick="pinSet()">Change PIN</button><button style="min-height:44px" onclick="pinOff()">Turn off</button>':'<button class="pri" style="min-height:44px" onclick="pinSet()">Turn on</button>')}
 const pu=window.pinUI;window.pinUI=function(){const r=pu&&pu.apply(this,arguments);card();return r};card();setTimeout(card,1500)})();</script>
+<style id="v154">#lockv .lkf{margin-top:18px;background:none;border:0;color:#c8102e;font-weight:600;font-size:16px;min-height:44px;padding:0 16px}
+#otpv{position:fixed;inset:0;z-index:100001;background:#f4f5f7;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#otpv b{font-size:22px}#otpv p{color:#6b7280;margin:8px 0 18px;max-width:320px}#otpv input{width:220px;height:56px;font-size:28px;letter-spacing:10px;text-align:center;border:1px solid #d1d5db;border-radius:10px}
+#otpv .pri{margin-top:14px;width:220px;height:50px}#otpv .ghost{margin-top:8px;background:none;border:0;color:#6b7280;min-height:44px}#otpv .er{color:#c8102e;font-weight:600;min-height:22px;margin-top:10px}</style>
+<script id="v154js">(function(){
+async function call(q){const r=await fetch(G.url+'?key='+encodeURIComponent(G.key)+'&'+q).then(r=>r.json());return r||{}}
+function screen(){if($('otpv'))return;const d=document.createElement('div');d.id='otpv';d.innerHTML='<b>Reset app PIN</b><p id="otpm">Sending a 6-digit code to your Gmail…</p><input id="otpin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" disabled><div class="er" id="otpe"></div><button class="pri" id="otpok" disabled>Verify</button><button class="ghost" id="otprs">Send code again</button><button class="ghost" id="otpx">Back</button>';document.body.appendChild(d);
+const m=$('otpm'),e=$('otpe'),i=$('otpin'),ok=$('otpok');
+const send=async()=>{e.textContent='';m.textContent='Sending a 6-digit code to your Gmail…';if(!navigator.onLine){m.textContent='';e.textContent='No internet. Connect and tap Send code again.';return}
+ try{const r=await call('otp=1');if(r.otp==='sent'){m.textContent='Code sent to '+(r.to||'your Gmail')+'. It works for 10 minutes.';i.disabled=ok.disabled=false;i.focus()}else{m.textContent='';e.textContent=r.error&&/password/i.test(r.error)?'Sheet password on this phone is wrong, so the code cannot be sent.':'Your Google Sheet script is not updated for email codes yet.'}}catch(x){m.textContent='';e.textContent='Could not reach your Google Sheet. Try again.'}};
+ok.onclick=async()=>{const v=i.value.trim();if(v.length!==6){e.textContent='Enter the 6-digit code';return}ok.disabled=true;ok.textContent='Checking…';
+ try{const r=await call('otpv='+encodeURIComponent(v));if(r.otp==='ok'){ls.set('lal_pin','');d.remove();const l=$('lockv');l&&l.remove();ls.set('lal_unl',Date.now());try{haptic('success')}catch(_){}try{pinSet()}catch(_){}try{pinUI()}catch(_){}}else{e.textContent=r.error||'Wrong code';try{haptic('error')}catch(_){}i.select()}}catch(x){e.textContent='Could not reach your Google Sheet.'}ok.disabled=false;ok.textContent='Verify'};
+i.onkeydown=x=>{if(x.key==='Enter')ok.click()};$('otprs').onclick=send;$('otpx').onclick=()=>d.remove();send()}
+window.pinForgot=screen;
+function addLink(){const l=$('lockv');if(l&&!l.querySelector('.lkf')){const b=document.createElement('button');b.className='lkf';b.textContent='Forgot PIN?';b.onclick=screen;l.appendChild(b)}}
+const ls0=window.lockShow;if(ls0)window.lockShow=function(){const r=ls0.apply(this,arguments);addLink();return r};addLink();
+new MutationObserver(addLink).observe(document.body,{childList:true});
+})();</script>
 </body></html>
