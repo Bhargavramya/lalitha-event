@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='16.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5730,4 +5730,56 @@ document.querySelectorAll('#rows>tr').forEach(tr=>{const i=tr.querySelectorAll('
 document.querySelectorAll('#qchips button').forEach(b=>{if(/₹\s*[\d.]+k\b/i.test(b.textContent))b.textContent=b.textContent.replace(/₹\s*([\d.]+)k\b/gi,(m,n)=>'₹'+Math.round(n*1000).toLocaleString('en-IN'))})}
 const run=()=>{if(!document.body.classList.contains('cx'))return;tools();tidy();up()};
 new MutationObserver(()=>{clearTimeout(window._v160);window._v160=setTimeout(run,80)}).observe(document.body,{childList:true,subtree:true});run()})();</script>
+<style id="v161">
+/* ===== Quotation: hide extras unless "More options" is on ===== */
+body.cx:not(.qmore) #t-est #stchips,body.cx:not(.qmore) #t-est #qchips,body.cx:not(.qmore) #t-est .fxhint,body.cx:not(.qmore) #t-est #sesadd,body.cx:not(.qmore) #t-est .stp2 .flex .ghost:not(:first-child),body.cx:not(.qmore) #t-est .stp2 .flex>:not(button),body.cx:not(.qmore) #t-est #stcard,body.cx:not(.qmore) #t-est .stp3 .tw~details,body.cx #t-est .actions{display:none!important}
+body.cx:not(.q1more) #t-est .stp1 .x1{display:none!important}
+body.cx:not(.qtx) #t-est .stp3 .tw{display:none!important}
+body.cx #paybox.noadv{display:none!important}
+.qlink{background:none!important;border:0!important;box-shadow:none!important;color:#c8102e!important;font:600 15px Inter,system-ui,sans-serif!important;padding:10px 0!important;min-height:44px;text-align:left}
+/* ===== Phone: one-line spreadsheet rows with header ===== */
+@media(max-width:767px){
+body.cx table.items thead{display:block!important}
+body.cx table.items thead tr,body.cx #rows>tr{display:grid!important;grid-template-columns:minmax(0,1fr) 44px 70px 78px!important;grid-template-areas:"nm qt rt am" "sz . bt bt"!important;column-gap:6px!important;row-gap:0!important}
+body.cx table.items thead tr{grid-template-areas:"nm qt rt am"!important;padding:8px 4px!important;background:#f9fafb;border-bottom:1px solid #e5e7eb}
+body.cx table.items thead th{display:none!important;font-size:11px!important;color:#6b7280!important;padding:0!important;text-align:right!important;background:none!important;border:0!important}
+body.cx table.items thead th:nth-child(2){display:block!important;grid-area:nm;text-align:left!important}body.cx table.items thead th:nth-child(4){display:block!important;grid-area:qt}body.cx table.items thead th:nth-child(6){display:block!important;grid-area:rt}body.cx table.items thead th:nth-child(7){display:block!important;grid-area:am}
+body.cx #rows>tr{padding:6px 4px!important}body.cx #rows>tr>td::before,body.cx #rows>tr>td::after{display:none!important;content:none!important}
+body.cx #rows>tr input{height:36px!important;border:0!important;border-bottom:1px solid transparent!important;border-radius:0!important;padding:0 2px!important;background:transparent!important}
+body.cx #rows>tr input:focus{border-bottom-color:#c8102e!important;background:#fff8f8!important}
+body.cx #rows>tr td:nth-child(3) input{height:24px!important;font-size:13px!important;color:#6b7280}
+body.cx #rows>tr td:nth-child(4) input,body.cx #rows>tr td:nth-child(6) input{text-align:right}
+body.cx #rows>tr>td.amt{font-size:15px}
+body.cx #rows>tr>td.rowbtns{justify-content:flex-end}body.cx #rows>tr>td.rowbtns>*:not(:last-child){display:none!important}
+body.cx #rows>tr>td.rowbtns>:last-child{min-height:28px!important;height:28px!important;padding:0 6px!important;font-size:14px!important;color:#9ca3af!important;background:none!important;border:0!important}
+}
+body.cx #steps{background:none!important;box-shadow:none!important;border:0!important;padding:0!important}body.cx #steps button,body.cx #steps a{background:#fff!important;border:1px solid #e5e7eb!important;box-shadow:none!important;font-size:14px!important;min-height:44px!important}
+/* ===== Home + Quotes list: plain ===== */
+body.cx #t-home details.tdx,body.cx #t-home .tdx{background:#fff!important;border:0!important;border-bottom:1px solid #eef0f3!important;border-radius:0!important;box-shadow:none!important}
+body.cx #t-home [class*="tdx"] *{background-color:transparent}
+body.cx #saved .qi{background:#fff!important;box-shadow:none!important;border:0!important;border-bottom:1px solid #eef0f3!important;border-radius:0!important;margin:0!important;padding:12px 4px!important}
+body.cx #saved .qi .kb{display:none!important}
+body.cx #saved .qi .st{background:none!important;border:0!important;padding:0 0 0 12px!important;position:relative;font-size:12px!important;color:#6b7280!important}
+body.cx #saved .qi .st::before{content:"";position:absolute;left:0;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#9ca3af}
+body.cx #saved .qi .st-confirmed::before{background:#1f8a4c}body.cx #saved .qi .st-sent::before{background:#2563eb}body.cx #saved .qi .st-lost::before{background:#c8102e}body.cx #saved .qi .st-completed::before{background:#111}body.cx #saved .qi .st-enquiry::before{background:#f59e0b}
+body.cx #saved .qgh{background:none!important;font-size:12px!important;font-weight:600!important;color:#6b7280!important;letter-spacing:.04em;text-transform:uppercase;padding:16px 4px 6px!important}
+</style>
+<script id="v161js">(function(){const cx=()=>document.body.classList.contains('cx');
+const KEEP=['client','phone','etype','edate','venue'];
+function build(){if(!cx())return;const est=$('t-est');if(!est)return;
+/* customer step: keep 5 fields */
+const s1=est.querySelector('.stp1');if(s1&&!s1.dataset.v161){s1.dataset.v161=1;s1.querySelectorAll('input,select,textarea').forEach(i=>{if(KEEP.includes(i.id))return;const w=i.closest('label')||i.parentElement;if(w&&w!==s1)w.classList.add('x1')});s1.querySelectorAll('button,.vmapw,details').forEach(b=>{if(!b.closest('label')&&!KEEP.some(k=>b.closest('label')&&b.closest('label').querySelector('#'+k)))b.classList.add('x1')});
+ const t=document.createElement('button');t.type='button';t.className='qlink';t.id='q1btn';t.textContent='More details';t.onclick=()=>{document.body.classList.toggle('q1more');t.textContent=document.body.classList.contains('q1more')?'Fewer details':'More details'};s1.appendChild(t)}
+/* items: more options link */
+const s2=est.querySelector('.stp2');if(s2&&!$('qmbtn')){const t=document.createElement('button');t.type='button';t.className='qlink';t.id='qmbtn';t.textContent='More options';t.onclick=()=>{document.body.classList.toggle('qmore');t.textContent=document.body.classList.contains('qmore')?'Fewer options':'More options'};s2.appendChild(t)}
+/* totals: discount/GST/advance behind a link, open if any set */
+const tw=est.querySelector('.stp3 .tw');if(tw&&!$('qtxbtn')){const t=document.createElement('button');t.type='button';t.className='qlink';t.id='qtxbtn';t.textContent='+ Discount / GST / Advance';t.onclick=()=>{document.body.classList.add('qtx');t.remove()};tw.parentElement.insertBefore(t,tw)}
+const any=['disc','adv'].some(id=>+(($(id)||{}).value||0)>0)||(($('gst')||{}).value||'0')!=='0';if(any){document.body.classList.add('qtx');const t=$('qtxbtn');t&&t.remove()}
+tot()}
+function tot(){const b=document.querySelector('#qbtot b');if(!b)return;let t={tot:0,adv:0};try{t=totals()}catch(e){}b.textContent=fmt(t.tot||0);const pb=$('paybox');if(pb)pb.classList.toggle('noadv',!(t.adv>0))}
+const sched=()=>{clearTimeout(window._v161);window._v161=setTimeout(build,80)};
+new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});
+document.addEventListener('input',()=>setTimeout(tot,60),true);document.addEventListener('change',()=>setTimeout(tot,60),true);
+['newQ','openQ'].forEach(n=>{const o=window[n];if(typeof o==='function')window[n]=function(){document.body.classList.remove('qtx','qmore','q1more');const q=$('qtxbtn');q&&q.remove();const r=o.apply(this,arguments);setTimeout(build,100);return r}});
+build()})();</script>
 </body></html>
