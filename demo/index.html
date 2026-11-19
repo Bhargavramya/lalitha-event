@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='16.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -2744,7 +2744,7 @@ function idx(inp){const tr=inp.closest('tr');return [...$('rows').children].inde
 function show(inp){const q=inp.value.trim().toLowerCase();const cat=ls.get('lal_cat',DEFCAT),u=use();
 let L=cat.map(c=>{const n=c[0].toLowerCase();let sc=-1;if(!q)sc=1;else if(n.startsWith(q))sc=3;else if(n.split(/\s+/).some(w=>w.startsWith(q)))sc=2;else if(n.includes(q))sc=1;return [c,sc,u[n]||0]}).filter(x=>x[1]>0&&x[0][0].toLowerCase()!==q);
 L.sort((a,b)=>b[1]-a[1]||b[2]-a[2]||a[0][0].localeCompare(b[0][0]));L=L.slice(0,7);
-if(!L.length){box.hidden=true;return}cur=inp;
+if(!L.length||!q){box.hidden=true;return}cur=inp;
 box.innerHTML=(q?'':'<div class="ach">Most used</div>')+L.map(([c,s,n],i)=>`<button type="button" data-n="${esc(c[0])}"><b>${esc(c[0])}</b><span>${c[1]?esc(c[1])+' · ':''}${+c[2]?fmt(+c[2]):''}${n?' · used '+n+'×':''}</span></button>`).join('');
 const r=inp.getBoundingClientRect();box.style.left=Math.max(8,r.left)+'px';box.style.width=Math.min(innerWidth-16,Math.max(r.width,260))+'px';
 const below=innerHeight-r.bottom>260;box.style.top=(below?r.bottom+4:Math.max(8,r.top-4-Math.min(300,L.length*52)))+'px';box.hidden=false}
@@ -3985,7 +3985,7 @@ const autoOn=()=>ls.get('lal_auto',true)!==false;
 /* shortcuts ordered by use (snapshot once a day so they don't jump around) */
 (function(){const r0=WCAT.acts.r;WCAT.acts.r=function(D,o){if(autoOn()){const td=today();let snap=ls.get('lal_autosc',null);if(!snap||snap.d!==td||snap.base!==o.list.join(',')){const u=useGet().sc||{};snap={d:td,base:o.list.join(','),order:[...o.list].sort((a,b)=>(u[b]||0)-(u[a]||0))};ls.set('lal_autosc',snap)}o=Object.assign({},o,{list:snap.order.filter(k=>o.list.includes(k))})}return r0.call(this,D,o)}})();
 /* widgets ordered by use (daily), greeting stays on top */
-(function(){const wg=window.wGet;window.wGet=function(){const W=wg.apply(this,arguments);if(!autoOn()||WEDIT)return W;const td=today();let snap=ls.get('lal_autow',null);const base=W.map(x=>x.id).join(',');if(!snap||snap.d!==td||snap.base!==base){const u=useGet().w||{};const fixed=W.filter(x=>x.id==='greet'),rest=W.filter(x=>x.id!=='greet');const ord=rest.map((x,i)=>[x,i]).sort((a,b)=>((u[b[0].id]||0)-(u[a[0].id]||0))||a[1]-b[1]).map(x=>x[0].id);snap={d:td,base,order:fixed.map(x=>x.id).concat(ord)};ls.set('lal_autow',snap)}return snap.order.map(id=>W.find(x=>x.id===id)).filter(Boolean)}})();
+(function(){const wg=window.wGet;if(wg)window.wGet=function(){const W=wg.apply(this,arguments);if(!autoOn()||WEDIT)return W;const td=today();let snap=ls.get('lal_autow',null);const base=W.map(x=>x.id).join(',');if(!snap||snap.d!==td||snap.base!==base){const u=useGet().w||{};const fixed=W.filter(x=>x.id==='greet'),rest=W.filter(x=>x.id!=='greet');const ord=rest.map((x,i)=>[x,i]).sort((a,b)=>((u[b[0].id]||0)-(u[a[0].id]||0))||a[1]-b[1]).map(x=>x[0].id);snap={d:td,base,order:fixed.map(x=>x.id).concat(ord)};ls.set('lal_autow',snap)}return snap.order.map(id=>W.find(x=>x.id===id)).filter(Boolean)}})();
 (function(){const mv=window.wMove;window.wMove=function(){if(autoOn()){ls.set('lal_auto',false);alertMsg('Auto-arrange turned off — your order is kept')}return mv.apply(this,arguments)};
  const hr=window.hxRender;window.hxRender=function(){const r=hr.apply(this,arguments);const bar=document.querySelector('#hx .wedit-bar');if(bar&&!bar.querySelector('.autot'))bar.insertAdjacentHTML('afterbegin',`<button class="autot ${autoOn()?'on':''}" onclick="ls.set('lal_auto',!autoOn());ls.set('lal_autow',null);ls.set('lal_autosc',null);hxRender()">${autoOn()?'Auto ✓':'Auto off'}</button>`);return r}})();
 /* ---------- smart follow-up gap + best time ---------- */
@@ -4306,7 +4306,7 @@ addEventListener('online',()=>{netBar();try{flushSoon&&flushSoon()}catch(e){}set
 /* ---- Simple / Pro mode ---- */
 const isSimple=()=>ls.get('lal_mode','pro')==='simple';
 function modeApply(){document.body.classList.toggle('simple',isSimple());hxSoon()}
-(function(){const wg=window.wGet;window.wGet=function(){const W=wg.apply(this,arguments);if(!isSimple())return W;const keep=['greet','acts','today','follow','paydue','upcoming','plan'];return W.filter(x=>keep.includes(x.id))}})();
+(function(){const wg=window.wGet;if(wg)window.wGet=function(){const W=wg.apply(this,arguments);if(!isSimple())return W;const keep=['greet','acts','today','follow','paydue','upcoming','plan'];return W.filter(x=>keep.includes(x.id))}})();
 async function modeSet(m){if(m==='pro'&&isSimple()&&ls.get('lal_pin','')){const p=prompt('Enter app PIN to switch to Pro mode');if(!p)return;if(await pinHash(p)!==ls.get('lal_pin',''))return alertMsg('Wrong PIN');}ls.set('lal_mode',m);modeApply();modeUI();alertMsg(m==='simple'?'Simple mode on':'Pro mode on')}
 function modeUI(){const b=$('modeseg');if(!b)return;b.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.m===(isSimple()?'simple':'pro')))}
 (function(){const look=document.querySelector('[data-sp="look"]');if(look&&!$('modeseg')){look.insertAdjacentHTML('afterbegin',`<div class="card" style="margin-bottom:12px"><h2>App mode</h2><p class="mut" style="margin:4px 0 10px">Simple shows only the basics — good for family or staff using this phone. ${'Pro shows everything.'}</p><div class="seg2" id="modeseg"><button data-m="simple" onclick="modeSet('simple')">Simple</button><button data-m="pro" onclick="modeSet('pro')">Pro</button></div></div>`);modeUI()}if(typeof SET_EXTRA!=='undefined')SET_EXTRA.look+=' simple pro mode easy basic'})();
@@ -4319,7 +4319,7 @@ const WHATSNEW=[['15.0',['🏢 New corporate look – flat, clean, white with yo
 /* v11.6 fix: apply auto-arrange order and Simple mode to the rendered widgets (wGet is a fixed function) */
 (function(){const hr=window.hxRender;window.hxRender=function(){const r=hr.apply(this,arguments);try{const hx=$('hx');if(!hx||WEDIT)return r;const W=[...hx.querySelectorAll(':scope > .wdg')];if(!W.length)return r;
  if(isSimple()){const keep=['greet','acts','today','follow','paydue','upcoming','plan'];W.forEach(w=>{if(!keep.includes(w.dataset.w))w.remove()})}
- else if(autoOn()){const ord=window.wGet().map(x=>x.id);const live=[...hx.querySelectorAll(':scope > .wdg')];const anchor=live[0].previousSibling;const sorted=[...live].sort((a,b)=>ord.indexOf(a.dataset.w)-ord.indexOf(b.dataset.w));let ref=live[live.length-1].nextSibling;sorted.forEach(w=>hx.insertBefore(w,ref))}}catch(e){console.warn(e)}return r}})();
+ else if(autoOn()){const ord=wGet().map(x=>x.id);const live=[...hx.querySelectorAll(':scope > .wdg')];const anchor=live[0].previousSibling;const sorted=[...live].sort((a,b)=>ord.indexOf(a.dataset.w)-ord.indexOf(b.dataset.w));let ref=live[live.length-1].nextSibling;sorted.forEach(w=>hx.insertBefore(w,ref))}}catch(e){console.warn(e)}return r}})();
 hxSoon();
 /* =================== v11.7: loyalty, package page, GST export, staff app =================== */
 const normPh=s=>String(s||'').replace(/\D/g,'').slice(-10);
