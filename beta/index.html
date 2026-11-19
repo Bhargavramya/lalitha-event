@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='15.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='15.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5641,4 +5641,40 @@ body.cx #splash *{backdrop-filter:none!important;-webkit-backdrop-filter:none!im
 body.cx #splash>div{background:transparent!important;box-shadow:none!important;border:0!important}
 html.splon,html.splon body{overflow:hidden!important}</style>
 <script id="v157js">(function(){const h=document.documentElement,sp=document.getElementById('splash');if(sp&&document.body.classList.contains('cx')){h.classList.add('splon');sp.querySelectorAll('.gblob').forEach(e=>e.remove());new MutationObserver((m,o)=>{if(!document.getElementById('splash')){h.classList.remove('splon');o.disconnect()}}).observe(document.body,{childList:true});setTimeout(()=>h.classList.remove('splon'),4000)}
-const ra=window.reloadApp;if(ra)window.reloadApp=async function(){if(document.body.classList.contains('cx')){try{toast('Updating…')}catch(e){}const s0=window.SPLASH0;window.SPLASH0='';try{return await ra.apply(this,arguments)}finally{window.SPLASH0=s0}}return ra.apply(this,arguments)}})();</script><script id="v158js">(function(){try{history.scrollRestoration='manual'}catch(e){}const t0=Date.now(),siv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){if(Date.now()-t0<4000||document.getElementById('splash'))return;return siv.apply(this,arguments)};const top=()=>{if(!document.querySelector('.mdl'))window.scrollTo(0,0)};top();addEventListener('load',top);setTimeout(top,600);setTimeout(top,1600);setTimeout(top,3000);new MutationObserver((m,o)=>{if(!document.getElementById('splash')){top();o.disconnect()}}).observe(document.body,{childList:true})})();</script></body></html>
+const ra=window.reloadApp;if(ra)window.reloadApp=async function(){if(document.body.classList.contains('cx')){try{toast('Updating…')}catch(e){}const s0=window.SPLASH0;window.SPLASH0='';try{return await ra.apply(this,arguments)}finally{window.SPLASH0=s0}}return ra.apply(this,arguments)}})();</script><script id="v158js">(function(){try{history.scrollRestoration='manual'}catch(e){}const t0=Date.now(),siv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){if(Date.now()-t0<4000||document.getElementById('splash'))return;return siv.apply(this,arguments)};const top=()=>{if(!document.querySelector('.mdl'))window.scrollTo(0,0)};top();addEventListener('load',top);setTimeout(top,600);setTimeout(top,1600);setTimeout(top,3000);new MutationObserver((m,o)=>{if(!document.getElementById('splash')){top();o.disconnect()}}).observe(document.body,{childList:true})})();</script><style id="v159">#lvp .lvw{display:block!important;cursor:grab;touch-action:none;overscroll-behavior:contain}#lvp .lvw.drag{cursor:grabbing}#lvf{left:0!important;top:0!important;transform-origin:0 0!important;pointer-events:none}
+#lvzb{position:absolute;right:10px;bottom:10px;z-index:5;display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;background:rgba(30,22,20,.82);color:#fff}#lvzb button{width:36px;height:36px;border-radius:50%!important;border:0!important;background:rgba(255,255,255,.14)!important;color:#fff!important;font-size:18px;padding:0;min-height:0}#lvzb span{min-width:52px;text-align:center;font-size:12px;font-weight:700;cursor:pointer}
+#pvs.drag{cursor:grabbing}#pvs{cursor:grab;overscroll-behavior:contain}</style>
+<script id="v159js">(function(){
+/* generic gesture binder: pinch (touch), Mac trackpad pinch (gesture* / ctrl+wheel), drag to pan, double tap/click */
+function bind(el,o){let d0=0,z0=1,m0=[0,0],pan=null,lt=0,gz=1;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY),mid=t=>[(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2];
+if(!o.noTouch){el.addEventListener('touchstart',e=>{if(e.touches.length===2){d0=dist(e.touches);z0=o.z();m0=mid(e.touches);pan=null;e.preventDefault()}else if(e.touches.length===1){const n=Date.now(),t=e.touches[0];if(n-lt<300){o.dbl(t.clientX,t.clientY);e.preventDefault();lt=0;return}lt=n;if(o.pan)pan=[t.clientX,t.clientY]}},{passive:false});
+el.addEventListener('touchmove',e=>{if(e.touches.length===2&&d0){e.preventDefault();const m=mid(e.touches);if(o.pan)o.pan(m[0]-m0[0],m[1]-m0[1]);m0=m;o.zoom(z0*dist(e.touches)/d0,m[0],m[1])}else if(e.touches.length===1&&pan&&o.pan){e.preventDefault();const t=e.touches[0];o.pan(t.clientX-pan[0],t.clientY-pan[1]);pan=[t.clientX,t.clientY]}},{passive:false});
+el.addEventListener('touchend',e=>{if(e.touches.length<2)d0=0;if(!e.touches.length)pan=null})}
+el.addEventListener('gesturestart',e=>{e.preventDefault();gz=o.z()},{passive:false});
+el.addEventListener('gesturechange',e=>{e.preventDefault();o.zoom(gz*e.scale,e.clientX,e.clientY)},{passive:false});
+el.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+if(!o.noWheel)el.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();o.zoom(o.z()*Math.exp(-Math.max(-60,Math.min(60,e.deltaY))*0.01),e.clientX,e.clientY)}else if(o.pan){e.preventDefault();o.pan(-e.deltaX,-e.deltaY)}},{passive:false});
+let md=null;el.addEventListener('mousedown',e=>{if(e.button!==0||e.target.closest('button,a,input,select'))return;md=[e.clientX,e.clientY];el.classList.add('drag');e.preventDefault()});
+addEventListener('mousemove',e=>{if(!md)return;const dx=e.clientX-md[0],dy=e.clientY-md[1];md=[e.clientX,e.clientY];if(o.pan)o.pan(dx,dy);else o.scroll(dx,dy)});
+addEventListener('mouseup',()=>{if(md){md=null;el.classList.remove('drag')}});
+el.addEventListener('dblclick',e=>{if(e.target.closest('button'))return;o.dbl(e.clientX,e.clientY)})}
+window.zBind=bind;
+
+/* ---- side preview (iPad/PC): own zoom + free pan ---- */
+let Z=1,X=0,Y=0;const W=()=>document.querySelector('#lvp .lvw'),F=()=>$('lvf');
+function base(){const w=W();return w?Math.min(1,(w.clientWidth-8)/794):1}
+function docH(){try{return Math.max(1123,F().contentDocument.documentElement.scrollHeight)}catch(e){return 1123}}
+function clamp(){const w=W();if(!w)return;const s=base()*Z,cw=794*s,ch=docH()*s,vw=w.clientWidth,vh=w.clientHeight;X=cw<=vw?(vw-cw)/2:Math.min(0,Math.max(vw-cw,X));Y=ch<=vh?Math.min(Math.max(Y,0),0)||4:Math.min(4,Math.max(vh-ch-4,Y))}
+function apply(){const f=F();if(!f)return;clamp();const s=base()*Z;f.style.height=docH()+'px';f.style.transform=`translate(${X}px,${Y}px) scale(${s})`;const l=$('lvzl');if(l)l.textContent=Math.round(s*100)+'%'}
+function zoom(z,cx,cy){const w=W();if(!w)return;const r=w.getBoundingClientRect(),old=base()*Z;Z=Math.max(.5,Math.min(5,z));const s=base()*Z,px=(cx==null?r.width/2:cx-r.left),py=(cy==null?r.height/2:cy-r.top);X=px-(px-X)*s/old;Y=py-(py-Y)*s/old;apply()}
+window.lvFit=function(){const w=W();if(!w)return;if(!$('lvzb'))w.insertAdjacentHTML('beforeend','<div id="lvzb"><button aria-label="Zoom out" onclick="lvZoom(-1)">−</button><span id="lvzl" title="Fit width" onclick="lvZoom(0)">100%</span><button aria-label="Zoom in" onclick="lvZoom(1)">+</button></div>');apply()};
+window.lvZoom=k=>{if(!k){Z=1;X=0;Y=4;apply()}else zoom(Z*(k>0?1.25:.8))};
+const hook=()=>{const w=W();if(!w||w.dataset.zb)return;w.dataset.zb=1;bind(w,{z:()=>Z,zoom,pan:(dx,dy)=>{X+=dx;Y+=dy;apply()},dbl:(x,y)=>{Z>1.3?lvZoom(0):zoom(2,x,y)}});addEventListener('resize',apply)};
+hook();setInterval(hook,1500);
+
+/* ---- full-screen preview (phone + all): add Mac pinch, drag-pan, zoom out to 50% ---- */
+const pz=window.pvZoom;if(pz){window.pvZoom=function(z,cx,cy){const s=$('pvs');if(!s)return;const old=PVZ;const nz=Math.max(.5,Math.min(5,z));if(nz===old)return;PVZ=nz;const r=s.getBoundingClientRect(),px=(cx==null?r.width/2:cx-r.left)+s.scrollLeft,py=(cy==null?r.height/2:cy-r.top)+s.scrollTop;try{fit()}catch(e){}const k=PVZ/old;s.scrollLeft=px*k-(cx==null?r.width/2:cx-r.left);s.scrollTop=py*k-(cy==null?r.height/2:cy-r.top)}}
+const hook2=()=>{const s=$('pvs');if(!s||s.dataset.zb)return;s.dataset.zb=1;bind(s,{noTouch:1,noWheel:1,z:()=>PVZ,zoom:(z,x,y)=>pvZoom(z,x,y),scroll:(dx,dy)=>{s.scrollLeft-=dx;s.scrollTop-=dy},dbl:(x,y)=>pvZoom(PVZ>1.3?1:2.2,x,y)})};
+hook2();setInterval(hook2,1500);
+})();</script>
+</body></html>
