@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='16.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5864,4 +5864,39 @@ document.querySelectorAll('.sesc .sma input').forEach(x=>{if(x.placeholder!=='Ad
   const rest=bs.filter(b=>b!==del);if(rest.length){const d=document.createElement('details');d.className='sesmore';d.innerHTML='<summary>More</summary><div></div>';rest.forEach(b=>{b.textContent=b.textContent.replace(/[✨]/g,'').trim();d.lastChild.appendChild(b)});f.appendChild(d)}}
  const inp=c.querySelector('.sma input');if(inp)inp.placeholder='Add menu item, press Enter'})}
 let q=0;new MutationObserver(()=>{if(q)return;q=1;requestAnimationFrame(()=>{q=0;fix()})}).observe(document.body,{childList:true,subtree:true});document.addEventListener('click',()=>setTimeout(fix,80),true);fix()})();</script>
+<style id="v167">
+#getapp{margin-bottom:12px}#getapp h3{margin:0 0 4px;font-size:16px}#getapp .mut{font-size:13px}
+#getapp .ga-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #eef0f3}
+#getapp .ga-row:first-of-type{border-top:0}
+#getapp .ga-ic{width:40px;height:40px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#111}
+#getapp .ga-ic svg{width:22px;height:22px}
+#getapp .ga-t{flex:1;min-width:0}#getapp .ga-t b{display:block;font-size:15px}#getapp .ga-t span{font-size:12px;color:#6b7280}
+#getapp .ga-row.me .ga-ic{background:#fdecee;color:#c8102e}
+#getapp a.btn,#getapp button{min-height:40px!important;padding:0 14px!important;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center}
+#getapp a.btn{border:1px solid #e5e7eb;border-radius:10px;color:#111;font-weight:600;font-size:14px;background:#fff}#getapp .ga-row.me a.btn,#getapp .ga-row.me button{border-color:#c8102e}
+#getapp .soon{font-size:12px;color:#9ca3af;white-space:nowrap}
+#gahelp{background:#f9fafb;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px}
+</style>
+<script id="v167js">(function(){
+const REL='https://github.com/Bhargavramya/lalitha-event/releases/latest/download/';
+const ua=navigator.userAgent,isIOS=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),isAnd=/Android/.test(ua),isWin=/Windows/.test(ua),isMac=/Macintosh/.test(ua)&&!isIOS;
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+let deferred=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;draw()});addEventListener('appinstalled',()=>{deferred=null;try{toast('App installed')}catch(_){}draw()});
+const I={dev:'<path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M11 18h2"/>',win:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',mac:'<rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 19h20"/>',and:'<path d="M7 10h10v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2zM7 10a5 5 0 0 1 10 0M9 6 8 4M15 6l1-2"/>'};
+const ic=k=>'<span class="ga-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[k]+'</svg></span>';
+function howTo(){if(isIOS)return 'On iPhone/iPad: open this page in <b>Safari</b> → tap <b>Share</b> → <b>Add to Home Screen</b>.';if(isMac&&/Safari/.test(ua)&&!/Chrome/.test(ua))return 'In Safari: <b>File → Add to Dock</b>.';return 'In Chrome or Edge: click the <b>Install</b> icon at the right end of the address bar, or menu <b>⋮ → Cast, save and share → Install page as app</b>.'}
+function draw(){const t=$('t-set');if(!t)return;let c=$('getapp');if(!c){c=document.createElement('div');c.id='getapp';c.className='card';const lk=$('lockcard');lk?lk.after(c):t.prepend(c)}
+const inst=standalone?'<span class="soon">Installed</span>':deferred?'<button class="pri" onclick="gaInstall()">Install</button>':'<button onclick="gaHelp()">How</button>';
+const row=(me,k,title,sub,act)=>'<div class="ga-row'+(me?' me':'')+'">'+ic(k)+'<div class="ga-t"><b>'+title+'</b><span>'+sub+'</span></div>'+act+'</div>';
+c.innerHTML='<h3>Get the app</h3><p class="mut" style="margin:0 0 6px">Install Lalitha on your phone or computer. Your data stays synced with your Google Sheet.</p>'+
+row(true,'dev','Install on this device','Own icon and window, always up to date',inst)+
+'<div id="gahelp" hidden>'+howTo()+'</div>'+
+row(isWin,'win','Windows','Download .zip, unzip, open Lalitha.exe','<a class="btn" href="'+REL+'Lalitha-Windows.zip">Download</a>')+
+row(isMac,'mac','Mac (Apple M1/M2/M3/M4)','Download .zip, move Lalitha to Applications','<a class="btn" href="'+REL+'Lalitha-Mac-AppleSilicon.zip">Download</a>')+
+row(false,'mac','Mac (Intel)','For older Intel Macs','<a class="btn" href="'+REL+'Lalitha-Mac-Intel.zip">Download</a>')+
+row(isAnd,'and','Android','APK file','<a class="btn" href="'+REL+'Lalitha-Android.apk">Download</a>')}
+window.gaInstall=async()=>{if(!deferred)return gaHelp();deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;draw()};
+window.gaHelp=()=>{const h=$('gahelp');if(h)h.hidden=!h.hidden};
+const pu=window.pinUI;if(typeof pu==='function')window.pinUI=function(){const r=pu.apply(this,arguments);setTimeout(draw,0);return r};
+draw();setTimeout(draw,1500)})();</script>
 </body></html>
