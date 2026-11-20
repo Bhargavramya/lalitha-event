@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='16.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='16.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5863,13 +5863,8 @@ const I={dev:'<path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a
 const ic=k=>'<span class="ga-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[k]+'</svg></span>';
 function howTo(){if(isIOS)return 'On iPhone/iPad: open this page in <b>Safari</b> → tap <b>Share</b> → <b>Add to Home Screen</b>.';if(isMac&&/Safari/.test(ua)&&!/Chrome/.test(ua))return 'In Safari: <b>File → Add to Dock</b>.';return 'In Chrome or Edge: click the <b>Install</b> icon at the right end of the address bar, or menu <b>⋮ → Cast, save and share → Install page as app</b>.'}
 function draw(){const t=$('t-set');if(!t)return;let c=$('getapp');if(!c){c=document.createElement('div');c.id='getapp';c.className='card';const lk=$('lockcard');lk?lk.after(c):t.prepend(c)}
-const open=c.dataset.more==='1';
-let main;if(standalone)main='<span class="soon">Installed on this device</span>';else if(deferred)main='<button class="pri" onclick="gaInstall()">Install app</button>';else if(isIOS)main='<button class="pri" onclick="gaHelp()">Install app</button>';else if(isWin)main='<a class="btn pri" href="'+REL+'Lalitha-Windows.zip">Download for Windows</a>';else if(isMac)main='<a class="btn pri" href="'+REL+'Lalitha-Mac-AppleSilicon.zip">Download for Mac</a>';else if(isAnd)main='<a class="btn pri" href="'+REL+'Lalitha-Android.apk">Download for Android</a>';else main='<button class="pri" onclick="gaHelp()">Install app</button>';
-c.innerHTML='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:160px"><h3>Get the app</h3><span class="mut">On your phone or computer</span></div>'+main+'</div>'+
-'<div id="gahelp" hidden>'+howTo()+'</div>'+
-'<button class="galink" onclick="gaMore()">'+(open?'Hide other devices':'Other devices')+'</button>'+
-(open?'<div class="gachips"><a href="'+REL+'Lalitha-Windows.zip">Windows</a><a href="'+REL+'Lalitha-Mac-AppleSilicon.zip">Mac (M chip)</a><a href="'+REL+'Lalitha-Mac-Intel.zip">Mac (Intel)</a><a href="'+REL+'Lalitha-Android.apk">Android</a></div>':'')}
-window.gaMore=()=>{const c=$('getapp');c.dataset.more=c.dataset.more==='1'?'0':'1';draw()};
+const main=standalone?'<span class="soon">Installed</span>':deferred?'<button class="pri" onclick="gaInstall()">Install app</button>':'<button class="pri" onclick="gaHelp()">Install app</button>';
+c.innerHTML='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:160px"><h3>Get the app</h3><span class="mut">Own icon and window. Works offline.</span></div>'+main+'</div><div id="gahelp" hidden>'+howTo()+'</div>'}
 window.gaInstall=async()=>{if(!deferred)return gaHelp();deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;draw()};
 window.gaHelp=()=>{const h=$('gahelp');if(h)h.hidden=!h.hidden};
 const pu=window.pinUI;if(typeof pu==='function')window.pinUI=function(){const r=pu.apply(this,arguments);setTimeout(draw,0);return r};
