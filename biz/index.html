@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='17.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='17.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6000,4 +6000,9 @@ window.aiTools=function(){aiOpen();setTimeout(menu,60)};
 window.srOpen=function(){aiOpen()};
 if(window.SC&&SC.aitools)SC.aitools[2]='aiTools()';
 })();</script>
+<style id="v173">body.cx #hx .wdg[data-w="week"],body.cx #hx .wdg[data-w="notes"]{display:none!important}
+body.cx #hx .wdg[data-w="acts"] .hidetile{display:none!important}
+body.cx #hx .wdg *{box-shadow:none!important}body.cx #hx .wdg[data-w="stats"] .wbody>*>*,body.cx #hx .wdg[data-w="stats"] .wbody>*{background-image:none!important}body.cx #hx .wdg[data-w="stats"] .wbody [class]{background-color:var(--cx-card)!important;border:1px solid var(--cx-line)!important;border-radius:14px!important}</style>
+<script id="v173js">(function(){function f(){document.querySelectorAll('#hx .wdg[data-w="acts"] .wbody *').forEach(e=>{if(e.children.length>2)return;const b=e.closest('button,a,.tile,[onclick]');if(!b||b.classList.contains('hidetile'))return;const t=b.textContent.trim();if(/^(Calendar|AI tools)$/i.test(t))b.classList.add('hidetile')})}
+let q=0;new MutationObserver(()=>{if(q)return;q=1;requestAnimationFrame(()=>{q=0;f()})}).observe(document.body,{childList:true,subtree:true});f()})();</script>
 </body></html>
