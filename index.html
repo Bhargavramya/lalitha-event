@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='17.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='17.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5186,7 +5186,7 @@ const PCMQ=window.matchMedia('(min-width:768px)');
 function pcOn(){return document.body.classList.contains('pcx')}
 function pcApply(){const on=PCMQ.matches&&!window.__noPC;document.body.classList.toggle('pcx',on);if(on){pcSide();pcEst();pcCal()}else{document.body.classList.remove('pnl')}}
 /* sidebar */
-const PCNAV=[['home','Home','sun'],['est','Quotation','edit'],['saved','Quotes','list'],['cal','Jobs','cal'],['rep','Money','rupee'],['hb','Hall bills','receipt'],['set','Settings','plan']];
+const PCNAV=[['home','Home','sun'],['est','Quotation','edit'],['saved','Quotes','list'],['cal','Jobs','cal'],['rep','Money','rupee'],['set','Settings','plan']];
 function pcSide(){if($('pcside'))return pcSideSel();const nav=PCNAV.map(([t,n,i],k)=>`<button data-pt="${t}" title="${n} (${k+1})"><span>${plI(i,18)}</span>${n}<kbd>${k+1}</kbd></button>`).join('');
  document.body.insertAdjacentHTML('afterbegin',`<aside id="pcside"><img src="${esc(($('hlogo')||{}).src||'')}" class="pcl" onclick="tab('home')"><button class="pri pcnew" onclick="plusOpen()">＋ New <kbd>N</kbd></button><nav>${nav}</nav><div class="pcsf"><button class="ghost sm" onclick="srOpen()">${plI('search',16)} Search <kbd>/</kbd></button><button class="ghost sm" onclick="aiOpen()">${plI('spark',16)} Ask AI <kbd>A</kbd></button><button class="ghost sm" onclick="pcKeys()">Shortcuts <kbd>?</kbd></button><button class="ghost sm" onclick="location.reload()">Reload app</button><small class="mut">v${typeof APP_VERSION!=='undefined'?APP_VERSION:''}</small></div></aside>`);
  $('pcside').querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{const t=b.dataset.pt;if(t==='hb')return hbList();if(t==='est'&&!curId&&!isDirty()){if(guard()){newQ()}}tab(t)});pcSideSel()}
@@ -5999,4 +5999,53 @@ body.cx #hx .wdg[data-w="acts"] .hidetile{display:none!important}
 body.cx #hx .wdg *{box-shadow:none!important}body.cx #hx .wdg[data-w="stats"] .wbody>*>*,body.cx #hx .wdg[data-w="stats"] .wbody>*{background-image:none!important}body.cx #hx .wdg[data-w="stats"] .wbody [class]{background-color:var(--cx-card)!important;border:1px solid var(--cx-line)!important;border-radius:14px!important}</style>
 <script id="v173js">(function(){function f(){document.querySelectorAll('#hx .wdg[data-w="acts"] .wbody *').forEach(e=>{if(e.children.length>2)return;const b=e.closest('button,a,.tile,[onclick]');if(!b||b.classList.contains('hidetile'))return;const t=b.textContent.trim();if(/^(Calendar|AI tools)$/i.test(t))b.classList.add('hidetile')})}
 let q=0;new MutationObserver(()=>{if(q)return;q=1;requestAnimationFrame(()=>{q=0;f()})}).observe(document.body,{childList:true,subtree:true});f()})();</script>
+<style id="v174">
+/* Home: one Today card, no setup nag */
+body.cx #setupc,body.cx #hx .wdg[data-w="myday"],body.cx #hx .wdg[data-w="plan"]{display:none!important}
+body.cx #hx .tmerge{border-top:1px solid var(--cx-line);margin-top:10px;padding-top:10px}
+body.cx #hx .tmerge .plwb{display:flex;gap:8px;flex-wrap:wrap}
+body.cx #hx .tmerge .plwb button{flex:1;min-height:40px!important;font-size:14px!important}
+body.cx #hx .tmyday{background:none!important;border:0!important;color:#c8102e!important;font-weight:600;font-size:14px;padding:0 4px!important;min-height:32px!important;margin-left:auto}
+body.cx #hx .atw0 .hx-lh{display:flex;align-items:center}
+/* Settings: 5 groups */
+body.cx #sethome details.sgrp{background:var(--cx-card);border:1px solid var(--cx-line);border-radius:12px;margin:0 0 10px;overflow:hidden}
+body.cx #sethome details.sgrp>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;min-height:56px}
+body.cx #sethome details.sgrp>summary::-webkit-details-marker{display:none}
+body.cx #sethome details.sgrp>summary .sgi{width:36px;height:36px;border-radius:10px;background:var(--cx-soft);display:flex;align-items:center;justify-content:center;color:var(--cx-ink);flex:0 0 auto}
+body.cx #sethome details.sgrp>summary .sgi svg{width:20px;height:20px}
+body.cx #sethome details.sgrp>summary b{display:block;font-size:16px;color:var(--cx-ink)}body.cx #sethome details.sgrp>summary small{display:block;font-size:13px;color:var(--cx-mut)}
+body.cx #sethome details.sgrp>summary .chev{margin-left:auto;color:var(--cx-mut);transition:transform .15s}
+body.cx #sethome details.sgrp[open]>summary .chev{transform:rotate(90deg)}
+body.cx #sethome details.sgrp>.sgb{border-top:1px solid var(--cx-line)}
+body.cx #sethome details.sgrp>.sgb>*{border-radius:0!important;border-left:0!important;border-right:0!important;margin:0!important;box-shadow:none!important}
+body.cx #sethome details.sgrp>.sgb>*+*{border-top:1px solid var(--cx-line)!important}
+</style>
+<script id="v174js">(function(){
+const cx=()=>document.body.classList.contains('cx');
+/* ---------- Home: merge Planner + My day into Today ---------- */
+function home(){const a=document.querySelector('#hx .wdg[data-w="attn"] .atw0');const pl=document.querySelector('#hx .wdg[data-w="plan"] .plw');if(!a||a.querySelector('.tmerge'))return;
+ const hd=a.querySelector('.hx-lh');if(hd&&!hd.querySelector('.tmyday')){const b=document.createElement('button');b.className='tmyday';b.textContent='My day ›';b.onclick=()=>{try{myDay()}catch(e){}};hd.appendChild(b)}
+ const m=document.createElement('div');m.className='tmerge';if(pl){[...pl.children].forEach(ch=>{if(!ch.classList.contains('hx-lh'))m.appendChild(ch.cloneNode(true))})}else m.innerHTML='<div class="plwb"><button onclick="planOpen(\'todo\')">+ Task</button><button onclick="plRemEdit()">+ Reminder</button></div>';a.appendChild(m)}
+/* ---------- Settings: 5 groups ---------- */
+const IC={biz:'<path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/>',doc:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h5"/>',box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',ppl:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 20a6 6 0 0 0-5-6"/>',app:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'};
+const G=[['biz','Business','Name, address, GST, bank, visiting card',['biz','card']],['doc','Quotes & printing','Numbering, terms, PDF style, messages',['def','prn','tpl']],['box','Items & stock','Catalog, packages, inventory, vendors',['cat','inv','vend']],['ppl','People','Staff and team',['team']],['app','App & backup','Look, text size, backup, sharing',['look','sync']]];
+function sets(){const sh=$('sethome');if(!sh||sh.querySelector('details.sgrp'))return;const rows=[...sh.querySelectorAll('[onclick*="stab("]')].filter(r=>!r.closest('.stabs'));if(rows.length<5)return;
+ const by={};rows.forEach(r=>{const k=(r.getAttribute('onclick').match(/stab\('(\w+)'/)||[])[1];if(k&&!by[k])by[k]=r});
+ const first=rows[0],host=first.parentElement;const frag=document.createDocumentFragment();
+ G.forEach(([ic,t,sub,keys])=>{const its=keys.map(k=>by[k]).filter(Boolean);if(!its.length)return;const d=document.createElement('details');d.className='sgrp';d.innerHTML='<summary><span class="sgi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[ic]+'</svg></span><span><b>'+t+'</b><small>'+sub+'</small></span><span class="chev">›</span></summary><div class="sgb"></div>';its.forEach(r=>d.lastChild.appendChild(r));frag.appendChild(d)});
+ const left=rows.filter(r=>!G.some(g=>g[3].some(k=>by[k]===r)));if(left.length){const d=document.createElement('details');d.className='sgrp';d.innerHTML='<summary><span class="sgi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span><span><b>More</b></span><span class="chev">›</span></summary><div class="sgb"></div>';left.forEach(r=>d.lastChild.appendChild(r));frag.appendChild(d)}
+ host.appendChild(frag);
+ /* bigger text switch in App & backup */
+ const app=[...sh.querySelectorAll('details.sgrp')].find(d=>/App & backup/.test(d.textContent));if(app&&!$('bigtxt')){const on=ls.get('lal_ts','n')!=='n';const r=document.createElement('div');r.id='bigtxt';r.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--cx-card)';r.innerHTML='<span><b style="font-size:15px">Bigger text</b><br><small class="mut">Larger text and buttons</small></span><button class="'+(on?'pri':'')+'" style="min-height:36px;padding:0 14px">'+(on?'On':'Off')+'</button>';r.querySelector('button').onclick=e=>{const now=ls.get('lal_ts','n')!=='n';setTS(now?'n':'l');const b=e.currentTarget;b.textContent=now?'Off':'On';b.classList.toggle('pri',!now)};app.lastChild.prepend(r)}}
+/* ---------- statuses: Draft merged into Enquiry, Completed shown as Done ---------- */
+function statuses(){const sel=$('status');if(sel){[...sel.options].forEach(o=>{if(o.value==='Draft'||o.text==='Draft'){o.hidden=true}if(o.text==='Completed'){o.text='Done';o.value='Completed'}})}
+ document.querySelectorAll('#stchips button,.stc button').forEach(b=>{const t=b.textContent.trim();if(t==='Draft')b.style.display='none';if(t==='Completed')b.textContent='Done'})}
+function migrate(){if(ls.get('lal_mig_draft',0))return;try{const A=allQ();Object.entries(A).forEach(([k,o])=>{if(o&&o.status==='Draft')qUpd(k,x=>{x.status='Enquiry'})});ls.set('lal_mig_draft',1)}catch(e){}}
+const nq=window.newQ;if(typeof nq==='function')window.newQ=function(){const r=nq.apply(this,arguments);const s=$('status');if(s&&s.value==='Draft'){s.value='Enquiry';try{statusChanged()}catch(e){}}return r};
+/* ---------- emoji → nothing in labels, buttons and headings (your own data untouched) ---------- */
+const EMO=/(?:\p{Extended_Pictographic}|️|‍)+\s?/gu;
+function noEmoji(root){(root||document).querySelectorAll('button,summary,h1,h2,h3,label,option,th,.mut,.k,.chip,.toast,small').forEach(el=>{if(el.closest('#nted,.ntbt,#aic,input,textarea,[contenteditable]'))return;el.childNodes.forEach(n=>{if(n.nodeType===3&&EMO.test(n.nodeValue)){EMO.lastIndex=0;n.nodeValue=n.nodeValue.replace(EMO,'');}EMO.lastIndex=0})})}
+function all(){if(!cx())return;try{home()}catch(e){}try{sets()}catch(e){}try{statuses()}catch(e){}try{noEmoji()}catch(e){}}
+let q=0;new MutationObserver(()=>{if(q)return;q=1;setTimeout(()=>{q=0;all()},90)}).observe(document.body,{childList:true,subtree:true});
+setTimeout(migrate,4000);all()})();</script>
 </body></html>
