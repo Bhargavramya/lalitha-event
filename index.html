@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6676,7 +6676,7 @@ window.lpMenu=menu;
 function itemsFor(el){
  /* quotation list row */
  if(el.matches('.qi')){const m=(el.getAttribute('onclick')||'').match(/openQ\('([^']+)'\)/);if(!m)return null;const k=m[1],q=ls.get('lal_q',{})[k];if(!q)return null;
-  return[q.no+' · '+(q.client||''),[{t:'Open',ic:'open',go:()=>openQ(k)},{t:'Edit',ic:'edit',go:()=>{openQ(k);try{tab('est')}catch(e){}}},{t:'Duplicate for new date',ic:'dup',go:()=>copyEvent(k)},{t:'Staff sheet (A4 image)',ic:'share',go:()=>staffA4(k)},...(q.phone?[{t:'WhatsApp customer',ic:'wa',go:()=>waGo(q.phone,'Namaste '+(q.client||''))}]:[]),...(window.btEventLink?[{t:'Send event page',ic:'share',go:()=>{const u=btEventLink(k,{amt:true});q.phone?waGo(q.phone,u):shareText(u)}}]:[]),{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete '+(q.no||'quotation')+'?','The quotation for '+(q.client||'this customer')+' will be removed.',()=>delQ(k))}]]}
+  return[q.no+' · '+(q.client||''),[{t:'Open',ic:'open',go:()=>openQ(k)},{t:'Edit',ic:'edit',go:()=>{openQ(k);try{tab('est')}catch(e){}}},{t:'Duplicate for new date',ic:'dup',go:()=>copyEvent(k)},{t:'Staff sheet (A4 image)',ic:'share',go:()=>staffA4(k)},{t:'Staff list (WhatsApp text)',ic:'wa',go:()=>staffListText(k)},{t:'Send work to each staff',ic:'wa',go:()=>staffSendEach(k)},...(q.phone?[{t:'WhatsApp customer',ic:'wa',go:()=>waGo(q.phone,'Namaste '+(q.client||''))}]:[]),...(window.btEventLink?[{t:'Send event page',ic:'share',go:()=>{const u=btEventLink(k,{amt:true});q.phone?waGo(q.phone,u):shareText(u)}}]:[]),{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete '+(q.no||'quotation')+'?','The quotation for '+(q.client||'this customer')+' will be removed.',()=>delQ(k))}]]}
  /* meeting note in recent list */
  if(el.matches('#mtg [data-r]')){const id=el.dataset.r,a=ls.get('lal_mtg',[]),m=a.find(x=>x.id===id);if(!m)return null;
   return[(m.client||'Meeting note'),[{t:'Open',ic:'open',go:()=>el.click()},{t:m.qk?'Update quotation':'Make quotation',ic:'quote',go:()=>{el.click();setTimeout(()=>document.querySelector('#mtg [data-go]').click(),50)}},{t:'Duplicate',ic:'dup',go:()=>{const c=Object.assign({},m,{id:'m'+Date.now().toString(36),at:Date.now(),qk:'',client:(m.client||'')+' (copy)'});a.unshift(c);ls.set('lal_mtg',a);try{gset('meetings',a)}catch(e){}try{tab('home')}catch(e){}}},{t:'Share',ic:'share',go:()=>shareText(`Meeting – ${m.client||''}\n\n${m.text||''}`)},{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete this note?','Notes for '+(m.client||'this customer')+' will be removed.',()=>{const b=ls.get('lal_mtg',[]).filter(x=>x.id!==id);ls.set('lal_mtg',b);try{gset('meetings',b)}catch(e){}try{tab('home')}catch(e){}toast('Note deleted')})}]]}
@@ -7127,6 +7127,72 @@ setInterval(()=>{if(applying)return;const s=snap(),j=JSON.stringify(s);if(j!==la
 (function(){const of=window.fetch.bind(window);window.fetch=async function(u,o){const res=await of(u,o);try{if(typeof u==='string'&&G.url&&u.startsWith(G.url)&&u.includes('?key=')&&(!o||!o.method||o.method==='GET')){res.clone().json().then(j=>{const st=j&&j.settings&&j.settings.prefs;if(!st||!(+st.at>ls.get('lal_set_at_prefs',0)))return;applying=true;const v=st.value||{};const hadPin=ls.get('lal_pin','');KEYS.forEach(k=>{if(k in v)ls.set(k,v[k])});ls.set('lal_set_at_prefs',+st.at);last=JSON.stringify(snap());ls.set('lal_prefsent',snap());
  try{if(v.lal_acc&&window.btAccent)btAccent(v.lal_acc)}catch(e){}try{document.body.classList.toggle('homeall',!!v.lal_homeall)}catch(e){}try{if(typeof pinUI==='function')pinUI()}catch(e){}
  try{if(!hadPin&&v.lal_pin&&typeof lockShow==='function')lockShow()}catch(e){}applying=false}).catch(()=>{applying=false})}}catch(e){}return res}})();
+})();
+</script>
+
+<style id="v190">
+.whoc{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:5px;margin:4px 0 0;padding:3px 9px;min-height:28px;border-radius:14px;border:1px dashed #94a3b8;background:transparent!important;color:#475569!important;font-size:12.5px;font-weight:600;box-shadow:none!important;cursor:pointer}
+.whoc.on{border-style:solid;border-color:#1d4ed8;background:#eff6ff!important;color:#1d4ed8!important}
+.whoc svg{width:14px;height:14px}
+#stbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px;padding:10px 12px;border:1px solid #dbe1ea;border-radius:8px;background:#f8fafc}
+#stbar b{flex:1;font-size:14px;min-width:160px}
+#stbar button{min-height:40px}
+.stpk label{display:flex;align-items:center;gap:10px;min-height:48px;padding:4px 4px;border-bottom:1px solid #eef2f7;font-size:15px;cursor:pointer}
+.stpk input[type=checkbox]{width:22px;height:22px}
+.stpk small{color:#64748b;margin-left:auto}
+.stsend .r{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef2f7}
+.stsend .r .m{flex:1;min-width:0}.stsend .r .m small{display:block;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stsend .r button{min-height:40px;white-space:nowrap}
+.stsend .r.sent button{background:#dcfce7!important;color:#15803d!important;border-color:#86efac!important}
+</style>
+<script id="v190js">
+/* ===== v19.0: give each quote item to a staff member + WhatsApp them; staff list as WhatsApp text ===== */
+(function(){
+const UI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>';
+const people=()=>{const m=new Map();const add=(n,ph,role)=>{n=String(n||'').trim();if(!n)return;const k=n.toLowerCase();if(!m.has(k))m.set(k,{n,ph:ph||'',role:role||''});else if(ph&&!m.get(k).ph)m.get(k).ph=ph};
+ (ls.get('lal_team',[])||[]).forEach(t=>add(t.n||t.name,t.ph||t.phone,t.role));try{((window.BT&&BT.bt().fl)||[]).forEach(f=>add(f.name,f.phone,f.skill))}catch(e){}return[...m.values()]};
+const whoOf=r=>String(r.who||'').split(',').map(x=>x.trim()).filter(Boolean);
+const dlabel=d=>{if(!d)return'';const x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})};
+const biz=()=>typeof bizN==='function'?bizN():'Lalitha Event Decors';
+
+/* chips under each item in the quote */
+function chips(){const tb=document.getElementById('rows');if(!tb||typeof rows==='undefined')return;[...tb.children].forEach((tr,i)=>{const r=rows[i];if(!r||r.sec)return;const cell=tr.querySelector('td.nm');if(!cell)return;let c=cell.querySelector('.whoc');const w=whoOf(r);
+ const html=UI+(w.length?esc(w.join(', ')):'Staff');if(!c){c=document.createElement('button');c.type='button';c.tabIndex=-1;c.className='whoc';cell.appendChild(c);c.onclick=()=>pickWho(i)}if(c.innerHTML!==html)c.innerHTML=html;c.classList.toggle('on',!!w.length);c.dataset.i=i});bar()}
+function bar(){const card=document.getElementById('rows');if(!card)return;const box=card.closest('.card')||card.parentElement;let b=document.getElementById('stbar');const all=new Set();rows.forEach(r=>{if(!r.sec)whoOf(r).forEach(n=>all.add(n))});
+ if(!all.size){if(b)b.remove();return}if(!b){b=document.createElement('div');b.id='stbar';const tbl=card.closest('table')||card;tbl.after(b)}
+ const txt=`<b>${all.size} staff given work on items</b><button class="pri sm" data-sw>WhatsApp each staff</button><button class="ghost sm" data-sl>Staff list text</button>`;if(b.dataset.h!==txt){b.innerHTML=txt;b.dataset.h=txt;b.querySelector('[data-sw]').onclick=()=>sendEach();b.querySelector('[data-sl]').onclick=()=>shareList()}}
+function pickWho(i){const r=rows[i];const cur=new Set(whoOf(r).map(x=>x.toLowerCase()));const P=people();
+ const d=mdl('Who will do: '+(r.name||'this item'),`<div class="stpk">${P.length?P.map((p,j)=>`<label><input type="checkbox" data-j="${j}"${cur.has(p.n.toLowerCase())?' checked':''}>${esc(p.n)}<small>${esc(p.role||'')}${p.ph?' · '+esc(p.ph):''}</small></label>`).join(''):'<p class="mut">No staff saved yet. Add a name below.</p>'}</div>
+ <div class="btf" style="margin-top:12px"><label>New person<input data-nn placeholder="Name"></label><label>Phone<input data-np type="tel" inputmode="tel" placeholder="Mobile"></label></div>
+ <div class="btact"><button class="ghost" data-x>Cancel</button><button data-ok>Done</button></div>`);
+ d.querySelector('[data-ok]').onclick=()=>{const pick=[...d.querySelectorAll('[data-j]')].filter(c=>c.checked).map(c=>P[+c.dataset.j].n);const nn=d.querySelector('[data-nn]').value.trim(),np=d.querySelector('[data-np]').value.trim();
+  if(nn){pick.push(nn);try{if(typeof stRemember==='function')stRemember({n:nn,ph:np,role:''});else{const t=ls.get('lal_team',[]);t.push({n:nn,ph:np});ls.set('lal_team',t);gset('team',t)}}catch(e){}}
+  rows[i].who=[...new Set(pick)].join(', ');d.remove();try{markDirty()}catch(e){}chips();try{haptic('tap')}catch(e){}}}
+
+/* messages */
+function evHead(o){const L=[];L.push(`*${o.etype||o.ename||'Event'}${o.client?' – '+o.client:''}*`);if(o.edate)L.push('Date: '+dlabel(o.edate)+(o.etime?', '+o.etime:''));if(o.setup)L.push('Setup: '+o.setup);if(o.venue)L.push('Venue: '+o.venue);if(o.vmap)L.push('Location: '+o.vmap);return L.join('\n')}
+const itemLine=r=>`• ${r.name}${r.uom||r.size?' ('+(r.uom||r.size)+')':''}${(+r.qty||1)!==1?' × '+(+r.qty):''}`;
+function personMsg(o,name,its){return `Namaste ${name},\nYou have work with ${biz()} for this event:\n\n${evHead(o)}\n\nYour work:\n${its.map(itemLine).join('\n')}\n\nPlease confirm by replying OK and reach on time. Thank you.`}
+function listMsg(o){const R=o.rows||[];let L=[];R.forEach(r=>{if(!r.name||r.opt)return;if(r.sec){L.push('\n*'+r.name+'*');return}const w=whoOf(r);L.push(itemLine(r)+(w.length?' – '+w.join(', '):''))});
+ const tl=(((window.BT&&BT.bt().cp)||{})[o._k]||{}).tl;const tlines=String(tl||'').split('\n').map(x=>x.trim()).filter(Boolean);
+ const by={};R.forEach(r=>{if(!r.sec)whoOf(r).forEach(n=>(by[n]=by[n]||[]).push(r.name))});
+ return `*STAFF LIST – ${biz()}*\n${evHead(o)}\n\n*Items*${L.join('\n')}${Object.keys(by).length?'\n\n*Team*\n'+Object.entries(by).map(([n,a])=>`• ${n}: ${a.join(', ')}`).join('\n'):''}${tlines.length?'\n\n*Timeline*\n'+tlines.join('\n'):''}\n\nNo prices – for staff use.`}
+function curObj(){try{const o=data();const st=(curId&&ls.get('lal_q',{})[curId])||{};for(const k in st){if((o[k]===''||o[k]==null)&&st[k])o[k]=st[k]}o._k=curId;return o}catch(e){return null}}
+function sendEach(o){o=o||curObj();if(!o)return;const by={};(o.rows||[]).forEach(r=>{if(!r.sec&&!r.opt)whoOf(r).forEach(n=>(by[n]=by[n]||[]).push(r))});const P=people();const names=Object.keys(by);if(!names.length)return toast('Give items to staff first (tap Staff under an item)');
+ const d=mdl('Send work to staff',`<p class="mut" style="margin:0 0 8px">Tap Send for each person. WhatsApp opens with their message ready.</p><div class="stsend">${names.map((n,i)=>{const p=P.find(x=>x.n.toLowerCase()===n.toLowerCase())||{};return`<div class="r" data-i="${i}"><div class="m"><b>${esc(n)}</b><small>${by[n].map(r=>esc(r.name)).join(', ')}</small></div><button class="pri sm" data-s="${i}">${p.ph?'Send':'Share'}</button></div>`}).join('')}</div><div class="btact"><button class="ghost" data-x>Close</button></div>`);
+ d.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const n=names[+b.dataset.s];const p=P.find(x=>x.n.toLowerCase()===n.toLowerCase())||{};const t=personMsg(o,n,by[n]);if(p.ph)waGo(p.ph,t);else shareText(t);b.closest('.r').classList.add('sent');b.textContent='Sent';
+  try{const k=o._k||curId;if(k&&typeof qUpd==='function')qUpd(k,q=>{q.staffSent=q.staffSent||{};q.staffSent[n]=Date.now()})}catch(e){}})}
+function shareList(o){o=o||curObj();if(!o)return;shareText(listMsg(o))}
+window.staffListText=k=>{const q=ls.get('lal_q',{})[k];if(!q)return;shareText(listMsg(Object.assign({_k:k},q)))};
+window.staffSendEach=k=>{const q=ls.get('lal_q',{})[k];if(!q)return;sendEach(Object.assign({_k:k},q))};
+
+/* hook into the quote table */
+const or=window.render;if(or){window.render=function(){const r=or.apply(this,arguments);try{chips()}catch(e){}return r};try{render=window.render}catch(e){}}
+setInterval(()=>{if(document.body.dataset.tab==='est'){try{const tb=document.getElementById('rows');if(tb&&[...tb.children].some((tr,i)=>rows[i]&&!rows[i].sec&&!tr.querySelector('.whoc')))chips()}catch(e){}}},1200);
+
+/* staff view + long-press menu */
+const addSV=()=>{document.querySelectorAll('.stv .job').forEach(j=>{const a4=j.querySelector('[data-a4]');if(!a4||j.querySelector('[data-wt]'))return;const k=a4.dataset.a4;const b=document.createElement('button');b.className='ghost sm';b.dataset.wt=k;b.textContent='WhatsApp text';b.onclick=()=>staffListText(k);a4.after(b)})};
+setInterval(addSV,800);
 })();
 </script>
 
