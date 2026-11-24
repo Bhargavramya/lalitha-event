@@ -5548,7 +5548,7 @@ window.ntShare=async function(id){const n=await N.get(id);if(!n)return;alertMsg(
 window.ntShareImgs=async function(id){const n=await N.get(id);const imgs=await pageImgs(n,2);const fs=await Promise.all(imgs.map(async(s,i)=>new File([await (await fetch(s)).blob()],(n.title||'note')+'-'+(i+1)+'.jpg',{type:'image/jpeg'})));if(navigator.canShare&&navigator.canShare({files:fs}))try{await navigator.share({files:fs})}catch(e){}else fs.forEach(f=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()})};
 
 /* ---------- entry points ---------- */
-(function(){const p0=window.plusOpen;window.plusOpen=function(){const r=p0.apply(this,arguments);try{const g=document.querySelector('.plm .plg');if(g&&!g.querySelector('.ntp'))g.insertAdjacentHTML('afterbegin',`<button class="ntp" onclick="this.closest('.mdl').remove();ntOpen().then(()=>ntNew())"><span>${plI('draw',22)}</span><b>Note</b><small>Write with Apple Pencil, share PDF</small></button>`)}catch(e){}return r}})();
+(function(){const p0=window.plusOpen;window.plusOpen=function(){const r=p0.apply(this,arguments);try{const g=document.querySelector('.plm .plg');if(g&&!g.querySelector('.ntp'))g.insertAdjacentHTML('afterbegin',`<button class="ntp" onclick="this.closest('.mdl').remove();tab('notes');setTimeout(()=>{try{mtgNewNote()}catch(e){}const p=document.querySelector('#t-notes .ntp');p&&p.classList.add('ed')},80)"><span>${plI('draw',22)}</span><b>Note</b><small>Type notes while you talk</small></button>`)}catch(e){}return r}})();
 (function(){const sd=document.querySelector('#pcside nav');if(sd&&!sd.querySelector('[data-pt="notes"]')){const b=document.createElement('button');b.dataset.pt='notes';b.innerHTML=`<span>${plI('draw',18)}</span>Notes<kbd>8</kbd>`;b.onclick=()=>ntOpen();sd.appendChild(b)}})();
 (function(){const add=()=>{const s=$('t-set');if(s&&!$('ntcard'))s.insertAdjacentHTML('afterbegin',`<div class="card" id="ntcard" style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="ntOpen()"><div><b>${plI('draw',18)} Notes</b><div class="mut">Handwritten notes with Apple Pencil, sketches, photos → share as PDF</div></div><span>›</span></div>`)};add();const t0=window.tab;window.tab=function(t){const r=t0.apply(this,arguments);try{if(t==='set')add();if($('ntview')&&!$('ntview').hidden)ntClose()}catch(e){}return r}})();
 (function(){const e0=window.evPage;if(typeof e0!=='function')return;window.evPage=function(k){const r=e0.apply(this,arguments);(async()=>{try{const d=[...document.querySelectorAll('.mdl')].pop();const L=(await N.all()).filter(n=>!n.deleted&&n.link&&n.link.q===k);const o=allQ()[k];const host=d&&d.querySelector('.mdlc');if(!host||host.querySelector('.evnt'))return;host.insertAdjacentHTML('beforeend',`<div class="evnt card" style="margin-top:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b>${plI('draw',16)} Notes (${L.length})</b><button class="ghost sm" data-nn>＋ New note</button></div>${L.map(n=>`<div class="mrow" data-n="${n.id}" style="cursor:pointer"><div><b>${esc(n.title||'Untitled note')}</b><small>${esc(new Date(n.at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}))} · ${n.pages.length} page${n.pages.length>1?'s':''}</small></div><span>›</span></div>`).join('')}</div>`);
@@ -7077,7 +7077,10 @@ try{const o=document.querySelectorAll;}catch(e){}
 }
 body.pcx #lvp{left:auto!important;right:0!important}
 #bhome .bh-a button{white-space:nowrap;font-size:13.5px!important;padding:0 6px!important}
-body[data-tab="notes"] #plusb{display:none!important}
+body[data-tab="notes"] #plusb,body[data-tab="set"] #plusb{display:none!important}
+@media(max-width:899px){input[placeholder="Size"],#t-est input,#t-notes #mtg .who input,table.items input,#rows input,.cmt input,.btf input,.btf select,.btf textarea{font-size:16px!important}}
+#t-cal a[onclick],#t-cal a[href]{display:inline-block;padding:8px 2px;min-height:32px}
+.drw .who .ed{width:40px!important;height:40px!important;flex:0 0 40px}
 .btp~#plusb,body:has(.btp) #plusb{display:none!important}
 body.pcx.lvon #t-est:not([hidden]){display:block!important;max-width:none!important;width:auto!important}
 body.pcx:not([data-tab="est"]) #lvp{display:none!important}
@@ -7091,6 +7094,9 @@ fixNotesIcon();setInterval(fixNotesIcon,2000);
 /* live preview: keep it on <body> so it docks to the screen's right edge, not inside the form */
 function lvDock(){const l=document.getElementById('lvp');if(l&&l.parentNode!==document.body)document.body.appendChild(l)}
 lvDock();setInterval(lvDock,1000);
+/* iPhone zooms into any box with text under 16px: keep every box at 16px on phones */
+function fix16(){if(innerWidth>899)return;document.querySelectorAll('input:not([type=checkbox]):not([type=radio]),select,textarea').forEach(i=>{if(parseFloat(getComputedStyle(i).fontSize)<16)i.style.setProperty('font-size','16px','important')})}
+fix16();setInterval(fix16,1500);let f16t=0;new MutationObserver(()=>{clearTimeout(f16t);f16t=setTimeout(fix16,60)}).observe(document.body,{childList:true,subtree:true});
 /* the bottom bar now has 5 tabs: Home, Notes, Quotes, Jobs, Money */
 document.body.classList.remove('tabs6');
 
