@@ -6737,7 +6737,8 @@ setInterval(()=>{const h=document.getElementById('t-home');if(h&&!h.hidden)dash(
 /* --- Preview: docked on the right, never covering the form --- */
 @media(min-width:900px){
 body.pcx.lvon #lvp{width:min(42vw,700px)!important;box-shadow:none!important;border-left:1px solid var(--cx-line,#e5e7eb)!important}
-body.pcx.lvon #t-est:not([hidden]){margin-right:calc(min(42vw,700px) + 8px)!important;max-width:none!important}
+body.pcx.lvon #t-est:not([hidden]){margin-right:0!important;max-width:none!important}
+body.pcx.lvon .wrap{max-width:none!important;padding-right:16px!important;margin-right:calc(min(42vw,700px) + 12px)!important}
 body.pcx.lvon #mtgq.dock{display:none!important}
 body.pcx.lvon .pvtab,body.pcx.lvon #pvtab{display:none!important}
 }
@@ -7050,6 +7051,12 @@ try{const o=document.querySelectorAll;}catch(e){}
  html body header.top #hlogo{max-width:120px!important;height:auto!important;flex:0 1 auto!important;display:block!important}
  html body .tabs button[data-t="set"]{display:none!important}
 }
+body.pcx #lvp{left:auto!important;right:0!important}
+#bhome .bh-a button{white-space:nowrap;font-size:13.5px!important;padding:0 6px!important}
+body[data-tab="notes"] #plusb{display:none!important}
+.btp~#plusb,body:has(.btp) #plusb{display:none!important}
+body.pcx.lvon #t-est:not([hidden]){display:block!important;max-width:none!important;width:auto!important}
+body.pcx:not([data-tab="est"]) #lvp{display:none!important}
 </style>
 <script id="v189js">
 /* ===== v18.9: Notes tab icon, slim menu button, Settings only in the side menu, same lock & look on every device ===== */
@@ -7057,6 +7064,9 @@ try{const o=document.querySelectorAll;}catch(e){}
 const NI='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h5"/></svg>';
 function fixNotesIcon(){const b=document.querySelector('.tabs button[data-t="notes"]');if(!b)return;const holder=b.querySelector('.tbi')||b;if(holder.dataset.ni)return;const old=holder.querySelector('svg');if(old)old.outerHTML=NI;else holder.insertAdjacentHTML('afterbegin',NI);holder.dataset.ni=1}
 fixNotesIcon();setInterval(fixNotesIcon,2000);
+/* live preview: keep it on <body> so it docks to the screen's right edge, not inside the form */
+function lvDock(){const l=document.getElementById('lvp');if(l&&l.parentNode!==document.body)document.body.appendChild(l)}
+lvDock();setInterval(lvDock,1000);
 /* the bottom bar now has 5 tabs: Home, Notes, Quotes, Jobs, Money */
 document.body.classList.remove('tabs6');
 
