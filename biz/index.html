@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6264,14 +6264,75 @@ const C12=crud('fb','Client feedback',FBF,'Feedback',fbOpen);
 const TOOLS=[['Decor & equipment',[['Equipment out / return','Items sent, returned, damaged',eqOpen],['Setup & teardown','Job checklist',()=>ckOpen()],['Floral calculator','Flowers cost estimate',()=>flOpen()],['Power load','Generator size',()=>pwOpen()]]],
  ['Money',[['Profit per event','Billed − costs, margin',prOpen],['Payment reminders','Pending balances',duOpen],['Monthly trends','Bookings and revenue',trOpen],['Final reconciliation','After-event final bill',()=>rcOpen()]]],
  ['Team & clients',[['Staff attendance & pay','Check-in, pay due',atOpen],['Freelancers','Helpers you hire',frOpen],['Vendor rating','Preferred or do not rehire',vrOpen],['Client feedback','Ratings and NPS',fbOpen]]]];
-window.btTools=TOOLS;
+window.btTools=TOOLS;window.BT={page,kpi,empty,bt,btSave,qOpts,dl,R,N,Q,qName,bindRows,uid,today,qPaid};
 function hubHtml(){return`<div class="card btcard" id="bthub"><div class="ch"><h2>Business tools</h2></div>${TOOLS.map(([g,a],gi)=>`<div class="bth">${g}</div><div class="btg">${a.map(([t,s],i)=>`<button data-bt="${gi}.${i}">${t}<small>${s}</small></button>`).join('')}</div>`).join('')}</div>`}
 function hubMount(){const sec=document.getElementById('t-rep');if(!sec||document.getElementById('bthub'))return;sec.insertAdjacentHTML('afterbegin',hubHtml());sec.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{const[g,i]=b.dataset.bt.split('.').map(Number);try{haptic('tap')}catch(e){}TOOLS[g][1][i][2]()})}
 window.btOpen=name=>{for(const[,a]of TOOLS)for(const t of a)if(t[0].toLowerCase().includes(String(name).toLowerCase()))return t[2]()};
+window.btHub=()=>{const h=document.getElementById('bthub');if(h)h.remove();hubMount()};
 hubMount();
 const ot=window.tab;window.tab=function(t){btClose();const r=ot.apply(this,arguments);if(t==='rep')hubMount();return r};
 /* sync back from the Sheet */
 (function(){const of=window.fetch.bind(window);window.fetch=async function(u,o){const res=await of(u,o);try{if(typeof u==='string'&&G.url&&u.startsWith(G.url)&&u.includes('?key=')&&(!o||!o.method||o.method==='GET')){res.clone().json().then(j=>{const st=j&&j.settings&&j.settings.biztools;if(st&&+st.at>ls.get('lal_set_at_biztools',0)){ls.set(BTK,st.value);ls.set('lal_set_at_biztools',+st.at)}}).catch(()=>{})}}catch(e){}return res}})();
+})();
+</script>
+
+<style id="v181">
+.btsw{display:flex;gap:6px;flex-wrap:wrap}.btsw i{width:34px;height:34px;border-radius:6px;border:1px solid rgba(0,0,0,.12);display:inline-block}
+.btpal{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--cx-line,#eef0f2);cursor:pointer}
+.btpal:first-child{border-top:0}.btpal b{flex:1;font-size:14px}
+.btpal.on{background:var(--cx-soft,#f3f4f6);box-shadow:inset 3px 0 0 #c8102e}
+.btimg{width:100%;max-height:260px;object-fit:cover;border-radius:10px;border:1px solid var(--cx-line,#e5e7eb);margin-bottom:10px}
+.btai{background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;padding:12px;margin-bottom:10px;font-size:14.5px;line-height:1.5}
+</style>
+<script id="v181js">
+/* ===== v18.1: Planning tools — item clashes, decor ideas from photo, colour palette, customer event page ===== */
+(function(){if(!window.BT)return;const{page,kpi,empty,bt,btSave,qOpts,dl,R,N,Q,qName,bindRows,uid,today,qPaid}=BT;
+const won=q=>q.status!=='Lost';
+/* 1 Item clashes (same item, same date, several jobs) */
+function clOpen(){const cat=(typeof getCat==='function'?getCat():[])||[];const stock=n=>{const c=cat.find(c=>c[0]===n);return c&&+c[6]?+c[6]:0};
+ const td=today();const by={};Q().filter(q=>won(q)&&q.edate&&q.edate>=td).forEach(q=>{(q.rows||[]).forEach(r=>{if(r.sec||r.opt||!r.name)return;const k=q.edate+'|'+r.name;const o=by[k]=by[k]||{d:q.edate,n:r.name,q:0,jobs:[]};o.q+=N(r.qty)||1;o.jobs.push({k:q._k,c:q.client||'Customer',s:q.status,q:N(r.qty)||1})})});
+ const L=Object.values(by).filter(o=>o.jobs.length>1||(stock(o.n)&&o.q>stock(o.n))).sort((a,c)=>a.d.localeCompare(c.d));
+ const over=L.filter(o=>stock(o.n)&&o.q>stock(o.n));
+ page('Item clashes',kpi([['Clashes ahead',L.length],['Short of stock',over.length]])+`<p class="btnote">Shows items booked in more than one job on the same date. Red means you need more than your stock (set stock in Settings → Catalog).</p>`+(L.length?`<div class="btl">${L.map(o=>{const st=stock(o.n),bad=st&&o.q>st;return`<div class="r" style="cursor:default"><div class="m"><b>${esc(o.n)}</b><small>${dl(o.d)} · ${o.jobs.map(j=>esc(j.c)+' ('+j.q+(j.s&&j.s!=='Confirmed'?', '+esc(j.s):'')+')').join(', ')}</small></div><div class="a">${o.q}${st?' / '+st:''} <span class="btpill ${bad?'bad':'mid'}">${bad?'Short '+(o.q-st):'Shared'}</span></div></div>`}).join('')}</div>`:empty('No clashes in upcoming jobs.')))}
+
+/* 2 Colour palette */
+const PAL=[['Royal red & gold',['#8B0A1A','#C8102E','#D4AF37','#F5E6C8','#FFFFFF']],['Ivory & blush',['#FFFFF0','#F8D7DA','#E8B4B8','#C9A66B','#7A5C3E']],['Marigold haldi',['#FFB300','#FF8F00','#FFE082','#2E7D32','#FFFFFF']],['Mehendi green',['#556B2F','#8FBC8F','#F0E68C','#D2691E','#FFF8E1']],['Pastel lavender',['#E6E6FA','#C8A2C8','#F8F0FF','#B0C4DE','#FFFFFF']],['Peacock blue',['#005F73','#0A9396','#94D2BD','#E9D8A6','#CA6702']],['Temple traditional',['#800000','#FF9933','#FFD700','#228B22','#FFF5E1']],['White & green (south)',['#FFFFFF','#F5F5DC','#2E8B57','#9ACD32','#DAA520']],['Corporate navy',['#13294B','#1F4E79','#C0C0C0','#FFFFFF','#C8102E']],['Kids rainbow',['#FF595E','#FFCA3A','#8AC926','#1982C4','#6A4C93']],['Sunset coral',['#FF6F61','#FFA07A','#FFDAB9','#F4A261','#264653']],['Black & gold',['#111111','#333333','#D4AF37','#F5E6C8','#FFFFFF']]];
+const sw=a=>`<span class="btsw">${a.map(c=>`<i style="background:${c}" title="${c}"></i>`).join('')}</span>`;
+function paOpen(k){const b=bt();b.pal=b.pal||{};if(!k){const qs=Q().filter(won).sort((a,c)=>(c.edate||'').localeCompare(a.edate||''));const p=page('Colour palette',`<p class="btnote">Pick theme colours for a job. They show on the customer event page and help your team.</p>`+(qs.length?`<div class="btl">${qs.slice(0,60).map(q=>{const pl=b.pal[q._k];return`<div class="r" data-id="${q._k}"><div class="m"><b>${esc(q.client||'Customer')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)}${pl?' · '+esc(pl.n):''}</small></div><div class="a">${pl?sw(pl.c.slice(0,4)):'<small class="mut">Not set</small>'}</div></div>`}).join('')}</div>`:empty('No jobs yet.')));bindRows(p,x=>paOpen(x));return}
+ const cur=b.pal[k];const p=page('Palette · '+(qName(k)||''),`${cur?`<div class="bth">Selected</div><div class="btai"><b>${esc(cur.n)}</b><div style="margin-top:8px">${sw(cur.c)}</div><div class="btact"><button class="ghost" data-sh>Share colours</button><button class="ghost" data-rm>Remove</button></div></div>`:''}<div class="bth">Choose a theme</div><div class="btl">${PAL.map((x,i)=>`<div class="btpal${cur&&cur.n===x[0]?' on':''}" data-p="${i}"><b>${esc(x[0])}</b>${sw(x[1])}</div>`).join('')}</div><div class="bth">Or your own colours</div><div class="btai"><div class="btsw" id="btown">${[0,1,2,3,4].map(i=>`<input type="color" value="${(cur&&cur.c[i])||'#ffffff'}" style="width:44px;height:44px;border:0;padding:0;background:none">`).join('')}</div><div class="btact"><button data-own>Use these colours</button></div></div>`);
+ const set=(n,c)=>{const b=bt();b.pal=b.pal||{};b.pal[k]={n,c};btSave(b);try{haptic('success')}catch(e){}toast('Palette saved');paOpen(k)};
+ p.querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>{const v=PAL[+x.dataset.p];set(v[0],v[1])});
+ p.querySelector('[data-own]').onclick=()=>set('Custom',[...p.querySelectorAll('#btown input')].map(i=>i.value));
+ if(cur){p.querySelector('[data-rm]').onclick=()=>askDel('Remove this palette?','The colours for this job will be cleared.',()=>{const b=bt();delete b.pal[k];btSave(b);paOpen(k)});p.querySelector('[data-sh]').onclick=()=>shareText(`Colour theme: ${cur.n}\n${cur.c.join('  ')}`)}}
+
+/* 3 Decor ideas from venue photo (free Gemini via your Sheet) */
+function aiOpen(){const p=page('Decor ideas from photo',`<p class="btnote">Upload a photo of the hall or stage. AI suggests a decor plan, colours and an item list you can add to a quote.</p><div class="btf"><label class="w">Event<select id="btaq">${qOpts('',0)}</select></label><label class="w">Theme / what the customer wants<input id="btat" placeholder="e.g. traditional South Indian wedding, red & gold, 300 guests"></label></div><div class="btact"><button data-ph>Choose venue photo</button></div><div id="btar"></div>`);
+ let img=null;p.querySelector('[data-ph]').onclick=async()=>{try{img=await pickImg()}catch(e){img=null}if(!img)return;const box=p.querySelector('#btar');const src=typeof img==='string'?img:(img.data?('data:'+(img.mime||'image/jpeg')+';base64,'+img.data):'');box.innerHTML=(src?`<img class="btimg" src="${src}" alt="Venue photo">`:'')+'<div class="btai">Looking at the venue…</div>';
+  const k=p.querySelector('#btaq').value,q=k?ls.get('lal_q',{})[k]:null,th=p.querySelector('#btat').value;const cat=((typeof getCat==='function'?getCat():[])||[]).slice(0,150).map(c=>({n:c[0],size:c[1],rate:+c[2]||0}));
+  try{const r=await aiAsk(`You are an expert Indian event decorator. Look at this venue photo. Event: ${q?(q.etype||'')+' for '+(q.client||''):'event'}. Customer wish: ${th||'not given'}. Suggest a practical decor plan for this exact space. Use my catalog names and rates where they fit: ${JSON.stringify(cat)}. Reply JSON only: {"space":"one line about the venue (size, ceiling, light)","concept":"2-3 sentence decor concept","palette":["#hex",5 colours],"zones":[{"zone":"Stage","idea":"short"}],"items":[{"name":"","size":"","qty":1,"rate":0}],"tips":["short practical tip"]}`,typeof AISYS!=='undefined'?AISYS:'',1,[img]);
+   const items=(r.items||[]).filter(x=>x&&x.name);const tot=items.reduce((s,x)=>s+N(x.qty)*N(x.rate),0);
+   box.innerHTML=(src?`<img class="btimg" src="${src}" alt="Venue photo">`:'')+`<div class="btai"><b>${esc(r.space||'')}</b><p style="margin:6px 0">${esc(r.concept||'')}</p>${(r.palette||[]).length?sw(r.palette.slice(0,5)):''}</div>`+((r.zones||[]).length?`<div class="bth">Zone by zone</div><div class="btl">${r.zones.map(z=>`<div class="r" style="cursor:default"><div class="m"><b>${esc(z.zone)}</b><small>${esc(z.idea)}</small></div></div>`).join('')}</div>`:'')+(items.length?`<div class="bth">Suggested items</div><div class="btwrap"><table class="btt"><tr><th></th><th>Item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr>${items.map((x,i)=>`<tr><td><input type="checkbox" data-it="${i}" checked></td><td>${esc(x.name)}${x.size?'<br><small>'+esc(x.size)+'</small>':''}</td><td class="n">${N(x.qty)}</td><td class="n">${R(x.rate)}</td><td class="n">${R(N(x.qty)*N(x.rate))}</td></tr>`).join('')}<tr class="t"><td></td><td colspan="3">Estimated total</td><td class="n">${R(tot)}</td></tr></table></div>`:'')+((r.tips||[]).length?`<div class="bth">Tips</div><div class="btai">${r.tips.map(t=>'• '+esc(t)).join('<br>')}</div>`:'')+`<div class="btact">${k&&items.length?'<button data-addq>Add ticked items to quote</button>':''}${k&&(r.palette||[]).length?'<button class="ghost" data-pal>Save colours to job</button>':''}</div>${!k?'<p class="btnote">Pick an event above to add these items to its quote.</p>':''}`;
+   const aq=box.querySelector('[data-addq]');if(aq)aq.onclick=()=>{const pick=[...box.querySelectorAll('[data-it]')].filter(c=>c.checked).map(c=>items[+c.dataset.it]);if(!pick.length)return toast('Tick at least one item');qUpd(k,o=>{o.rows=o.rows||[];o.rows.push({name:'Decor ideas (from photo)',uom:'',qty:1,days:1,rate:0,sec:1});pick.forEach(x=>o.rows.push({name:x.name,size:x.size||'',uom:'',qty:N(x.qty)||1,days:1,rate:N(x.rate),desc:'',amount:(N(x.qty)||1)*N(x.rate)}));o.total=o.rows.reduce((s,r)=>s+(r.sec?0:N(r.amount)),0)});try{haptic('success')}catch(e){}toast(pick.length+' items added to the quote')};
+   const ap=box.querySelector('[data-pal]');if(ap)ap.onclick=()=>{const b=bt();b.pal=b.pal||{};b.pal[k]={n:'From photo',c:r.palette.slice(0,5)};btSave(b);toast('Colours saved to job')};
+  }catch(e){box.querySelector('.btai:last-child').textContent='Could not get ideas: '+(e.message||e)}}}
+
+/* 4 Customer event page */
+const b64=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+function cpLink(k,opt){const q=ls.get('lal_q',{})[k];if(!q)return'';const b=bt();const pal=(b.pal||{})[k];const c=(typeof C==='function'?C():{})||{};
+ const d={b:c.bizName||'Lalitha Event Decors',bp:c.phone||c.bizPhone||'',c:q.client||'',t:q.etype||q.ename||'',d:q.edate||'',tm:q.etime||'',su:q.setup||'',v:q.venue||'',vm:q.vmap||'',no:q.no||'',
+  it:(q.rows||[]).filter(r=>r.name&&!r.opt).map(r=>r.sec?['#',r.name]:[r.name,N(r.qty)||1,opt.amt?N(r.amount)||N(r.qty)*N(r.rate):0]),
+  am:opt.amt?1:0,tot:N(q.total),pd:qPaid(q),pal:pal?pal.c:[],pn:pal?pal.n:'',ph:opt.ph||'',tl:(opt.tl||'').split('\n').map(x=>x.trim()).filter(Boolean)};
+ return (typeof APP_URL!=='undefined'?APP_URL:location.origin+'/')+'e.html#'+b64(JSON.stringify(d))}
+function cpOpen(k){const b=bt();b.cp=b.cp||{};if(!k){const qs=Q().filter(won).sort((a,c)=>(c.edate||'').localeCompare(a.edate||''));const p=page('Customer event page',`<p class="btnote">Send customers one link with their event details, items, colours, payment status and photos.</p>`+(qs.length?`<div class="btl">${qs.slice(0,60).map(q=>`<div class="r" data-id="${q._k}"><div class="m"><b>${esc(q.client||'Customer')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)}</small></div><div class="a">›</div></div>`).join('')}</div>`:empty('No jobs yet.')));bindRows(p,x=>cpOpen(x));return}
+ const o=Object.assign({amt:true,ph:'',tl:''},b.cp[k]||{});const q=ls.get('lal_q',{})[k]||{};
+ const p=page('Event page · '+(q.client||''),`<div class="btf"><label class="w"><span><input type="checkbox" id="btcam"${o.amt?' checked':''} style="width:20px;height:20px;vertical-align:middle"> Show prices and payment</span></label><label class="w">Photos / album link (Google Photos or Drive)<input id="btcph" value="${esc(o.ph)}" placeholder="https://photos.app.goo.gl/…"></label><label class="w">Day timeline (one per line)<textarea id="btctl" rows="5" placeholder="7:00 AM  Decor team arrives&#10;10:00 AM  Setup ready&#10;11:30 AM  Muhurtham">${esc(o.tl)}</textarea></label></div><div class="btact"><button class="ghost" data-pv>Preview</button><button data-wa>Send on WhatsApp</button></div>`);
+ const get=()=>{const v={amt:p.querySelector('#btcam').checked,ph:p.querySelector('#btcph').value.trim(),tl:p.querySelector('#btctl').value};const b=bt();b.cp=b.cp||{};b.cp[k]=v;btSave(b);return v};
+ p.querySelector('[data-pv]').onclick=()=>window.open(cpLink(k,get()),'_blank');
+ p.querySelector('[data-wa]').onclick=()=>{const u=cpLink(k,get());const t=`Namaste ${q.client||''} garu,\nHere are your ${q.etype||'event'} details from ${(typeof bizN==='function'?bizN():'us')} – items, timeline, colours and payment status:\n${u}`;if(q.phone)waGo(q.phone,t);else shareText(t)}}
+window.btEventLink=cpLink;
+
+const G2=['Planning',[['Item clashes','Same item, same day',clOpen],['Decor ideas from photo','AI plan + item list',aiOpen],['Colour palette','Theme colours per job',()=>paOpen()],['Customer event page','One link for the customer',()=>cpOpen()]]];
+if(!btTools.some(g=>g[0]==='Planning'))btTools.unshift(G2);btHub();
 })();
 </script>
 

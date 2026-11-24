@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your Event</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#111827;--mut:#6b7280;--line:#e5e7eb;--acc:#c8102e}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#181b21;--ink:#f3f4f6;--mut:#9ca3af;--line:#2a2f38}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:720px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px 40px}
+.hd{background:var(--card);border-top:4px solid var(--acc);border:1px solid var(--line);border-top-width:4px;border-top-color:var(--acc);border-radius:10px;padding:18px}
+.biz{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+h1{margin:6px 0 2px;font-size:26px;line-height:1.2}.sub{color:var(--mut)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:14px}
+.meta div{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.meta span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.sec{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sec h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;background:rgba(127,127,127,.07);border-bottom:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-top:1px solid var(--line)}.row:first-of-type{border-top:0}
+.row.g{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);background:rgba(127,127,127,.04)}
+.row b{font-weight:600}.n{white-space:nowrap;text-align:right}
+.tot{font-weight:800}.bal{background:var(--acc);color:#fff;font-weight:800;font-size:17px}
+.sw{display:flex;gap:8px;padding:12px 14px;flex-wrap:wrap}.sw i{width:46px;height:46px;border-radius:8px;border:1px solid rgba(0,0,0,.12)}
+.btn{display:block;margin:12px 14px;text-align:center;padding:13px;border-radius:10px;background:var(--acc);color:#fff;text-decoration:none;font-weight:700}
+.btn.o{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.ft{text-align:center;color:var(--mut);font-size:12.5px;margin-top:18px}
+.err{padding:40px 16px;text-align:center;color:var(--mut)}
+</style></head><body><div class="w" id="app"></div>
+<script>
+(function(){const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=v=>{v=Math.round((+v||0)*100)/100;return'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:2})};
+const dl=d=>{if(!d)return'';const x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'})};
+let d;try{let h=location.hash.slice(1).replace(/-/g,'+').replace(/_/g,'/');while(h.length%4)h+='=';d=JSON.parse(decodeURIComponent(escape(atob(h))))}catch(e){app.innerHTML='<div class="err">This event link is incomplete. Please ask us to send it again.</div>';return}
+document.title=(d.t||'Event')+' – '+(d.c||'');const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
+let h=`<div class="hd"><div class="biz">${esc(d.b)}</div><h1>${esc(d.t||'Your event')}</h1><div class="sub">${esc(d.c)}${d.no?' · '+esc(d.no):''}</div><div class="meta">${d.d?`<div><span>Date</span>${dl(d.d)}</div>`:''}${d.tm?`<div><span>Time</span>${esc(d.tm)}</div>`:''}${d.v?`<div><span>Venue</span>${esc(d.v)}</div>`:''}${d.su?`<div><span>Setup</span>${esc(d.su)}</div>`:''}</div></div>`;
+if(d.tl&&d.tl.length)h+=`<div class="sec"><h2>Day timeline</h2>${d.tl.map(t=>{const m=t.match(/^(\d{1,2}[:.]\d{2}\s*(?:AM|PM|am|pm)?)\s+(.*)$/);return`<div class="row"><b>${esc(m?m[2]:t)}</b><span class="n">${esc(m?m[1]:'')}</span></div>`}).join('')}</div>`;
+if(d.pal&&d.pal.length)h+=`<div class="sec"><h2>Colour theme${d.pn?' · '+esc(d.pn):''}</h2><div class="sw">${d.pal.filter(c=>/^#[0-9a-f]{3,8}$/i.test(c)).map(c=>`<i style="background:${c}"></i>`).join('')}</div></div>`;
+if(d.it&&d.it.length)h+=`<div class="sec"><h2>What we are setting up</h2>${d.it.map(r=>r[0]==='#'?`<div class="row g">${esc(r[1])}</div>`:`<div class="row"><span>${esc(r[0])}${r[1]>1?' × '+r[1]:''}</span>${d.am&&r[2]?`<span class="n">${R(r[2])}</span>`:''}</div>`).join('')}</div>`;
+if(d.am)h+=`<div class="sec"><h2>Payment</h2><div class="row tot"><span>Total</span><span class="n">${R(d.tot)}</span></div><div class="row"><span>Paid</span><span class="n">${R(d.pd)}</span></div><div class="row bal"><span>Balance</span><span class="n">${R(d.tot-d.pd)}</span></div></div>`;
+const ph=safeUrl(d.ph),vm=safeUrl(d.vm);
+if(ph||vm||d.bp)h+=`<div class="sec"><h2>Links</h2>${ph?`<a class="btn" href="${esc(ph)}" target="_blank" rel="noopener">View event photos</a>`:''}${vm?`<a class="btn o" href="${esc(vm)}" target="_blank" rel="noopener">Venue location</a>`:''}${d.bp?`<a class="btn o" href="https://wa.me/${esc(String(d.bp).replace(/\D/g,'').replace(/^(\d{10})$/,'91$1'))}" target="_blank" rel="noopener">WhatsApp us</a>`:''}</div>`;
+h+=`<div class="ft">${esc(d.b)} · Thank you for choosing us</div>`;app.innerHTML=h})();
+</script></body></html>
