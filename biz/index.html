@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -4084,7 +4084,7 @@ window.aiDo=a=>aiDoX(a);
 /* =================== v11.2: AI pack (all free: Gemini free tier + on-phone logic) =================== */
 const aiBusy=(btn,t)=>{if(!btn)return()=>{};const o=btn.innerHTML;btn.disabled=true;btn.innerHTML=t||'Thinking…';return()=>{btn.disabled=false;btn.innerHTML=o}};
 const aiSheet=(title,html,z)=>{const d=mdl(title,html);d.style.zIndex=z||270;return d};
-async function pickImg(capture){return new Promise(ok=>{const i=document.createElement('input');i.type='file';i.accept='image/*';if(capture)i.capture='environment';i.onchange=async()=>{const f=i.files[0];if(!f)return ok('');try{ok(await plImg(f))}catch(e){ok('')}};i.click()})}
+async function pickImg(capture){return new Promise(ok=>{const i=document.createElement('input');i.type='file';i.accept='image/*';if(capture)i.capture='environment';i.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';document.body.appendChild(i);window.__pickIn=i;i.onchange=async()=>{const f=i.files[0];setTimeout(()=>{try{i.remove()}catch(_){}},1000);if(!f)return ok('');try{const r=await plImg(f);if(!r)toast('Could not read this photo. Try another photo or take a new one.');ok(r)}catch(e){toast('Could not read this photo: '+(e.message||e));ok('')}};i.click()})}
 /* 1. WhatsApp chat → enquiry */
 function aiChat(){const d=aiSheet('✨ Read customer chat',`<p class="mut" style="margin:0 0 8px">Copy the customer's WhatsApp messages and paste here. AI fills the enquiry for you.</p><textarea id="acht" rows="8" placeholder="Paste chat here…"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button id="achp" style="flex:1">📋 Paste</button><button class="pri" id="achgo" style="flex:2">Fill enquiry</button></div>`);
  $('achp').onclick=async()=>{try{$('acht').value=await navigator.clipboard.readText()}catch(e){alertMsg('Long-press the box and tap Paste')}};
@@ -7311,7 +7311,7 @@ const bioOK=()=>!!(window.PublicKeyCredential&&navigator.credentials);
 async function bioRegister(){if(!bioOK())throw new Error('Face ID / fingerprint is not available on this device');const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Lalitha app'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'owner',displayName:'Owner'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});ls.set('lal_bio',B64(c.rawId));return true}
 async function bioCheck(){const id=ls.get('lal_bio','');if(!id||!bioOK())return false;try{const a=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:UB(id)}],userVerification:'required',timeout:60000}});return !!a}catch(e){return false}}
 window.bioSetup=async()=>{try{await bioRegister();toast('Face ID / fingerprint turned on');bioUI()}catch(e){toast(e.message||'Could not turn on')}};
-window.bioOff=()=>{ls.set('lal_bio','');toast('Face ID / fingerprint turned off');bioUI()};
+window.bioCheck=bioCheck;window.bioOK=bioOK;window.bioOff=()=>{ls.set('lal_bio','');toast('Face ID / fingerprint turned off');bioUI()};
 
 /* PIN pad */
 function askPin(why){return new Promise(res=>{if(unlocked())return res(true);
@@ -7370,6 +7370,44 @@ function bioUI(){const set=document.querySelector('[data-sp="look"]')||document.
  if(!c){c=document.createElement('div');c.className='card';c.id='biocard';const sec=document.getElementById('secgrp')||set.firstElementChild;sec?sec.after(c):set.prepend(c)}if(c.dataset.h!==html){c.innerHTML=html;c.dataset.h=html;const q=s=>c.querySelector(s);q('[data-sp]')&&(q('[data-sp]').onclick=()=>pinSet());q('[data-bs]')&&(q('[data-bs]').onclick=()=>bioSetup());q('[data-bo]')&&(q('[data-bo]').onclick=()=>bioOff());q('[data-cm]').onclick=()=>custMode(!document.body.classList.contains('custmode'))}}
 window.bioUI=bioUI;setInterval(()=>{if((document.body.dataset.tab||'')==='set')bioUI()},1500);
 apply();
+})();
+</script>
+
+<style id="v194">
+#lockv .lkbio{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;min-height:48px;padding:0 20px;border-radius:24px;border:0;background:#1d4ed8;color:#fff;font-size:15px;font-weight:600}
+#lockv .lkbio svg{width:22px;height:22px}
+#jobsA4{margin:8px 0 10px}
+</style>
+<script id="v194js">
+/* ===== v19.4: Face ID on app open; upcoming events A4 image in Jobs ===== */
+(function(){
+const FID='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1M15 9v1M12 9v4h-1M9 16c1.5 1 4.5 1 6 0"/></svg>';
+let tried=0;
+async function bioUnlock(el){if(!window.bioCheck)return;if(await bioCheck()){el.classList.add('ok');setTimeout(()=>el.remove(),200);ls.set('lal_unl',Date.now());try{haptic('success')}catch(e){}}else toast('Face ID not recognised — enter PIN')}
+function addBio(){const el=document.getElementById('lockv');if(!el||el.querySelector('.lkbio'))return;if(!ls.get('lal_bio','')||!(window.bioOK&&bioOK()))return;
+ const b=document.createElement('button');b.className='lkbio';b.type='button';b.innerHTML=FID+'Unlock with Face ID';b.onclick=()=>bioUnlock(el);el.appendChild(b);
+ if(Date.now()-tried>3000){tried=Date.now();setTimeout(()=>bioUnlock(el),350)}}
+new MutationObserver(addBio).observe(document.body,{childList:true});addBio();
+/* turning on Face ID also turns on the app lock (needs a PIN as backup) */
+const os=window.bioSetup;if(os)window.bioSetup=async()=>{if(!ls.get('lal_pin','')){toast('Set a PIN first — it is the backup if Face ID fails');try{pinSet()}catch(e){}return}return os()};
+
+/* upcoming events → A4 JPEG pages (no prices) */
+window.jobsA4=async function(days){const td=new Date().toISOString().slice(0,10);const lim=days?new Date(Date.now()+days*864e5).toISOString().slice(0,10):'9999';
+ const a=ls.get('lal_q',{});const L=Object.keys(a).map(k=>Object.assign({_k:k},a[k])).filter(q=>q.status!=='Lost'&&(q.edate||'')>=td&&(q.edate||'')<=lim).sort((x,y)=>(x.edate+(x.etime||'')).localeCompare(y.edate+(y.etime||'')));
+ if(!L.length)return toast('No upcoming events');const biz=typeof bizN==='function'?bizN():'Lalitha Event Decors';const logo=(document.getElementById('hlogo')||{}).src||'';
+ const st=q=>/Confirmed|Advance/i.test(q.status||'')?['Confirmed','#15803d']:/Completed|Done/i.test(q.status||'')?['Done','#64748b']:['Enquiry','#b45309'];
+ const per=14,pages=Math.ceil(L.length/per);const range=days?`Next ${days} days`:'All upcoming';
+ for(let pg=0;pg<pages;pg++){const part=L.slice(pg*per,pg*per+per);
+  const rows=part.map((q,i)=>{const d=new Date(q.edate+'T00:00');const s=st(q);const team=[...new Set((q.rows||[]).flatMap(r=>String(r.who||'').split(',').map(x=>x.trim()).filter(Boolean)))].join(', ')||q.team||'';
+   return`<tr><td style="text-align:center"><div style="font-size:20px;font-weight:700;line-height:1">${d.getDate()}</div><div style="font-size:11px;color:#64748b;text-transform:uppercase">${d.toLocaleDateString('en-IN',{month:'short'})} · ${d.toLocaleDateString('en-IN',{weekday:'short'})}</div></td><td><b>${esc(q.etype||q.ename||'Event')}</b><div style="color:#475569">${esc(q.client||'')}${q.phone?' · '+esc(q.phone):''}</div></td><td>${esc(q.venue||'—')}${q.etime?`<div style="color:#64748b">${esc(q.etime)}</div>`:''}</td><td>${esc(team||'—')}</td><td style="color:${s[1]};font-weight:700">${s[0]}</td></tr>`}).join('');
+  const html=`<div style="width:794px;min-height:1123px;box-sizing:border-box;padding:34px 36px;font:13.5px/1.4 'IBM Plex Sans',Arial,sans-serif;color:#0f172a;background:#fff">
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #13294b;padding-bottom:12px">${logo?`<img src="${logo}" style="height:52px">`:`<b style="font-size:20px">${esc(biz)}</b>`}<div style="text-align:right"><div style="font-size:21px;font-weight:700;color:#13294b;letter-spacing:.04em">UPCOMING EVENTS</div><div style="color:#64748b">${range} · ${L.length} event${L.length>1?'s':''}${pages>1?` · page ${pg+1} of ${pages}`:''}</div></div></div>
+  <style>.ue td{padding:9px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}.ue th{padding:8px;text-align:left;font-size:11px;letter-spacing:.05em}</style>
+  <table class="ue" style="width:100%;border-collapse:collapse;margin-top:14px"><tr style="background:#13294b;color:#fff"><th style="width:70px;text-align:center">DATE</th><th>EVENT / CUSTOMER</th><th style="width:180px">VENUE / TIME</th><th style="width:140px">STAFF</th><th style="width:80px">STATUS</th></tr>${rows}</table>
+  <div style="margin-top:22px;font-size:12px;color:#64748b;display:flex;justify-content:space-between"><span>${esc(biz)}</span><span>Made ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} · no prices</span></div></div>`;
+  try{await wsJpg(html,'Upcoming_events'+(pages>1?'_p'+(pg+1):''))}catch(e){toast('Could not make image: '+(e.message||e));break}}};
+function jobsBtn(){const j=document.getElementById('t-cal');if(!j||document.getElementById('jobsA4'))return;const d=document.createElement('div');d.id='jobsA4';d.style.cssText='display:flex;gap:8px;flex-wrap:wrap';d.innerHTML='<button class="pri sm" data-d="30">Upcoming events · A4 image</button><button class="ghost sm" data-d="7">Next 7 days</button><button class="ghost sm" data-d="0">All upcoming</button>';d.querySelectorAll('button').forEach(b=>b.onclick=()=>jobsA4(+b.dataset.d));const first=j.querySelector('.card')||j.firstElementChild;first?first.before(d):j.prepend(d)}
+jobsBtn();setInterval(jobsBtn,1500);
 })();
 </script>
 
