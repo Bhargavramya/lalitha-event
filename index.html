@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7257,6 +7257,113 @@ document.body.classList.add('hpriv');btn();setInterval(()=>{btn();const b=docume
 const ot=window.tab;window.tab=function(t){const r=ot.apply(this,arguments);if(t!=='home'&&!document.body.classList.contains('hpriv'))setPriv(true);return r};
 function pcBtn(){if(innerWidth<900)return;const d=document.getElementById('dash');if(!d||d.querySelector('#hprivPc'))return;const b=document.createElement('button');b.id='hprivPc';b.className='ghost sm';b.style.cssText='margin:0 0 10px auto;display:flex';b.onclick=()=>setPriv(!document.body.classList.contains('hpriv'));d.prepend(b)}
 setInterval(()=>{pcBtn();const b=document.getElementById('hprivPc');if(b)b.textContent=document.body.classList.contains('hpriv')?'Show amounts':'Hide amounts'},700);
+})();
+</script>
+
+<style id="v193">
+/* money lock */
+body.mlock #payl,body.mlock #paysum,body.mlock #paybox,body.mlock #expl,body.mlock #expbill,body.mlock #profit{display:none!important}
+.mlockcard{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc;margin:8px 0;font-size:14px;color:#334155}
+.mlockcard b{flex:1}
+body:not(.mlock) .mlockcard{display:none}
+/* hide prices while editing */
+body.qhide #itbl th:nth-child(6),body.qhide #itbl th:nth-child(7),body.qhide #rows td:nth-child(6),body.qhide #rows td:nth-child(7),body.qhide #t-est .card.stp3,body.qhide #stbar ~ .x{visibility:hidden}
+body.qhide #t-est .card.stp3{display:none!important}
+.mny-q{letter-spacing:.1em;opacity:.6}
+#qeye{display:inline-flex;align-items:center;gap:6px;margin:6px 0 4px 8px}
+/* PIN pad */
+.pinpad .dots{display:flex;justify-content:center;gap:14px;margin:6px 0 16px}
+.pinpad .dots i{width:14px;height:14px;border-radius:50%;border:2px solid #13294b}
+.pinpad .dots i.f{background:#13294b}
+.pinpad.bad .dots{animation:pshake .35s}
+@keyframes pshake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pinpad .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+.pinpad .keys button{height:58px;font-size:22px;font-weight:600;border-radius:12px;background:#f1f5f9!important;color:#0f172a!important;border:0!important;box-shadow:none!important}
+.pinpad .keys button.fx{background:transparent!important;font-size:14px;color:#1d4ed8!important}
+.pinpad p{text-align:center;color:#64748b;margin:0 0 6px}
+/* customer mode */
+html body.custmode.tabs5.mobile .tabs button[data-t="rep"],html body.custmode .tabs button[data-t="rep"],body.custmode #pcside nav button[data-t="rep"],body.custmode #pcside nav button:nth-child(n)[onclick*="'rep'"]{display:none!important}
+.cmbanner{display:none}
+body.custmode .cmbanner{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:60;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-radius:20px;background:#13294b;color:#fff;font-size:12.5px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+body.custmode .cmbanner button{background:#fff!important;color:#13294b!important;border:0!important;border-radius:14px!important;min-height:30px;padding:0 10px;font-weight:600;font-size:12.5px}
+</style>
+<script id="v193js">
+/* ===== v19.3: PIN (or Face ID) before any money; prices hidden while editing; customer mode ===== */
+(function(){
+const UNL=5*60*1000;let until=0,lockT=0;
+const hasPin=()=>!!ls.get('lal_pin','');
+const unlocked=()=>Date.now()<until&&!document.body.classList.contains('custmode');
+function apply(){const u=unlocked();document.body.classList.toggle('mlock',!u);if(!u){document.body.classList.add('hpriv')}maskAll()}
+function lockNow(msg){until=0;apply();if(msg)toast('Money locked')}
+window.moneyLock=()=>lockNow(true);
+function startTimer(){clearTimeout(lockT);lockT=setTimeout(()=>lockNow(false),UNL)}
+
+/* Face ID / fingerprint (WebAuthn, free, built into the phone) */
+const B64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const UB=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+const bioOK=()=>!!(window.PublicKeyCredential&&navigator.credentials);
+async function bioRegister(){if(!bioOK())throw new Error('Face ID / fingerprint is not available on this device');const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Lalitha app'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'owner',displayName:'Owner'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});ls.set('lal_bio',B64(c.rawId));return true}
+async function bioCheck(){const id=ls.get('lal_bio','');if(!id||!bioOK())return false;try{const a=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:UB(id)}],userVerification:'required',timeout:60000}});return !!a}catch(e){return false}}
+window.bioSetup=async()=>{try{await bioRegister();toast('Face ID / fingerprint turned on');bioUI()}catch(e){toast(e.message||'Could not turn on')}};
+window.bioOff=()=>{ls.set('lal_bio','');toast('Face ID / fingerprint turned off');bioUI()};
+
+/* PIN pad */
+function askPin(why){return new Promise(res=>{if(unlocked())return res(true);
+ if(!hasPin()){const d=mdl('Set an app PIN first',`<p class="mut">A 4-digit PIN protects your money screens (Money, payments, amounts). You set it once; it works on all your devices.</p><div class="btact"><button class="ghost" data-x>Not now</button><button data-sp>Set PIN</button></div>`);d.style.zIndex=650;d.querySelector('[data-sp]').onclick=()=>{d.remove();try{pinSet()}catch(e){}};d.querySelector('[data-x]').addEventListener('click',()=>res(false));return}
+ let v='';const d=mdl('Enter PIN',`<div class="pinpad"><p>${esc(why||'To see money details')}</p><div class="dots"><i></i><i></i><i></i><i></i></div><div class="keys">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join('')}${ls.get('lal_bio','')&&bioOK()?'<button class="fx" data-bio>Face ID</button>':'<span></span>'}<button data-k="0">0</button><button class="fx" data-del aria-label="Delete">Delete</button></div></div>`);d.style.zIndex=650;
+ const pad=d.querySelector('.pinpad'),dots=[...d.querySelectorAll('.dots i')];const done=ok=>{if(ok){until=Date.now()+UNL;startTimer();apply();try{haptic('success')}catch(e){}}d.remove();res(ok)};
+ const draw=()=>dots.forEach((x,i)=>x.classList.toggle('f',i<v.length));
+ const key=async k=>{if(v.length>=4)return;v+=k;draw();try{haptic('tap')}catch(e){}if(v.length===4){if(await pinHash(v)===ls.get('lal_pin',''))done(true);else{pad.classList.add('bad');try{haptic('error')}catch(e){}setTimeout(()=>{pad.classList.remove('bad');v='';draw()},400)}}};
+ d.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));d.querySelector('[data-del]').onclick=()=>{v=v.slice(0,-1);draw()};
+ const kb=e=>{if(!d.isConnected)return removeEventListener('keydown',kb,true);if(/^\d$/.test(e.key)){e.preventDefault();e.stopPropagation();key(e.key)}else if(e.key==='Backspace'){v=v.slice(0,-1);draw()}};addEventListener('keydown',kb,true);
+ d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-x]'))res(false)});
+ const bb=d.querySelector('[data-bio]');if(bb){bb.onclick=async()=>{if(await bioCheck())done(true);else toast('Not recognised — use PIN')};setTimeout(()=>bb.click(),250)}})}
+window.moneyUnlock=askPin;
+
+/* 1. Money tab */
+const ot=window.tab;window.tab=function(t){if(t==='set'&&document.body.classList.contains('custmode')){const self=this,args=arguments;askPin('Enter PIN to open Settings',true).then(ok=>{if(ok){document.body.classList.remove('custmode');ls.set('lal_custmode',0);ot.apply(self,args)}});return}if(t==='rep'&&!unlocked()){const self=this,args=arguments;askPin('Enter PIN to open Money').then(ok=>{if(ok)ot.apply(self,args)});return}const r=ot.apply(this,arguments);setTimeout(maskAll,50);return r};
+/* money tools opened from anywhere (side menu, long-press) */
+const MONEYT=/Profit|Payment reminders|Monthly trends|Final reconciliation|Cost \+ margin|Staff attendance/i;
+const ob=window.btOpen;if(ob)window.btOpen=function(n){if(MONEYT.test(String(n))&&!unlocked()){askPin('Enter PIN to see money details').then(ok=>{if(ok)ob(n)});return}return ob.apply(this,arguments)};
+const oc=window.cmOpen;if(oc)window.cmOpen=function(){if(!unlocked()){askPin('Enter PIN to see your costs').then(ok=>{if(ok)oc()});return}return oc.apply(this,arguments)};
+const oh=window.hbList;if(oh)window.hbList=function(){if(!unlocked()){askPin('Enter PIN to open hall bills').then(ok=>{if(ok)oh()});return}return oh.apply(this,arguments)};
+
+/* 2. Home eye asks for PIN */
+document.addEventListener('click',e=>{const b=e.target.closest('#hprivBtn,#hprivPc');if(!b)return;if(document.body.classList.contains('hpriv')&&!unlocked()){e.stopImmediatePropagation();e.preventDefault();askPin('Enter PIN to show amounts').then(ok=>{if(ok)b.click()})}},true);
+
+/* 3. Quotes list + 4. payments/expenses inside a quote + hidden prices: mask ₹ text */
+function maskIn(root,on){if(!root)return;if(on){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>/₹\s?[\d.,]/.test(n.nodeValue)&&!n.parentNode.closest('.mny-q,.mny-m,script,style,input,textarea,select,.mdl,.pinpad')?1:2});const L=[];while(w.nextNode())L.push(w.currentNode);L.forEach(n=>{const s=document.createElement('span');s.className='mny-q';s.dataset.v=n.nodeValue;s.textContent=n.nodeValue.replace(/[−-]?\s?₹\s?[\d.,]+[LKk]?/g,'₹ ••••');n.parentNode.replaceChild(s,n)})}else root.querySelectorAll('.mny-q').forEach(s=>s.replaceWith(document.createTextNode(s.dataset.v)))}
+function maskAll(){const lock=!unlocked();maskIn(document.getElementById('t-saved'),lock);const q=document.body.classList.contains('qhide');maskIn(document.getElementById('t-est'),q||document.body.classList.contains('custmode'));
+ document.querySelectorAll('.btp main').forEach(m=>maskIn(m,lock&&!/Staff view|Photo|Colour|Setup|Item clashes|Equipment|Freelancers|Vendor|Client feedback|Packed|Floral|Power|Customer event|Decor ideas/.test((m.parentNode.querySelector('header b')||{}).textContent||'')))}
+setInterval(()=>{if(document.querySelector('.mdl .pinpad'))return;maskAll()},900);
+/* lock card where payments are, so you know they are hidden */
+function lockCards(){const pb=document.getElementById('paybox');if(pb&&!document.getElementById('mlc-pay')){pb.insertAdjacentHTML('beforebegin','<div class="mlockcard" id="mlc-pay"><b>Payments, expenses and profit are locked</b><button class="pri sm" data-unl>Unlock</button></div>');document.getElementById('mlc-pay').querySelector('[data-unl]').onclick=()=>askPin()}
+ const qs=document.getElementById('t-saved');if(qs&&!document.getElementById('mlc-q')){const card=qs.querySelector('.card');if(card){card.insertAdjacentHTML('afterbegin','<div class="mlockcard" id="mlc-q"><b>Amounts hidden</b><button class="pri sm" data-unl>Show amounts</button></div>');document.getElementById('mlc-q').querySelector('[data-unl]').onclick=()=>askPin('Enter PIN to show amounts')}}}
+setInterval(lockCards,1200);
+
+/* 5. Hide prices while editing a quote (eye button in the quote) */
+function qEye(){const st=document.getElementById('steps');if(!st||document.getElementById('qeye'))return;const b=document.createElement('button');b.id='qeye';b.className='ghost sm';b.type='button';st.after(b);b.onclick=async()=>{const on=document.body.classList.contains('qhide');if(on){if(!(await askPin('Enter PIN to show prices')))return}document.body.classList.toggle('qhide',!on);ls.set('lal_qhide',!on?1:0);qEyeTxt();maskAll()};qEyeTxt()}
+function qEyeTxt(){const b=document.getElementById('qeye');if(b)b.textContent=document.body.classList.contains('qhide')?'Show prices':'Hide prices from customer'}
+if(ls.get('lal_qhide',0))document.body.classList.add('qhide');qEye();setInterval(()=>{qEye();qEyeTxt()},1500);
+
+/* 6. Customer mode */
+window.custMode=async on=>{if(on){document.body.classList.add('custmode','qhide','hpriv');ls.set('lal_custmode',1);lockNow(false);if((document.body.dataset.tab||'')==='rep')tab('home');toast('Customer mode on')}else{if(!(await askPin('Enter PIN to leave customer mode',true)))return;document.body.classList.remove('custmode');ls.set('lal_custmode',0);until=Date.now()+UNL;startTimer();apply();toast('Customer mode off')}};
+/* PIN check in customer mode bypasses the "unlocked" shortcut */
+const askPin0=askPin;askPin=function(why,force){if(force){const was=document.body.classList.contains('custmode');document.body.classList.remove('custmode');const keep=until;until=0;return askPin0(why).then(ok=>{if(!ok&&was)document.body.classList.add('custmode');if(!ok)until=keep;return ok})}return askPin0(why)};window.moneyUnlock=askPin;
+if(ls.get('lal_custmode',0))document.body.classList.add('custmode','qhide','hpriv');
+document.body.insertAdjacentHTML('beforeend','<div class="cmbanner">Customer mode<button type="button" onclick="custMode(false)">Exit</button></div>');
+
+/* side menu: quick lock, customer mode, Face ID; settings card */
+function drw(){const ls_=document.querySelector('#drw .ls');if(!ls_||ls_.querySelector('[data-ml]'))return;const sys=[...ls_.querySelectorAll('.gp')].find(g=>/System/.test(g.textContent));if(!sys)return;
+ const mk=(k,lbl,svg,fn)=>{const b=document.createElement('button');b.className='it';b.dataset[k]=1;b.innerHTML=svg+lbl;b.onclick=()=>{try{drwClose()}catch(e){}setTimeout(fn,150)};return b};
+ const LK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+ const CM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M17 8l2 2 3-4"/></svg>';
+ sys.after(mk('ml','Lock money now',LK,()=>moneyLock()),mk('cm',document.body.classList.contains('custmode')?'Exit customer mode':'Customer mode',CM,()=>custMode(!document.body.classList.contains('custmode'))))}
+setInterval(drw,800);
+function bioUI(){const set=document.querySelector('[data-sp="look"]')||document.getElementById('t-set');if(!set)return;let c=document.getElementById('biocard');const html=`<div class="ch"><h2>Money lock</h2></div><p class="mut" style="margin:4px 0 10px">Money tab, payments, expenses and amounts need your PIN. They stay open for 5 minutes, then lock again.</p><div class="btact" style="flex-wrap:wrap">${hasPin()?'':'<button data-sp>Set app PIN</button>'}${bioOK()?(ls.get('lal_bio','')?'<button class="ghost" data-bo>Turn off Face ID / fingerprint</button>':'<button class="ghost" data-bs>Use Face ID / fingerprint</button>'):''}<button class="ghost" data-cm>${document.body.classList.contains('custmode')?'Exit customer mode':'Customer mode'}</button></div>`;
+ if(!c){c=document.createElement('div');c.className='card';c.id='biocard';const sec=document.getElementById('secgrp')||set.firstElementChild;sec?sec.after(c):set.prepend(c)}if(c.dataset.h!==html){c.innerHTML=html;c.dataset.h=html;const q=s=>c.querySelector(s);q('[data-sp]')&&(q('[data-sp]').onclick=()=>pinSet());q('[data-bs]')&&(q('[data-bs]').onclick=()=>bioSetup());q('[data-bo]')&&(q('[data-bo]').onclick=()=>bioOff());q('[data-cm]').onclick=()=>custMode(!document.body.classList.contains('custmode'))}}
+window.bioUI=bioUI;setInterval(()=>{if((document.body.dataset.tab||'')==='set')bioUI()},1500);
+apply();
 })();
 </script>
 
