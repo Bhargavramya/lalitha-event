@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.3';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6498,6 +6498,129 @@ function galView(L,i){const v=document.createElement('div');v.className='btview'
 /* add to hub */
 const G3=['Event day & extras',[['Packed / loaded','Tick items on event day',()=>tkOpen()],['Photo gallery','Your decor portfolio',galOpen],['Staff view','Read-only for staff phones',stEnter]]];
 if(!btTools.some(g=>g[0]===G3[0]))btTools.splice(1,0,G3);btHub();
+})();
+</script>
+
+<style id="v183">
+#mtg{background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);border-radius:12px;margin:0 0 14px;overflow:hidden}
+#mtg .mh{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--cx-line,#e5e7eb)}
+#mtg .mh b{flex:1;font-size:16px}#mtg .mh small{color:var(--cx-mut,#6b7280);font-weight:500}
+#mtg .mb{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+@media(min-width:900px){#mtg .mb{grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr)}#mtg .side{border-left:1px solid var(--cx-line,#e5e7eb)}}
+#mtg .pad{display:flex;flex-direction:column}
+#mtg .who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-bottom:1px solid var(--cx-line,#e5e7eb)}
+@media(max-width:600px){#mtg .who{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#mtg .who input{border:0;border-right:1px solid var(--cx-line,#eef0f2);border-bottom:1px solid var(--cx-line,#eef0f2);border-radius:0;min-height:46px;padding:8px 12px;font-size:15px;background:transparent;color:var(--cx-ink,#111827);outline:none}
+#mtg .who input:focus{background:var(--cx-soft,#f9fafb);box-shadow:inset 0 -2px 0 #c8102e}
+#mtg textarea{border:0;border-radius:0;min-height:260px;padding:14px;font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;background:transparent;color:var(--cx-ink,#111827);outline:none}
+@media(min-width:900px){#mtg textarea{min-height:340px}}
+#mtg .hint{font-size:12px;color:var(--cx-mut,#6b7280);padding:8px 14px;border-top:1px solid var(--cx-line,#eef0f2);display:flex;gap:12px;flex-wrap:wrap}
+#mtg kbd{border:1px solid var(--cx-line,#d1d5db);border-radius:4px;padding:0 5px;font:600 11px monospace}
+#mtg .side{display:flex;flex-direction:column;min-width:0}
+#mtg .sh{padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cx-mut,#6b7280);border-bottom:1px solid var(--cx-line,#eef0f2);display:flex;justify-content:space-between}
+#mtg .its{max-height:220px;overflow:auto}
+#mtg .it{display:flex;justify-content:space-between;gap:8px;padding:8px 14px;border-bottom:1px solid var(--cx-line,#f3f4f6);font-size:14px}
+#mtg .it span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mtg .it.t{font-weight:800;background:var(--cx-soft,#f9fafb)}
+#mtg .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
+#mtg .acts button{min-height:46px;font-weight:700}
+#mtg .acts button.go,#mtg .acts .go{grid-column:1/-1;background:#c8102e!important;color:#fff!important;border-color:#c8102e!important}
+#mtg .rec{max-height:200px;overflow:auto}
+#mtg .rec button{display:flex;width:100%;justify-content:space-between;gap:8px;padding:9px 14px;border:0;border-bottom:1px solid var(--cx-line,#f3f4f6);background:none;color:var(--cx-ink,#111827);text-align:left;border-radius:0;min-height:44px}
+#mtg .rec button.on{background:var(--cx-soft,#f3f4f6);box-shadow:inset 3px 0 0 #c8102e}
+#mtg .rec small{color:var(--cx-mut,#6b7280)}
+#mtg .lk{font-size:11.5px;font-weight:700;color:#1f8a4c;border:1px solid currentColor;border-radius:5px;padding:0 6px}
+#mtgq{border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;background:var(--cx-card,#fff);margin:10px 0;overflow:hidden}
+#mtgq summary{padding:10px 12px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+#mtgq textarea{width:100%;border:0;border-top:1px solid var(--cx-line,#eef0f2);min-height:160px;padding:12px;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;background:transparent;color:var(--cx-ink,#111827);outline:none;resize:vertical}
+@media(min-width:1100px){body:not([data-tab="est"]) body>#mtgq{display:none}body[data-tab="est"] #mtgq.dock{position:fixed;right:16px;top:90px;width:340px;max-height:calc(100vh - 120px);z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.08)}body[data-tab="est"].mtgdock #t-est{max-width:calc(100vw - 640px)!important;margin-right:auto!important;margin-left:0!important}}
+</style>
+<script id="v183js">
+/* ===== v18.3: Meeting notes on Home — type while talking to the customer (PC first), turns straight into a linked quotation ===== */
+(function(){
+const MK='lal_mtg';const N=v=>+String(v??'').replace(/[,₹\s]/g,'')||0;
+const get=()=>ls.get(MK,[])||[];
+const put=a=>{ls.set(MK,a);try{gset('meetings',a)}catch(e){}};
+const mid=()=>'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+let cur=null;
+const blank=()=>({id:mid(),at:Date.now(),client:'',phone:'',etype:'',edate:'',venue:'',guests:'',text:'',qk:''});
+const TPL='Customer wants:\n\n\nItems (one per line: item  qty  rate):\n- \n\n\nBudget / payment:\n\nNext step:\n';
+
+/* parse item lines: "- Stage 20x8  1  15000", "• Chairs 100 x 25", "- Arch 2 @ 3000", "- LED wall 432 sft 140" */
+function parse(text){const cat=(typeof getCat==='function'?getCat():[])||[];const out=[];
+ String(text||'').split('\n').forEach(l=>{const m0=l.match(/^\s*[-•*]\s*(.+)$/);if(!m0)return;let t=m0[1].trim();if(!t)return;
+  let qty=1,rate=0,name=t,m;
+  if((m=t.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*(?:nos?|pcs|sft|sq\.?\s*ft|ft|kg|set|sets)?\s*(?:x|×|\*|@)\s*(?:₹|rs\.?)?\s*([\d,]+(?:\.\d+)?)\s*$/i))){name=m[1];qty=+m[2];rate=N(m[3])}
+  else if((m=t.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*(?:nos?|pcs|sft|sq\.?\s*ft|ft|kg|set|sets)?\s+(?:₹|rs\.?)?\s*([\d,]+(?:\.\d+)?)\s*$/i))){name=m[1];qty=+m[2];rate=N(m[3])}
+  else if((m=t.match(/^(.*?)\s+(?:₹|rs\.?)\s*([\d,]+)\s*$/i))){name=m[1];rate=N(m[2])}
+  else if((m=t.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*(?:nos?|pcs|sft|ft|kg|sets?)?\s*$/i))){name=m[1];qty=+m[2]}
+  name=name.replace(/[\s:–-]+$/,'').trim();if(!name)return;
+  let size='';const c=cat.find(c=>String(c[0]).toLowerCase()===name.toLowerCase())||cat.find(c=>String(c[0]).toLowerCase().includes(name.toLowerCase())||name.toLowerCase().includes(String(c[0]).toLowerCase()));
+  if(c){if(!rate)rate=+c[2]||0;size=c[1]||'';if(String(c[0]).length>=name.length-2)name=c[0]}
+  out.push({name,size,qty,rate,amt:qty*rate,cat:!!c})});return out}
+
+function save(){if(!cur)return;const card=document.getElementById('mtg');if(!card)return;card.querySelectorAll('[data-m]').forEach(i=>cur[i.dataset.m]=i.value);cur.at=Date.now();const a=get();const i=a.findIndex(x=>x.id===cur.id);const empty=!cur.text.trim()&&!cur.client.trim();if(i>=0)a[i]=cur;else if(!empty)a.unshift(cur);put(a.slice(0,300));side();const st=card.querySelector('[data-st]');if(st)st.textContent='Saved '+new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}
+let tm=0;const soon=()=>{clearTimeout(tm);tm=setTimeout(save,500)};
+
+function side(){const card=document.getElementById('mtg');if(!card||!cur)return;const its=parse(cur.text);const tot=its.reduce((s,x)=>s+x.amt,0);
+ card.querySelector('.its').innerHTML=its.length?its.map(x=>`<div class="it"><span title="${esc(x.name)}">${esc(x.name)}${x.qty!==1?' × '+x.qty:''}${x.cat?'':' <small class="mut">(new)</small>'}</span><span>${x.rate?f2(x.amt):'<small class="mut">no rate</small>'}</span></div>`).join('')+`<div class="it t"><span>Estimate</span><span>${f2(tot)}</span></div>`:`<div class="it"><span class="mut">Type items starting with "-" to see the estimate here.</span></div>`;
+ const q=cur.qk&&ls.get('lal_q',{})[cur.qk];card.querySelector('[data-go]').textContent=q?'Update quotation '+(q.no||''):'Make quotation';card.querySelector('[data-open]').hidden=!q;
+ const L=get().slice(0,25);card.querySelector('.rec').innerHTML=L.length?L.map(m=>`<button data-r="${m.id}" class="${m.id===cur.id?'on':''}"><span><b>${esc(m.client||'No name')}</b><br><small>${esc(m.etype||'')}${m.edate?' · '+m.edate:''}</small></span><small>${m.qk&&ls.get('lal_q',{})[m.qk]?'<span class="lk">Quote</span><br>':''}${new Date(m.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</small></button>`).join(''):'<div class="it"><span class="mut">Saved notes appear here.</span></div>';
+ card.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{save();cur=get().find(x=>x.id===b.dataset.r);draw()})}
+
+function draw(){const card=document.getElementById('mtg');if(!card)return;if(!cur){const a=get();cur=a[0]&&!a[0].qk&&Date.now()-a[0].at<12*36e5?a[0]:blank()}
+ card.querySelectorAll('[data-m]').forEach(i=>{i.value=cur[i.dataset.m]||''});const ta=card.querySelector('textarea');if(!cur.text){ta.placeholder=TPL}side()}
+
+function html(){return`<div id="mtg"><div class="mh"><b>Customer meeting notes <small data-st></small></b><button class="ghost sm" data-new title="New note (Ctrl+Alt+N)">＋ New</button><button class="ghost sm" data-tpl title="Insert template">Template</button></div><div class="mb"><div class="pad"><div class="who"><input data-m="client" placeholder="Customer name" autocomplete="off"><input data-m="phone" type="tel" inputmode="tel" placeholder="Phone"><input data-m="etype" placeholder="Event (Wedding, Birthday…)" list="mtgev"><input data-m="edate" type="date" title="Event date"><input data-m="venue" placeholder="Venue"><input data-m="guests" inputmode="numeric" placeholder="Guests"></div><textarea data-m="text" spellcheck="true" placeholder=""></textarea><div class="hint"><span>Items: <b>- Stage 20x8 1 15000</b> or <b>- Chairs 100 x 25</b></span><span><kbd>Ctrl</kbd>+<kbd>Enter</kbd> make quotation</span><span><kbd>Ctrl</kbd>+<kbd>S</kbd> save</span><span><kbd>Alt</kbd>+<kbd>T</kbd> time stamp</span></div></div>
+ <div class="side"><div class="sh"><span>Items found</span><span>live</span></div><div class="its"></div><div class="acts"><button class="go pri" data-go style="background:#c8102e;color:#fff;border-color:#c8102e">Make quotation</button><button class="ghost" data-ai>Fill with AI</button><button class="ghost" data-open hidden>Open quote</button><button class="ghost" data-sh>Share notes</button><button class="ghost" data-del>Delete</button></div><div class="sh"><span>Recent notes</span><span></span></div><div class="rec"></div></div></div><datalist id="mtgev">${['Wedding','Engagement','Reception','Haldi','Mehendi','Sangeet','Birthday','Half saree','Naming ceremony','House warming','Corporate','Satyanarayana Vratam'].map(x=>`<option value="${x}">`).join('')}</datalist></div>`}
+
+/* create / update the quotation from the note */
+function toQuote(useAI){save();if(!cur.client.trim()&&!cur.text.trim())return toast('Type the customer name or notes first');
+ const its=parse(cur.text);const q=cur.qk&&ls.get('lal_q',{})[cur.qk];
+ const go=list=>{const rowsNew=list.map(x=>({name:x.name,uom:'',qty:+x.qty||1,days:1,rate:+x.rate||0,desc:x.size||'',amount:(+x.qty||1)*(+x.rate||0)}));
+  try{if(typeof guard==='function'&&!guard())return}catch(e){}
+  if(q){curId=cur.qk;fill(q)}else newQ();
+  const set=(k,v)=>{const e=$(k);if(e&&v)e.value=v};set('client',cur.client);set('phone',cur.phone);set('etype',cur.etype);set('edate',cur.edate);set('venue',cur.venue);set('guests',cur.guests);
+  if(q){const have=new Set((rows||[]).map(r=>String(r.name).toLowerCase()));rowsNew.forEach(r=>{const ex=rows.find(x=>String(x.name).toLowerCase()===r.name.toLowerCase());if(ex){ex.qty=r.qty;if(r.rate)ex.rate=r.rate}else rows.push(r)})}else rows=rowsNew;
+  try{render()}catch(e){}save0();cur.qk=curId;save();try{tab('est');if(typeof goStep==='function')goStep(rowsNew.length?2:1)}catch(e){}try{haptic('success')}catch(e){}toast(q?'Quotation updated from notes':'Quotation made from notes');setTimeout(dock,200)};
+ if(useAI){if(typeof aiAsk!=='function')return toast('AI not available');const cat=((typeof getCat==='function'?getCat():[])||[]).slice(0,150).map(c=>({n:c[0],size:c[1],rate:+c[2]||0}));toast('AI is reading your notes…');
+  aiAsk(`These are notes typed by an event decorator while talking to a customer. Extract the items they discussed for a quotation. Use my catalog names and rates where they match: ${JSON.stringify(cat)}. Also fill customer fields if found. Notes:\n${cur.text}\nReply JSON only: {"client":"","phone":"","etype":"","edate":"YYYY-MM-DD or empty","venue":"","guests":"","items":[{"name":"","size":"","qty":1,"rate":0}]}`,typeof AISYS!=='undefined'?AISYS:'',1).then(r=>{['client','phone','etype','edate','venue','guests'].forEach(k=>{if(r[k]&&!cur[k])cur[k]=String(r[k])});draw();go((r.items||[]).filter(x=>x&&x.name))}).catch(e=>toast('AI: '+(e.message||e)))}
+ else go(its)}
+const save0=()=>{try{window.save?window.save():null}catch(e){console.error(e)}};
+
+/* show the linked note inside the quotation (docked on the right on PC) */
+function dock(){const est=document.getElementById('t-est');if(!est)return;let box=document.getElementById('mtgq');const m=typeof curId!=='undefined'&&curId?get().find(x=>x.qk===curId):null;
+ if(!m){if(box)box.remove();document.body.classList.remove('mtgdock');return}
+ if(!box||box.dataset.id!==m.id){if(box)box.remove();(innerWidth>=1100?document.body:est).insertAdjacentHTML(innerWidth>=1100?'beforeend':'afterbegin',`<details id="mtgq" class="dock" open data-id="${m.id}"><summary><span>Meeting notes · ${esc(m.client||'')}</span><small class="mut">${new Date(m.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</small></summary><textarea></textarea></details>`);box=document.getElementById('mtgq');const ta=box.querySelector('textarea');ta.value=m.text||'';ta.oninput=()=>{clearTimeout(ta._t);ta._t=setTimeout(()=>{const a=get();const x=a.find(y=>y.id===m.id);if(x){x.text=ta.value;x.at=Date.now();put(a);if(cur&&cur.id===x.id)cur.text=ta.value}},500)}}
+ document.body.classList.add('mtgdock')}
+
+function mount(){const h=document.getElementById('t-home');if(!h||document.getElementById('mtg'))return;const cnt=document.getElementById('btcnt');
+ h.insertAdjacentHTML('afterbegin',html());const card=document.getElementById('mtg');
+ card.querySelectorAll('[data-m]').forEach(i=>i.addEventListener('input',()=>{cur[i.dataset.m]=i.value;if(i.dataset.m==='text')side();soon()}));
+ card.querySelector('[data-new]').onclick=()=>{save();cur=blank();draw();card.querySelector('[data-m=client]').focus()};
+ card.querySelector('[data-tpl]').onclick=()=>{const ta=card.querySelector('textarea');ta.value=(ta.value?ta.value+'\n\n':'')+TPL;cur.text=ta.value;soon();side();ta.focus()};
+ card.querySelector('[data-go]').onclick=()=>toQuote(false);card.querySelector('[data-ai]').onclick=()=>toQuote(true);
+ card.querySelector('[data-open]').onclick=()=>{try{openQ(cur.qk)}catch(e){}setTimeout(dock,200)};
+ card.querySelector('[data-sh]').onclick=()=>shareText(`Meeting – ${cur.client||''}${cur.etype?' · '+cur.etype:''}${cur.edate?' · '+cur.edate:''}${cur.venue?' · '+cur.venue:''}\n\n${cur.text}`);
+ card.querySelector('[data-del]').onclick=()=>askDel('Delete this note?',`Notes for ${cur.client||'this customer'} will be removed. The quotation stays.`,()=>{put(get().filter(x=>x.id!==cur.id));cur=blank();draw();toast('Note deleted')});
+ const ta=card.querySelector('textarea');
+ ta.addEventListener('keydown',e=>{if(e.altKey&&e.key.toLowerCase()==='t'){e.preventDefault();const s=new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});ta.setRangeText(`[${s}] `,ta.selectionStart,ta.selectionEnd,'end');cur.text=ta.value;soon()}
+  if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){const p=ta.value.slice(0,ta.selectionStart).split('\n').pop();const m=p.match(/^(\s*[-•*]\s)/);if(m){e.preventDefault();if(p.trim()===m[1].trim()){ta.setRangeText('',ta.selectionStart-p.length,ta.selectionStart,'end')}else ta.setRangeText('\n'+m[1],ta.selectionStart,ta.selectionEnd,'end');cur.text=ta.value;side();soon()}}});
+ card.addEventListener('keydown',e=>{const mod=e.ctrlKey||e.metaKey;if(mod&&e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();toQuote(e.shiftKey)}else if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopImmediatePropagation();save();toast('Note saved')}else if(mod&&e.altKey&&e.key.toLowerCase()==='n'){e.preventDefault();card.querySelector('[data-new]').click()}e.stopPropagation()},true);
+ draw()}
+mount();
+function reorder(){const h=document.getElementById('t-home'),m=document.getElementById('mtg');if(!h||!m)return;const old=[...h.children].find(e=>e!==m&&/Handwritten notes with Apple Pencil/.test(e.textContent)&&e.textContent.length<300);const cnt=document.getElementById('btcnt');const anchor=cnt&&cnt.compareDocumentPosition(m)&Node.DOCUMENT_POSITION_PRECEDING?cnt:m;if(old&&anchor.nextElementSibling!==old&&!(old.compareDocumentPosition(m)&Node.DOCUMENT_POSITION_PRECEDING))anchor.after(old)}
+reorder();setInterval(reorder,2000);
+const ot=window.tab;window.tab=function(t){if(t!=='home')try{save()}catch(e){}const r=ot.apply(this,arguments);if(t==='home'){mount();draw()}if(t==='est')setTimeout(dock,100);return r};
+const oo=window.openQ;if(oo)window.openQ=function(){const r=oo.apply(this,arguments);setTimeout(dock,150);return r};
+const on=window.newQ;if(on)window.newQ=function(){const r=on.apply(this,arguments);setTimeout(dock,150);return r};
+addEventListener('beforeunload',()=>{try{save()}catch(e){}});
+window.mtgOpen=()=>{try{tab('home')}catch(e){}setTimeout(()=>{const c=document.getElementById('mtg');if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.querySelector('textarea').focus()}},120)};
+/* global shortcut: M = meeting notes */
+addEventListener('keydown',e=>{const t=e.target;if(e.metaKey||e.ctrlKey||e.altKey||(t&&(/INPUT|TEXTAREA|SELECT/.test(t.tagName)||t.isContentEditable)))return;if(document.querySelector('.mdl,.btp,.btsheet,.btview,#lockv'))return;if(e.key.toLowerCase()==='m'){e.preventDefault();mtgOpen()}});
+try{if(window.btKeys)btKeys.unshift(['M','Customer meeting notes'])}catch(e){}
+/* sync back from the Sheet */
+(function(){const of=window.fetch.bind(window);window.fetch=async function(u,o){const res=await of(u,o);try{if(typeof u==='string'&&G.url&&u.startsWith(G.url)&&u.includes('?key=')&&(!o||!o.method||o.method==='GET')){res.clone().json().then(j=>{const st=j&&j.settings&&j.settings.meetings;if(st&&+st.at>ls.get('lal_set_at_meetings',0)){ls.set(MK,st.value);ls.set('lal_set_at_meetings',+st.at);const c=document.getElementById('mtg');if(c&&!c.contains(document.activeElement)){cur=null;draw()}}}).catch(()=>{})}}catch(e){}return res}})();
 })();
 </script>
 
