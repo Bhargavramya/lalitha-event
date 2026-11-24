@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -5036,7 +5036,7 @@ function stChips(){const host=$('steps');if(!host)return;let w=$('stchips');if(!
 function stSet(s){const was=$('status').value;$('status').value=s;$('status').dispatchEvent(new Event('change',{bubbles:true}));stChips();try{markDirty()}catch(e){}if(s==='Confirmed'&&was!=='Confirmed'){setTimeout(()=>{if($('edate').value)alertMsg('Confirmed ✓ – added to Jobs (work schedule)');else alertMsg('Confirmed ✓ – add the event date so it shows in Jobs')},300)}}
 (function(){['newQ','openQ','fill'].forEach(f=>{const o=window[f];if(typeof o!=='function')return;window[f]=function(){const r=o.apply(this,arguments);setTimeout(()=>{try{stChips();const s=$('asst');if(s){s.textContent=curId?'Auto-saved':'Saves automatically';s.classList.add('ok')}}catch(e){}},30);return r}});$('status')&&$('status').addEventListener('change',()=>setTimeout(stChips,0));try{stChips()}catch(e){}})();
 /* 5. the existing Event progress bar already shows the next step; status reason popup only for Lost */
-(function(){new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains('mdl')){const t=(n.querySelector('.pkhd b')||{}).textContent||'';if(/^Status: /.test(t)&&!/Lost/.test(t)&&/reason/i.test(n.textContent||''))n.remove()}}))).observe(document.body,{childList:true})})();
+(function(){new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains('mdl')){const t=(n.querySelector('.pkhd b')||{}).textContent||'';if(/^Status: /.test(t)&&!/Lost/.test(t)&&/reason/i.test(n.textContent||'')){n.style.display='none';const sk=n.querySelector('[data-skip]');if(sk)setTimeout(()=>{sk.click();if(n.isConnected)n.remove()},0);else n.remove()}}}))).observe(document.body,{childList:true})})();
 /* 6. search everything */
 (function(){const s0=window.v52Search;if(typeof s0!=='function')return;window.v52Search=function(){const r=s0.apply(this,arguments);try{const q=($('gsq').value||'').toLowerCase().trim(),out=$('gsr');if(!q||q.length<2)return r;const hit=(...a)=>a.join(' ').toLowerCase().includes(q);const S=[];
  const J=wsGet().filter(e=>hit(e.venue,e.ev,e.cust,e.ph,e.ref,(e.items||[]).map(i=>i.n).join(' '))).slice(0,6);if(J.length)S.push(`<div class="gsh">Jobs</div>`+J.map(e=>`<a class="gsi" onclick="wsOpen('${e.id}')"><b>${esc(e.venue)}</b><small>${esc(wsDay(e.d))} · ${esc(e.ev||'')}${e.cust?' · '+esc(e.cust):''}</small></a>`).join(''));
@@ -7703,6 +7703,197 @@ const osc=window.statusChanged;if(typeof osc==='function'){window.statusChanged=
 let mo;function hook(){const rw=document.getElementById('rows'),tt=document.getElementById('tot');if(!rw||!tt||mo)return;mo=new MutationObserver(()=>{applyLock();drawSum()});mo.observe(rw,{childList:true});mo.observe(tt,{childList:true,subtree:true,characterData:true})}
 setInterval(()=>{try{hook();rsButtons();enqBar();if(document.body.dataset.tab==='est'){drawSum();drawHist()}}catch(e){}},900);
 try{hook();rsButtons();enqBar();applyLock();drawSum();drawHist()}catch(e){}
+})();
+</script>
+<style id="v199">
+/* ===== v19.9: UI polish ===== */
+/* 1. progress: one clear line instead of cut-off labels */
+#wfbar .wfs em{display:none!important}
+#wfbar .wfs{margin-top:8px}
+.wfnow{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:13.5px;color:#475569}
+.wfnow b{color:#1d4ed8}.wfnow .dn{color:#15803d;font-weight:600}
+/* 2. button pile → More menu */
+#wfbar .wfx,#qeye,#cmq{display:none!important}
+#qmore{display:flex;gap:8px;margin:0 0 10px}
+#qmore button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
+#qmore svg{width:18px;height:18px}
+.msheet button{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 6px!important;background:transparent!important;border:0!important;border-bottom:1px solid #eef2f7!important;border-radius:0!important;color:inherit!important;font-size:15.5px;text-align:left;box-shadow:none!important}
+.msheet button:last-child{border-bottom:0!important}.msheet button svg{width:20px;height:20px;flex:none;color:#1d4ed8}
+.msheet button small{display:block;color:#64748b;font-size:12.5px;font-weight:400}
+/* 3. sticky step tabs */
+#steps{position:sticky!important;top:var(--sttop,0px);z-index:20;background:var(--bl-bg,#eef1f5);padding:6px 0!important;margin-left:0;margin-right:0}
+/* 4. item cards (phone) */
+#icards{display:none}
+body.mobile #itbl{display:none!important}
+body.mobile #icards{display:block;border:1px solid #dbe1ea;border-radius:8px;overflow:hidden;background:#fff}
+.ic{display:flex;align-items:center;gap:10px;padding:12px;border-top:1px solid #eef2f7;min-height:60px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.ic:first-child{border-top:0}.ic:active{background:#f1f5f9}
+.ic .n{width:22px;color:#94a3b8;font-size:13px;text-align:right;flex:none}
+.ic .m{flex:1;min-width:0}.ic .m b{display:block;font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic .m small{display:block;color:#64748b;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic .a{font-weight:700;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ic.opt .m b:after{content:' (optional)';font-weight:400;color:#b45309;font-size:12.5px}
+.ic.empty .m b{color:#94a3b8;font-weight:500}
+.ic.sec{background:#f8fafc;min-height:44px;padding:8px 12px}.ic.sec b{font-size:12px;letter-spacing:.06em;color:#1d4ed8;text-transform:uppercase}
+.ic .who{display:inline-block;margin-top:3px;font-size:12px;color:#1d4ed8;font-weight:600}
+body.qhide .ic .a,body.custmode .ic .a{visibility:hidden}
+.ied .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ied label{display:grid;gap:4px;font-size:12.5px;font-weight:600;color:#64748b;margin-bottom:10px}
+.ied input,.ied select{font-size:16px;min-height:44px}
+.ied .qs{display:flex;align-items:center;gap:6px}.ied .qs input{text-align:center;flex:1;min-width:0}.ied .qs button{width:44px;min-height:44px;font-size:20px;padding:0!important}
+.ied .amt{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;margin-bottom:6px;border-top:1px solid #eef2f7;font-size:14px;color:#64748b}
+.ied .amt b{font-size:20px;color:#0f172a}
+.ied .row3{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.ied .row3 button{flex:1;min-width:90px;min-height:44px}
+.ied .chk{display:flex;align-items:center;gap:10px;flex-direction:row;font-size:15px;color:inherit;min-height:44px}
+.ied .chk input{width:22px;height:22px;min-height:0}
+body.qhide .ied .rt,body.custmode .ied .rt,body.qhide .ied .amt,body.custmode .ied .amt{display:none}
+/* 5. toast above the bottom bar */
+#topmsgs{top:auto!important;bottom:var(--tbot,90px)!important}
+#topmsgs .topmsg,.topmsg{top:auto!important;animation:upIn .22s ease-out!important}
+@keyframes upIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* 6. quotes filter chips */
+#qfchips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;margin-bottom:2px;scrollbar-width:none}
+#qfchips::-webkit-scrollbar{display:none}
+#qfchips button{flex:none;min-height:38px;padding:0 14px!important;border-radius:19px!important;border:1px solid #cbd5e1!important;background:#fff!important;color:#334155!important;font-size:14px;font-weight:500;box-shadow:none!important}
+#qfchips button.on{background:#13294b!important;border-color:#13294b!important;color:#fff!important}
+#qfchips button i{font-style:normal;opacity:.7;margin-left:4px;font-size:12.5px}
+/* 7. swipe on quote rows */
+#t-saved .qi{position:relative;touch-action:pan-y;transition:transform .2s ease}
+#t-saved .qi{overflow:hidden;position:relative!important}
+#t-saved .qi .qsw{gap:0!important;position:absolute!important;top:0!important;bottom:0!important;right:0!important;height:auto!important;margin:0!important;grid-column:auto!important}
+#t-saved .qi .qsw button{height:100%!important;border:0!important;border-radius:0!important;color:#fff!important;margin:0!important}
+#t-saved .qi .qsw .w{background:#15803d!important}#t-saved .qi .qsw .r{background:#1d4ed8!important}
+#t-saved .qi .qsw svg{stroke:#fff}
+#t-saved .qi.swl .qsw{transform:none}
+#fchips{display:none!important}
+html[data-theme="dark"] #t-saved .qrow{background:transparent!important}
+html[data-theme="dark"] .mlockcard{background:#0f172a!important;border-color:#334155!important;color:#e5e7eb!important}
+.qsw{position:absolute;top:0;bottom:0;right:0;width:150px;display:flex;transform:translateX(100%);transition:transform .2s ease;z-index:2}
+.qsw button{flex:1;border:0!important;border-radius:0!important;color:#fff!important;font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0!important;padding:0!important;box-shadow:none!important}
+.qsw svg{width:20px;height:20px}
+.qsw .w{background:#15803d!important}.qsw .r{background:#1d4ed8!important}
+.qcf{position:absolute;top:0;bottom:0;left:0;display:flex;align-items:center;padding-left:16px;color:#fff;background:#15803d;font-weight:600;font-size:14px;border-radius:inherit;pointer-events:none;opacity:0}
+#t-saved .card{overflow:hidden}
+#t-saved .qi.qfhide{display:none!important}
+/* 8. dark mode for new parts */
+html[data-theme="dark"] #icards{background:#111a2e;border-color:#22304a}
+html[data-theme="dark"] .ic{border-color:#1b2740}html[data-theme="dark"] .ic:active{background:#0f172a}
+html[data-theme="dark"] .ic.sec{background:#0f172a}html[data-theme="dark"] .ic.sec b,html[data-theme="dark"] .msheet button svg{color:#93b4ff}
+html[data-theme="dark"] .ied .amt b,html[data-theme="dark"] .rsi .m b,html[data-theme="dark"] .ager b:not(.n){color:#e5e7eb}
+html[data-theme="dark"] .ied .amt,html[data-theme="dark"] .msheet button{border-color:#22304a!important}
+html[data-theme="dark"] #qfchips button{background:#111a2e!important;border-color:#22304a!important;color:#cbd5e1!important}
+html[data-theme="dark"] #qfchips button.on{background:#1d4ed8!important;border-color:#1d4ed8!important;color:#fff!important}
+html[data-theme="dark"] .wfnow{color:#94a3b8}html[data-theme="dark"] .wfnow b{color:#93b4ff}
+html[data-theme="dark"] .rsi,html[data-theme="dark"] .rsp,html[data-theme="dark"] .ager{border-color:#1b2740}
+html[data-theme="dark"] .rss{color:#93b4ff}html[data-theme="dark"] .rsbar{background:#22304a}
+html[data-theme="dark"] .qhist ol{border-color:#22304a}
+html[data-theme="dark"] #steps{background:var(--bl-bg,#0b1220)}
+html[data-theme="dark"] #qsbox .qt{border-color:#e5e7eb}
+</style>
+<script id="v199js">
+(function(){
+const N=v=>+v||0;
+const IC={more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>',
+eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>',
+share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14"/></svg>',
+lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
+wa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/></svg>'};
+
+/* ---- 1. progress line ---- */
+const owb=window.wfBar;if(typeof owb==='function'){window.wfBar=function(){const r=owb.apply(this,arguments);try{const el=document.getElementById('wfbar');const o=curId&&allQ()[curId];if(el&&o&&!el.hidden&&!el.querySelector('.wfnow')){const s=wfState(o);const doneN=WF.filter(([k])=>s.done[k]).length;const last=[...WF].reverse().find(([k])=>s.done[k]);const nx=WF.find(([k])=>k===s.next);
+ el.insertAdjacentHTML('beforeend',`<div class="wfnow"><span>${last?'<span class="dn">Done: '+esc(last[1])+'</span>':'Just started'}</span><span>${nx?'Next: <b>'+esc(nx[1])+'</b> · ':''}${doneN} of ${WF.length}</span></div>`)}}catch(e){}return r};try{wfBar=window.wfBar}catch(e){}}
+
+/* ---- 2. More menu ---- */
+function moreBar(){const t=document.getElementById('t-est');const qe=document.getElementById('qeye');if(!t||!qe||document.getElementById('qmore'))return;const b=document.createElement('div');b.id='qmore';b.innerHTML=`<button class="ghost" type="button">${IC.more}More options</button>`;qe.before(b);b.querySelector('button').onclick=moreOpen}
+function moreOpen(){const qe=document.getElementById('qeye'),cm=document.getElementById('cmq');const saved=!!curId;
+ const items=[[IC.eye,(qe&&qe.textContent.trim())||'Hide prices from customer','Customer sees the quote without amounts',()=>qe&&qe.click()],
+ [IC.calc,'Make from my costs + margin','Enter your costs, add margin, get the price',()=>cm&&cm.click()],
+ [IC.list,'Event-day run sheet','Checklist, team and directions',()=>{if(!saved)return toast('Save the quote first');runSheet(curId)}],
+ [IC.share,'Share copies','Owner, staff and customer copies',()=>{if(!saved)return toast('Save the quote first');shareCopies(curId)}],
+ [IC.lock,'Private notes','Only for you',()=>{if(!saved)return toast('Save the quote first');privOpen(curId)}],
+ [IC.copy,'Copy as new event','Same items, new date',()=>{if(!saved)return toast('Save the quote first');copyEvent(curId)}]];
+ const d=mdl('More options','<div class="msheet">'+items.map((x,i)=>`<button type="button" data-m="${i}">${x[0]}<span>${esc(x[1])}<small>${esc(x[2])}</small></span></button>`).join('')+'</div>');
+ d.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{d.remove();try{haptic('tap')}catch(e){}items[+b.dataset.m][3]()})}
+
+/* ---- 3. sticky steps: sit under the header ---- */
+function stTop(){const h=document.querySelector('header.top');let top=0;if(h){const cs=getComputedStyle(h);if(cs.position==='fixed'||cs.position==='sticky')top=Math.max(0,h.getBoundingClientRect().bottom)}document.documentElement.style.setProperty('--sttop',top+'px')}
+
+/* ---- 4. item cards on phone ---- */
+const meta=r=>{const a=[];if(r.uom)a.push(r.uom);const q=N(r.qty)||1;if(!(document.body.classList.contains('qhide')||document.body.classList.contains('custmode')))a.push(q+' × '+f2(N(r.rate))+(r.rt==='sqft'?'/sq.ft':r.rt==='rft'?'/ft':'')+(N(r.days)>1?' × '+N(r.days)+' days':''));else a.push('Qty '+q);return a.join(' · ')};
+function cards(){const it=document.getElementById('itbl');if(!it||typeof rows==='undefined')return;let c=document.getElementById('icards');if(!c){c=document.createElement('div');c.id='icards';it.after(c)}
+ let n=0;const html=rows.map((r,i)=>r.sec?`<div class="ic sec" data-i="${i}"><b>${esc(r.name||'Section')}</b></div>`:`<div class="ic${r.opt?' opt':''}${r.name?'':' empty'}" data-i="${i}"><span class="n">${++n}</span><div class="m"><b>${esc(r.name||'Tap to add item details')}</b><small>${esc(meta(r))}</small>${r.who?`<span class="who">${esc(r.who)}</span>`:''}</div><span class="a">${r.name?f2(amt(r)):''}</span></div>`).join('')||'<div class="ic empty"><div class="m"><b>No items yet</b><small>Tap "+ Item" or "Add from catalog"</small></div></div>';
+ if(c.dataset.h!==html){c.innerHTML=html;c.dataset.h=html;c.querySelectorAll('[data-i]').forEach(e=>e.onclick=()=>edit(+e.dataset.i))}}
+window.itemEdit=i=>edit(i);
+function edit(i){const r=rows[i];if(!r)return;const lk=typeof priceLocked==='function'&&priceLocked();
+ if(r.sec){const d=mdl('Section',`<div class="ied"><label>Section name<input data-f="name" value="${esc(r.name)}"></label><div class="row3"><button class="ghost" data-up>Move up</button><button class="ghost" data-dn>Move down</button><button class="ghost" data-del style="color:#b91c1c!important">Delete</button></div><div class="btact"><button data-x>Done</button></div></div>`);
+  d.querySelector('[data-f]').oninput=e=>{r.name=e.target.value;render()};wire(d,i);return}
+ const d=mdl(r.name?'Edit item':'New item',`<div class="ied">
+ <label>Item name<input data-f="name" value="${esc(r.name)}" list="itemlist" autocomplete="off" placeholder="e.g. LED wall"></label>
+ <label>Description<input data-f="desc" value="${esc(r.desc||'')}" placeholder="Optional"></label>
+ <div class="f2"><label>Size<input data-f="uom" value="${esc(r.uom||'')}" placeholder="e.g. 20×10 ft"></label><label class="rt">Rate type<select data-f="rt"><option value="">per piece</option><option value="sqft"${r.rt==='sqft'?' selected':''}>per sq.ft</option><option value="rft"${r.rt==='rft'?' selected':''}>per running ft</option></select></label></div>
+ <div class="f2"><label>Qty<div class="qs"><button type="button" class="ghost" data-q="-1">−</button><input data-f="qty" type="number" inputmode="decimal" value="${N(r.qty)||1}"><button type="button" class="ghost" data-q="1">+</button></div></label><label>Days<input data-f="days" type="number" inputmode="numeric" value="${N(r.days)||1}"></label></div>
+ <label class="rt">Rate ₹${lk?' (locked)':''}<input data-f="rate" type="number" inputmode="decimal" value="${N(r.rate)||''}" placeholder="0"${lk?' readonly style="background:#f1f5f9"':''}></label>
+ <label class="chk"><input type="checkbox" data-f="opt"${r.opt?' checked':''}> Optional item (not added to total)</label>
+ <div class="amt"><span>Amount</span><b data-amt>${f2(amt(r))}</b></div>
+ <div class="row3"><button class="ghost" data-who>Staff${r.who?': '+esc(r.who):''}</button><button class="ghost" data-up>Move up</button><button class="ghost" data-dn>Move down</button><button class="ghost" data-del style="color:#b91c1c!important">Delete</button></div>
+ <div class="btact"><button data-x>Done</button></div></div>`);
+ const upd=()=>{d.querySelector('[data-amt]').textContent=f2(amt(r));try{calc()}catch(e){}cards()};
+ d.querySelectorAll('[data-f]').forEach(inp=>{const f=inp.dataset.f;inp.addEventListener(inp.type==='checkbox'||inp.tagName==='SELECT'?'change':'input',()=>{if(f==='opt')r.opt=inp.checked;else if(f==='rt')r.rt=inp.value;else if(['qty','days','rate'].includes(f))r[f]=+inp.value;else r[f]=inp.value;try{markDirty()}catch(e){}upd()});
+  if(f==='name')inp.addEventListener('change',()=>{try{pick(i,inp.value);render()}catch(e){}const rt=d.querySelector('[data-f="rate"]');if(rt&&!rt.value&&N(r.rate))rt.value=N(r.rate);const u=d.querySelector('[data-f="uom"]');if(u&&!u.value&&r.uom)u.value=r.uom;upd()})});
+ d.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=d.querySelector('[data-f="qty"]');q.value=Math.max(0,(+q.value||0)+(+b.dataset.q));r.qty=+q.value;try{haptic('tap')}catch(e){}upd()});
+ const w=d.querySelector('[data-who]');if(w)w.onclick=()=>{d.remove();render();const tr=document.getElementById('rows').children[i];const c=tr&&tr.querySelector('.whoc');if(c)c.click()};
+ wire(d,i);if(!r.name)setTimeout(()=>{const n=d.querySelector('[data-f="name"]');n&&n.focus()},250)}
+function wire(d,i){const mv=k=>{const j=i+k;if(j<0||j>=rows.length)return;const t=rows[i];rows[i]=rows[j];rows[j]=t;d.remove();try{markDirty()}catch(e){}render();try{haptic('tap')}catch(e){}};
+ d.querySelector('[data-up]').onclick=()=>mv(-1);d.querySelector('[data-dn]').onclick=()=>mv(1);
+ d.querySelector('[data-del]').onclick=()=>{d.remove();delRow(i)};
+ d.querySelectorAll('[data-x]').forEach(x=>x.addEventListener('click',()=>{render()}))}
+const orn=window.render;let lastLen=-1;if(typeof orn==='function'){window.render=function(){const was=lastLen;const r=orn.apply(this,arguments);try{cards();lastLen=rows.length;if(document.body.classList.contains('mobile')&&was>=0&&rows.length===was+1){const k=rows.length-1;if(!rows[k].sec&&!rows[k].name&&document.body.dataset.tab==='est')setTimeout(()=>edit(k),60)}}catch(e){}return r};try{render=window.render}catch(e){}}
+const oc=window.calc;if(typeof oc==='function'){window.calc=function(){const r=oc.apply(this,arguments);try{cards()}catch(e){}return r};try{calc=window.calc}catch(e){}}
+const ofl=window.fill;if(typeof ofl==='function'){window.fill=function(){lastLen=-1;const r=ofl.apply(this,arguments);try{lastLen=rows.length;cards()}catch(e){}return r};try{fill=window.fill}catch(e){}}
+
+/* ---- 5. toast above bottom bars ---- */
+function tbot(){let top=innerHeight;document.querySelectorAll('nav.tabs,#mbar,.mbar,.stepnav,#mtot').forEach(e=>{const cs=getComputedStyle(e);if(cs.position!=='fixed'&&!(e.id==='mtot'))return;const r=e.getBoundingClientRect();if(r.height&&r.bottom>=innerHeight-4&&r.top<top&&r.top>innerHeight*0.5)top=r.top});
+ const mt=document.getElementById('mtot');if(mt){let p=mt;while(p&&p!==document.body){if(getComputedStyle(p).position==='fixed'){const r=p.getBoundingClientRect();if(r.height&&r.top>innerHeight*0.5&&r.top<top)top=r.top;break}p=p.parentElement}}
+ document.documentElement.style.setProperty('--tbot',(innerHeight-top+10)+'px')}
+const oam=window.alertMsg;if(typeof oam==='function'){window.alertMsg=function(){try{tbot()}catch(e){}return oam.apply(this,arguments)};try{alertMsg=window.alertMsg}catch(e){}}
+
+/* ---- 6. quotes filter chips ---- */
+const isDue=q=>/Confirmed|Completed/.test(q.status||'')&&N(q.total)-(N(q.paid)||(q.pays||[]).reduce((s,p)=>s+N(p.amt),0))>0.5;
+const thisM=q=>{const d=new Date(),m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');return (q.edate||'').slice(0,7)===m};
+const CH=[['all','All',()=>true],['Enquiry','Enquiry',q=>q.status==='Enquiry'],['Sent','Sent',q=>q.status==='Sent'],['Confirmed','Confirmed',q=>q.status==='Confirmed'],['due','Due',isDue],['month','This month',thisM]];
+let chip=(()=>{try{return localStorage.getItem('lal_qchip')||'all'}catch(e){return'all'}})();
+function chipBar(){const card=document.querySelector('#t-saved .card');const qr=card&&card.querySelector('.qrow');if(!qr)return;let b=document.getElementById('qfchips');
+ const all=allQ();const cnt=CH.map(c=>Object.values(all).filter(c[2]).length);
+ const html=CH.map((c,i)=>`<button type="button" data-c="${c[0]}" class="${chip===c[0]?'on':''}">${c[1]}<i>${cnt[i]}</i></button>`).join('');
+ if(!b){b=document.createElement('div');b.id='qfchips';qr.after(b)}if(b.dataset.h!==html){b.innerHTML=html;b.dataset.h=html;b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{chip=x.dataset.c;try{localStorage.setItem('lal_qchip',chip)}catch(e){}const fs=document.getElementById('fst');if(fs)fs.value='';list();try{haptic('tap')}catch(e){}})}}
+const kOf=e=>{const m=(e.getAttribute('onclick')||'').match(/'([^']+)'/);return m?m[1]:e.dataset.k};
+function applyChip(){const c=CH.find(x=>x[0]===chip)||CH[0];const all=allQ();document.querySelectorAll('#t-saved .qi').forEach(e=>{const q=all[kOf(e)];e.classList.toggle('qfhide',!!q&&!c[2](q))})}
+const ol=window.list;if(typeof ol==='function'){window.list=function(){const r=ol.apply(this,arguments);try{chipBar();applyChip();swipeWire()}catch(e){}return r};try{list=window.list}catch(e){}}
+
+/* ---- 7. swipe on quote rows ---- */
+function closeAll(ex){document.querySelectorAll('#t-saved .qi.swl').forEach(e=>{if(e!==ex)e.classList.remove('swl')})}
+function swipeWire(){document.querySelectorAll('#t-saved .qi').forEach(e=>{if(e.dataset.sw)return;e.dataset.sw=1;const k=kOf(e);if(!k)return;
+ const a=document.createElement('div');a.className='qsw';a.innerHTML=`<button class="w" type="button">${IC.wa}WhatsApp</button><button class="r" type="button">${IC.list}Run sheet</button>`;e.appendChild(a);
+ const cf=document.createElement('div');cf.className='qcf';cf.textContent='Mark confirmed';e.appendChild(cf);
+ a.querySelector('.w').onclick=ev=>{ev.stopPropagation();e.classList.remove('swl');const q=allQ()[k]||{};if(!q.phone)return toast('No phone number on this quote');waGo(q.phone,'Namaste '+(q.client||'')+',\n')};
+ a.querySelector('.r').onclick=ev=>{ev.stopPropagation();e.classList.remove('swl');runSheet(k)};
+ let sx=0,sy=0,dx=0,dir=0,open=false;
+ e.addEventListener('touchstart',t=>{const p=t.touches[0];sx=p.clientX;sy=p.clientY;dx=0;dir=0;open=e.classList.contains('swl');e.style.transition='none'},{passive:true});
+ e.addEventListener('touchmove',t=>{const p=t.touches[0];const x=p.clientX-sx,y=p.clientY-sy;if(!dir){if(Math.abs(x)>10&&Math.abs(x)>Math.abs(y)*1.4&&sx>24)dir=1;else if(Math.abs(y)>10)dir=-1}if(dir!==1)return;dx=x;const base=open?-150:0;const v=Math.max(-170,Math.min(110,base+x));if(v<0){a.style.transition='none';a.style.transform=`translateX(${150+Math.max(-150,v)}px)`}else{a.style.transform='';e.style.transform=`translateX(${v}px)`};cf.style.opacity=v>30?Math.min(1,(v-30)/60):0},{passive:true});
+ e.addEventListener('touchend',()=>{e.style.transition='';e.style.transform='';a.style.transition='';a.style.transform='';cf.style.opacity=0;if(dir!==1)return;const v=(open?-150:0)+dx;
+  e.dataset.swiped=Date.now();
+  if(v<-70){closeAll(e);e.classList.add('swl');try{haptic('tap')}catch(er){}}else{e.classList.remove('swl')}
+  if(!open&&v>90){const q=allQ()[k]||{};if(/Confirmed|Completed/.test(q.status||''))return toast('Already '+q.status);try{haptic('tap')}catch(er){}wfSet(k,'Confirmed');setTimeout(()=>{try{list()}catch(er){}},600)}});
+ e.addEventListener('click',ev=>{if(ev.target.closest('.qsw'))return;if(Date.now()-N(e.dataset.swiped)<400||e.classList.contains('swl')){ev.stopImmediatePropagation();ev.preventDefault();if(!ev.target.closest('.qsw'))e.classList.remove('swl')}},true)})}
+document.addEventListener('touchstart',ev=>{if(!ev.target.closest('#t-saved .qi'))closeAll()},{passive:true});
+{let tm=0;const ts=document.getElementById('t-saved');if(ts)new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{try{applyChip();swipeWire()}catch(e){}},30)}).observe(ts,{childList:true,subtree:true})}
+
+/* ---- wiring ---- */
+const tick=()=>{try{moreBar();stTop();if(document.body.dataset.tab==='saved'){chipBar();swipeWire()}}catch(e){}};
+setInterval(tick,1000);addEventListener('resize',()=>{stTop();tbot()});tick();try{cards();tbot();if(document.body.dataset.tab==='saved'){list()}}catch(e){}
 })();
 </script>
 </body></html>
