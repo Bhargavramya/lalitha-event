@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.5';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6779,7 +6779,7 @@ body.pcx.lvon .pvtab,body.pcx.lvon #pvtab{display:none!important}
 }
 .ntnew{background:#c8102e!important;color:#fff!important;border-color:#c8102e!important;min-height:40px;padding:0 14px;border-radius:10px;font-weight:700}
 /* --- Simple Home --- */
-body:not(.homeall) #t-home>*:not(#dash):not(.hmore):not(:has(#hgreet)){display:none!important}
+body:not(.homeall) #t-home>*:not(#dash):not(.hmore):not(.iosT):not(:has(#hgreet)){display:none!important}
 .hmore{display:block;margin:6px auto 20px;min-height:44px;padding:0 18px}
 @media(max-width:899px){#dash>.g2:nth-child(2){display:none}#dash .kc b{font-size:20px}#dash .pn{padding:12px}}
 /* --- Cost + margin sheet --- */
@@ -6876,6 +6876,91 @@ if(window.btTools){const g=btTools.find(x=>x[0]==='Money');if(g&&!g[1].some(t=>t
 function cmBtn(){const st=document.getElementById('steps');if(st&&!document.getElementById('cmq')){st.insertAdjacentHTML('afterend','<button id="cmq" class="ghost sm" style="margin:6px 0 4px">Make from my costs + margin</button>');document.getElementById('cmq').onclick=cmOpen}}
 cmBtn();setInterval(cmBtn,3000);
 })();
+</script>
+
+<style id="v186">
+/* ===== v18.6: Clean iOS look on phones ===== */
+@media(max-width:899px){
+:root{--ios-bg:#f2f2f7;--ios-card:#fff;--ios-ink:#000;--ios-mut:#8a8a8e;--ios-sep:rgba(60,60,67,.18)}
+html[data-theme="dark"]{--ios-bg:#000;--ios-card:#1c1c1e;--ios-ink:#fff;--ios-mut:#8d8d93;--ios-sep:rgba(84,84,88,.6)}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]){--ios-bg:#000;--ios-card:#1c1c1e;--ios-ink:#fff;--ios-mut:#8d8d93;--ios-sep:rgba(84,84,88,.6)}}
+html,body{background:var(--ios-bg)!important;background-image:none!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif!important;color:var(--ios-ink)}
+.card,.pn,.btl,.btk div,.btai,.cmsum,.cmopt,#mtg,.kc{background:var(--ios-card)!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
+.card{margin:0 0 20px!important;padding:12px 16px!important}
+h2,.card h2{font-size:20px!important;font-weight:700!important;letter-spacing:-.01em}
+/* large page titles */
+.iosT{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:6px 4px 12px;line-height:1.1;color:var(--ios-ink)}
+/* top header: compact, translucent */
+header,.top,.hdr{background:color-mix(in srgb,var(--ios-bg) 82%,transparent)!important;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:0!important;box-shadow:none!important}
+/* bottom tab bar like iOS */
+.tabs{background:color-mix(in srgb,var(--ios-card) 80%,transparent)!important;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--ios-sep)!important;box-shadow:none!important;border-radius:0!important}
+.tabs button{background:transparent!important;box-shadow:none!important;color:var(--ios-mut)!important;font-size:10.5px!important;font-weight:500!important;border-radius:0!important}
+.tabs button.on{color:#c8102e!important;background:transparent!important}
+.tabs button.on svg{stroke:#c8102e}
+/* buttons */
+button.ghost,.ghost{background:transparent!important;border:0!important;color:#c8102e!important;box-shadow:none!important;font-weight:500!important}
+button.pri,.pri{border-radius:12px!important;font-weight:600!important}
+input,select,textarea{border-radius:10px!important;font-size:17px!important}
+/* --- Home as grouped list --- */
+#dash .k{display:block!important;background:var(--ios-card);border-radius:12px;overflow:hidden;margin-bottom:22px}
+#dash .kc{display:flex!important;align-items:center;gap:10px;border-radius:0!important;padding:12px 16px!important;min-height:52px;border-bottom:.5px solid var(--ios-sep)!important}
+#dash .kc:last-child{border-bottom:0!important}
+#dash .kc span{flex:1;font-size:17px!important;color:var(--ios-ink)!important;order:1}
+#dash .kc b{order:2;font-size:17px!important;font-weight:600!important;margin:0!important;color:var(--ios-mut)}
+#dash .kc i{order:3}#dash .kc small{display:none!important}
+#dash .kc::after{content:'›';order:4;color:var(--ios-mut);font-size:22px;line-height:1;margin-left:2px}
+#dash>.g2:nth-child(2){display:none!important}
+#dash .g2{display:block!important}
+#dash .pn{padding:0!important;margin-bottom:22px;overflow:hidden}
+#dash .pn h3{font-size:13px!important;font-weight:400!important;text-transform:uppercase;letter-spacing:.02em;color:var(--ios-mut);background:var(--ios-bg);margin:0!important;padding:0 16px 6px!important}
+#dash .pn h3 button{font-size:13px!important;text-transform:none;color:#c8102e}
+#dash .ev{padding:10px 16px!important;border-top:.5px solid var(--ios-sep)!important;background:var(--ios-card)}
+#dash .pn h3+.ev{border-top:0!important}
+#dash .ev::after{content:'›';color:var(--ios-mut);font-size:22px;margin-left:4px}
+#dash .th{width:40px;height:40px;flex-basis:40px;border-radius:9px}
+#dash .av{width:36px;height:36px}
+#dash .ev .m b{font-size:16px;font-weight:600}
+#dash .pill{background:transparent!important;padding:0!important;font-size:13px}
+.hmore{background:var(--ios-card)!important;color:#c8102e!important;border-radius:12px!important;width:100%;font-weight:500}
+/* --- Notes (Apple Notes) --- */
+.ntl{background:var(--ios-bg)!important}
+.ntl .hd h2{font-size:34px!important;font-weight:800!important}
+.ntl .sr input{background:rgba(118,118,128,.12)!important;border:0!important;min-height:38px;border-radius:10px!important}
+.ntl .ls{background:var(--ios-card);border-radius:12px;margin:0 14px 14px;overflow:hidden}
+.ntl .gp{background:var(--ios-bg);padding:14px 4px 6px!important;font-size:20px!important;font-weight:700!important;text-transform:none!important;letter-spacing:0!important;color:var(--ios-ink)!important}
+.ntl .ni{border-bottom:.5px solid var(--ios-sep)!important;padding:11px 16px!important}
+.ntl .ni b{font-size:16px!important;font-weight:600}
+.ntnew{background:transparent!important;color:#c8102e!important;border:0!important;font-size:17px!important;padding:0!important}
+#t-notes #mtg{background:var(--ios-card)!important}
+#t-notes #mtg textarea{font-family:-apple-system,"SF Pro Text",system-ui,sans-serif!important;font-size:17px!important;line-height:1.5!important}
+#t-notes #mtg .who input{font-size:16px!important}
+.ntl .hw{background:var(--ios-card)!important;border-radius:12px!important}
+/* --- Quotes list rows --- */
+.qi{background:var(--ios-card)!important;border:0!important;border-radius:0!important;border-bottom:.5px solid var(--ios-sep)!important;box-shadow:none!important;margin:0!important;padding:12px 16px!important}
+.qi:first-child{border-top-left-radius:12px!important;border-top-right-radius:12px!important}
+.qi:last-child{border-bottom:0!important;border-bottom-left-radius:12px!important;border-bottom-right-radius:12px!important}
+
+html body .tabs button.on .tbi,html body .tabs button .tbi,html body .tabs button.on,html body .tabs button.on::before,html body .tabs button::before{background:transparent!important;box-shadow:none!important}
+html body .ntl .hd h2{font-size:34px!important;font-weight:800!important;text-transform:none!important;letter-spacing:-.02em!important;color:var(--ios-ink)!important}
+html body button#plusb,html body #fab,html body .fab,html body button.plusb,html body .plusfab{width:56px!important;height:56px!important;border-radius:50%!important;box-shadow:0 6px 18px rgba(200,16,46,.35)!important}
+/* --- tool pages & sheets --- */
+.btp{background:var(--ios-bg)!important}
+.btp>header{background:color-mix(in srgb,var(--ios-bg) 85%,transparent)!important;backdrop-filter:blur(20px);border:0!important}
+.btp>header b{font-size:17px;text-align:center}
+.btl .r{border-top:.5px solid var(--ios-sep)!important}
+.bth{font-size:13px!important;font-weight:400!important;color:var(--ios-mut)!important;padding:0 4px;margin:18px 0 6px!important}
+.mdl .mdlb,.btsheet>div,.lpm>div{border-radius:14px 14px 0 0!important}
+.lpm>div{background:color-mix(in srgb,var(--ios-card) 92%,transparent)!important;backdrop-filter:blur(20px)}
+}
+</style>
+<script id="v186js">
+/* iOS-style large titles on phones */
+(function(){const T={home:'Home',notes:'',saved:'Quotes',cal:'Jobs',rep:'Money',set:'Settings',est:''};
+function put(){if(innerWidth>899){document.querySelectorAll('.iosT').forEach(e=>e.remove());return}const t=document.body.dataset.tab||'home';const sec=document.getElementById('t-'+t);if(!sec||!T[t])return;let h=sec.querySelector(':scope>.iosT');if(!h){h=document.createElement('div');h.className='iosT';sec.prepend(h)}if(t==='home'){const hr=new Date().getHours();h.textContent=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening'}else h.textContent=T[t]}
+const ot=window.tab;window.tab=function(){const r=ot.apply(this,arguments);setTimeout(put,30);return r};put();setTimeout(put,800);setTimeout(put,2500);addEventListener('resize',put);
+/* hide the old greeting block on phones (the large title replaces it) */
+const st=document.createElement('style');st.textContent='@media(max-width:899px){#t-home>*:has(#hgreet){display:none!important}}';document.head.appendChild(st)})();
 </script>
 
 </body></html>
