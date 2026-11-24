@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.9';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7039,6 +7039,35 @@ navyHdr();setInterval(navyHdr,2500);
 /* blue as the main colour */
 try{if(!ls.get('lal_acc','')){setTimeout(()=>{try{btAccent('#1d4ed8')}catch(e){}},300)}}catch(e){}
 try{const o=document.querySelectorAll;}catch(e){}
+})();
+</script>
+
+<style id="v189">
+@media(max-width:899px){
+ html body #drwBtn{width:34px!important;height:34px!important;flex:0 0 34px!important;padding:0!important;margin:0 4px 0 0!important;border-radius:8px!important;min-width:0!important}
+ html body #drwBtn svg{width:18px!important;height:18px!important}
+ html body header.top{gap:6px!important}
+ html body header.top #hlogo{max-width:120px!important;height:auto!important;flex:0 1 auto!important;display:block!important}
+ html body .tabs button[data-t="set"]{display:none!important}
+}
+</style>
+<script id="v189js">
+/* ===== v18.9: Notes tab icon, slim menu button, Settings only in the side menu, same lock & look on every device ===== */
+(function(){
+const NI='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h5"/></svg>';
+function fixNotesIcon(){const b=document.querySelector('.tabs button[data-t="notes"]');if(!b)return;const holder=b.querySelector('.tbi')||b;if(holder.dataset.ni)return;const old=holder.querySelector('svg');if(old)old.outerHTML=NI;else holder.insertAdjacentHTML('afterbegin',NI);holder.dataset.ni=1}
+fixNotesIcon();setInterval(fixNotesIcon,2000);
+/* the bottom bar now has 5 tabs: Home, Notes, Quotes, Jobs, Money */
+document.body.classList.remove('tabs6');
+
+/* Same app lock, colour and Home layout on every phone/PC (synced through your Google Sheet) */
+const KEYS=['lal_pin','lal_acc','lal_homeall','lal_widgets'];
+const snap=()=>{const o={};KEYS.forEach(k=>o[k]=ls.get(k,null));return o};
+let last=JSON.stringify(ls.get('lal_prefsent',null)||snap()),applying=false;
+setInterval(()=>{if(applying)return;const s=snap(),j=JSON.stringify(s);if(j!==last){last=j;ls.set('lal_prefsent',s);try{gset('prefs',s)}catch(e){}}},2500);
+(function(){const of=window.fetch.bind(window);window.fetch=async function(u,o){const res=await of(u,o);try{if(typeof u==='string'&&G.url&&u.startsWith(G.url)&&u.includes('?key=')&&(!o||!o.method||o.method==='GET')){res.clone().json().then(j=>{const st=j&&j.settings&&j.settings.prefs;if(!st||!(+st.at>ls.get('lal_set_at_prefs',0)))return;applying=true;const v=st.value||{};const hadPin=ls.get('lal_pin','');KEYS.forEach(k=>{if(k in v)ls.set(k,v[k])});ls.set('lal_set_at_prefs',+st.at);last=JSON.stringify(snap());ls.set('lal_prefsent',snap());
+ try{if(v.lal_acc&&window.btAccent)btAccent(v.lal_acc)}catch(e){}try{document.body.classList.toggle('homeall',!!v.lal_homeall)}catch(e){}try{if(typeof pinUI==='function')pinUI()}catch(e){}
+ try{if(!hadPin&&v.lal_pin&&typeof lockShow==='function')lockShow()}catch(e){}applying=false}).catch(()=>{applying=false})}}catch(e){}return res}})();
 })();
 </script>
 
