@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7199,6 +7199,36 @@ setInterval(()=>{if(document.body.dataset.tab==='est'){try{const tb=document.get
 /* staff view + long-press menu */
 const addSV=()=>{document.querySelectorAll('.stv .job').forEach(j=>{const a4=j.querySelector('[data-a4]');if(!a4||j.querySelector('[data-wt]'))return;const k=a4.dataset.a4;const b=document.createElement('button');b.className='ghost sm';b.dataset.wt=k;b.textContent='WhatsApp text';b.onclick=()=>staffListText(k);a4.after(b)})};
 setInterval(addSV,800);
+})();
+</script>
+
+<style id="v191">
+html body #netb{display:none!important}
+#drwBtn{position:relative}
+#drwBtn .sdot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 2px #13294b}
+#drwBtn .sdot.off{background:#ef4444}
+.syncln{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:8px 10px;border-radius:8px;margin:6px 10px 0;background:#f1f5f9;color:#334155}
+.syncln i{width:8px;height:8px;border-radius:50%;background:#22c55e;flex:0 0 8px}
+.syncln.wait i{background:#f59e0b}.syncln.off i{background:#ef4444}
+.syncln span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.syncln button{background:transparent!important;border:0!important;box-shadow:none!important;color:#1d4ed8!important;font-weight:600;font-size:12.5px;padding:4px 2px;min-height:32px}
+#pcside .syncln{margin:6px 0;background:rgba(255,255,255,.08);color:#cbd5e1}
+#pcside .syncln button{color:#93c5fd!important}
+</style>
+<script id="v191js">
+/* ===== v19.1: sync status lives in the side menu, not over the screen ===== */
+(function(){
+function state(){const n=document.getElementById('netb');const pend=(ls.get('lal_pend',[])||[]).length;const off=!navigator.onLine||(n&&n.classList.contains('off'));
+ if(off)return{c:'off',t:pend?`Offline · ${pend} change${pend>1?'s':''} will sync later`:'Offline · will sync when online'};
+ if(pend)return{c:'wait',t:`Syncing ${pend} change${pend>1?'s':''}…`};
+ const err=ls.get('lal_syncerr','');if(err&&String(err).length>2)return{c:'off',t:'Sync problem · tap Sync now'};
+ return{c:'ok',t:'All saved to Google Sheet'}}
+function line(host,before){if(!host)return;let l=host.querySelector(':scope > .syncln');if(!l){l=document.createElement('div');l.className='syncln';l.innerHTML='<i></i><span></span><button type="button">Sync now</button>';l.querySelector('button').onclick=e=>{e.stopPropagation();try{(window.syncNow||window.flush||function(){})()}catch(_){}try{flush&&flush()}catch(_){}toast('Syncing…')};before?host.insertBefore(l,before):host.appendChild(l)}
+ const s=state();l.className='syncln '+s.c;l.querySelector('span').textContent=s.t;l.querySelector('button').hidden=s.c==='ok'}
+function tick(){const s=state();const b=document.getElementById('drwBtn');if(b){let d=b.querySelector('.sdot');if(s.c!=='ok'){if(!d){d=document.createElement('span');d.className='sdot';b.appendChild(d)}d.className='sdot'+(s.c==='off'?' off':'')}else if(d)d.remove()}
+ const drw=document.querySelector('#drw .pn');if(drw){const ft=drw.querySelector('.ft');line(drw,ft)}
+ const ps=document.querySelector('#pcside .pcsf');if(ps)line(ps.parentNode,ps)}
+tick();setInterval(tick,1000);addEventListener('online',tick);addEventListener('offline',tick);
 })();
 </script>
 
