@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.4';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6676,7 +6676,7 @@ window.lpMenu=menu;
 function itemsFor(el){
  /* quotation list row */
  if(el.matches('.qi')){const m=(el.getAttribute('onclick')||'').match(/openQ\('([^']+)'\)/);if(!m)return null;const k=m[1],q=ls.get('lal_q',{})[k];if(!q)return null;
-  return[q.no+' · '+(q.client||''),[{t:'Open',ic:'open',go:()=>openQ(k)},{t:'Edit',ic:'edit',go:()=>{openQ(k);try{tab('est')}catch(e){}}},{t:'Duplicate for new date',ic:'dup',go:()=>copyEvent(k)},{t:'Staff sheet (A4 image)',ic:'share',go:()=>staffA4(k)},{t:'Staff list (WhatsApp text)',ic:'wa',go:()=>staffListText(k)},{t:'Send work to each staff',ic:'wa',go:()=>staffSendEach(k)},...(q.phone?[{t:'WhatsApp customer',ic:'wa',go:()=>waGo(q.phone,'Namaste '+(q.client||''))}]:[]),...(window.btEventLink?[{t:'Send event page',ic:'share',go:()=>{const u=btEventLink(k,{amt:true});q.phone?waGo(q.phone,u):shareText(u)}}]:[]),{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete '+(q.no||'quotation')+'?','The quotation for '+(q.client||'this customer')+' will be removed.',()=>delQ(k))}]]}
+  return[q.no+' · '+(q.client||''),[{t:'Open',ic:'open',go:()=>openQ(k)},{t:'Edit',ic:'edit',go:()=>{openQ(k);try{tab('est')}catch(e){}}},{t:'Duplicate for new date',ic:'dup',go:()=>copyEvent(k)},{t:'Setup photos',ic:'quote',go:()=>setupPhotos(k)},{t:'Remind me (calendar)',ic:'quote',go:()=>eventAlarm([k])},{t:'Staff sheet (A4 image)',ic:'share',go:()=>staffA4(k)},{t:'Staff list (WhatsApp text)',ic:'wa',go:()=>staffListText(k)},{t:'Send work to each staff',ic:'wa',go:()=>staffSendEach(k)},...(q.phone?[{t:'WhatsApp customer',ic:'wa',go:()=>waGo(q.phone,'Namaste '+(q.client||''))}]:[]),...(window.btEventLink?[{t:'Send event page',ic:'share',go:()=>{const u=btEventLink(k,{amt:true});q.phone?waGo(q.phone,u):shareText(u)}}]:[]),{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete '+(q.no||'quotation')+'?','The quotation for '+(q.client||'this customer')+' will be removed.',()=>delQ(k))}]]}
  /* meeting note in recent list */
  if(el.matches('#mtg [data-r]')){const id=el.dataset.r,a=ls.get('lal_mtg',[]),m=a.find(x=>x.id===id);if(!m)return null;
   return[(m.client||'Meeting note'),[{t:'Open',ic:'open',go:()=>el.click()},{t:m.qk?'Update quotation':'Make quotation',ic:'quote',go:()=>{el.click();setTimeout(()=>document.querySelector('#mtg [data-go]').click(),50)}},{t:'Duplicate',ic:'dup',go:()=>{const c=Object.assign({},m,{id:'m'+Date.now().toString(36),at:Date.now(),qk:'',client:(m.client||'')+' (copy)'});a.unshift(c);ls.set('lal_mtg',a);try{gset('meetings',a)}catch(e){}try{tab('home')}catch(e){}}},{t:'Share',ic:'share',go:()=>shareText(`Meeting – ${m.client||''}\n\n${m.text||''}`)},{t:'Delete',ic:'del',del:1,go:()=>askDel('Delete this note?','Notes for '+(m.client||'this customer')+' will be removed.',()=>{const b=ls.get('lal_mtg',[]).filter(x=>x.id!==id);ls.set('lal_mtg',b);try{gset('meetings',b)}catch(e){}try{tab('home')}catch(e){}toast('Note deleted')})}]]}
@@ -7402,6 +7402,76 @@ window.jobsA4=async function(days){const td=new Date().toISOString().slice(0,10)
   try{await wsJpg(html,'Upcoming_events'+(pages>1?'_p'+(pg+1):''))}catch(e){toast('Could not make image: '+(e.message||e));break}}};
 function jobsBtn(){const j=document.getElementById('t-cal');if(!j||document.getElementById('jobsA4'))return;const d=document.createElement('div');d.id='jobsA4';d.style.cssText='display:flex;gap:8px;flex-wrap:wrap';d.innerHTML='<button class="pri sm" data-d="30">Upcoming events · A4 image</button><button class="ghost sm" data-d="7">Next 7 days</button><button class="ghost sm" data-d="0">All upcoming</button>';d.querySelectorAll('button').forEach(b=>b.onclick=()=>jobsA4(+b.dataset.d));const first=j.querySelector('.card')||j.firstElementChild;first?first.before(d):j.prepend(d)}
 jobsBtn();setInterval(jobsBtn,1500);
+})();
+</script>
+
+<script id="v195js">
+/* ===== v19.5: receipt after payment, event-day alarm in your calendar, setup photos ===== */
+(function(){
+const N=v=>+v||0;const paidOf=q=>(q&&((q.pays||[]).reduce((s,p)=>s+N(p.amt),0)||N(q.paid)))||0;
+/* 1. after you save a new payment, offer the receipt */
+window.__paidSnap=window.__paidSnap||{};const snap=k=>{if(k&&!(k in __paidSnap))__paidSnap[k]=paidOf(ls.get('lal_q',{})[k])};
+const oq=window.openQ;if(oq)window.openQ=function(k){snap(k);return oq.apply(this,arguments)};
+setInterval(()=>{try{if(typeof curId!=='undefined'&&curId)snap(curId)}catch(e){}},1500);
+const os=window.save;if(os){window.save=function(){const k=typeof curId!=='undefined'?curId:null;snap(k);const before=k?__paidSnap[k]:0;const r=os.apply(this,arguments);
+ setTimeout(()=>{try{const k2=curId;const q=ls.get('lal_q',{})[k2];if(!q||!k2)return;const after=paidOf(q);
+  if((k===k2||!k)&&after>before&&!document.querySelector('.mdl.rcptask')){const amt=after-before;__paidSnap[k2]=after;
+   const d=mdl('Payment saved','<p style="margin:0 0 6px">'+esc(q.client||'Customer')+' paid <b>'+f2(amt)+'</b>.</p><p class="mut" style="margin:0">Send them a receipt on WhatsApp?</p><div class="btact"><button class="ghost" data-x>Not now</button><button data-sr>Send receipt</button></div>');
+   d.classList.add('rcptask');d.querySelector('[data-sr]').onclick=()=>{d.remove();try{sendReceipt()}catch(e){toast('Could not make receipt')}}}
+  else __paidSnap[k2]=Math.min(__paidSnap[k2]??after,after)}catch(e){console.error(e)}},400);return r};try{save=window.save}catch(e){}}
+
+/* 2. reminder in your phone calendar the evening before (items to load, staff to call) */
+const pad=n=>String(n).padStart(2,'0');const esc2=t=>String(t||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m);
+function evText(q){const its=(q.rows||[]).filter(r=>r.name&&!r.sec&&!r.opt).map(r=>`- ${r.name}${(N(r.qty)||1)!==1?' x '+N(r.qty):''}${r.who?' ('+r.who+')':''}`);const team=ls.get('lal_team',[])||[];
+ const who=[...new Set((q.rows||[]).flatMap(r=>String(r.who||'').split(',').map(x=>x.trim()).filter(Boolean)).concat((q.staff||[]).map(s=>s.n).filter(Boolean)))];
+ const calls=who.map(n=>{const t=team.find(x=>(x.n||x.name||'').toLowerCase()===n.toLowerCase())||{};return `- ${n}${t.ph||t.phone?' '+(t.ph||t.phone):''}`});
+ return `LOAD TONIGHT:\n${its.join('\n')||'- (no items)'}\n\nCALL STAFF:\n${calls.join('\n')||'- (no staff given)'}\n\nVenue: ${q.venue||'-'}${q.vmap?'\n'+q.vmap:''}\nCustomer: ${q.client||''} ${q.phone||''}`}
+function vevent(k,q){const d=q.edate.replace(/-/g,'');const m=String(q.etime||'').match(/(\d{1,2})[:.](\d{2})\s*(am|pm)?/i);let h=9,mi=0;if(m){h=+m[1]%12+(/pm/i.test(m[3]||'')?12:0);if(!m[3]&&+m[1]>=1&&+m[1]<=23)h=+m[1];mi=+m[2]}
+ const st=`DTSTART;TZID=Asia/Kolkata:${d}T${pad(h)}${pad(mi)}00`,en=`DTEND;TZID=Asia/Kolkata:${d}T${pad(Math.min(23,h+4))}${pad(mi)}00`;
+ const prev=new Date(q.edate+'T00:00');prev.setDate(prev.getDate()-1);const ad=`${prev.getFullYear()}${pad(prev.getMonth()+1)}${pad(prev.getDate())}T123000Z`;
+ return ['BEGIN:VEVENT','UID:'+k+'-owner@lalitha','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z',st,en,'SUMMARY:'+esc2((q.etype||'Event')+' – '+(q.client||'')),'LOCATION:'+esc2(q.venue||''),'DESCRIPTION:'+esc2(evText(q)),
+  'BEGIN:VALARM','TRIGGER;VALUE=DATE-TIME:'+ad,'ACTION:DISPLAY','DESCRIPTION:'+esc2('Tomorrow: '+(q.etype||'event')+' – load items and call staff'),'END:VALARM','BEGIN:VALARM','TRIGGER:-PT3H','ACTION:DISPLAY','DESCRIPTION:Event in 3 hours','END:VALARM','END:VEVENT']}
+window.eventAlarm=function(keys){const a=ls.get('lal_q',{});const td=new Date().toISOString().slice(0,10);keys=keys||Object.keys(a).filter(k=>/Confirmed|Advance/i.test(a[k].status||'')&&(a[k].edate||'')>=td);const L=keys.filter(k=>a[k]&&a[k].edate);if(!L.length)return toast('No confirmed upcoming events with a date');
+ const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Lalitha//Owner//EN','CALSCALE:GREGORIAN'].concat(...L.map(k=>vevent(k,a[k])),['END:VCALENDAR']).join('\r\n');
+ const blob=new Blob([ics],{type:'text/calendar'});const f=new File([blob],(L.length>1?'Lalitha_events':'Lalitha_'+(a[L[0]].client||'event').replace(/\W+/g,'_'))+'.ics',{type:'text/calendar'});
+ const url=URL.createObjectURL(blob);const x=document.createElement('a');x.href=url;x.download=f.name;document.body.appendChild(x);x.click();setTimeout(()=>{URL.revokeObjectURL(url);x.remove()},3000);toast(L.length+' event'+(L.length>1?'s':'')+' – tap "Add" in Calendar')};
+/* 3. setup photos */
+window.setupPhotos=k=>{try{window.galOpen(k)}catch(e){toast('Could not open photos')}};
+
+/* buttons: Jobs bar, long-press menu, staff view */
+setInterval(()=>{const j=document.getElementById('jobsA4');if(j&&!j.querySelector('[data-al]')){const b=document.createElement('button');b.className='ghost sm';b.dataset.al=1;b.textContent='Reminders to my calendar';b.onclick=()=>eventAlarm();j.appendChild(b)}
+ document.querySelectorAll('.stv .job').forEach(x=>{const a4=x.querySelector('[data-a4]');if(!a4||x.querySelector('[data-ph2]'))return;const b=document.createElement('button');b.className='ghost sm';b.dataset.ph2=1;b.textContent='Setup photos';b.onclick=()=>setupPhotos(a4.dataset.a4);a4.parentNode.appendChild(b)})},900);
+})();
+</script>
+
+<script id="v196js">
+/* ===== v19.6: Jobs A4 image in the "Event Schedule" layout (day strip, morning/evening, submit by, clash warnings) ===== */
+(function(){
+const R='#c8102e';
+const sess=q=>{const t=String(q.etime||q.setup||'').toLowerCase();const m=t.match(/(\d{1,2})[:.]?(\d{2})?\s*(am|pm)?/);if(/even|night|pm/.test(t)&&!/am/.test(t))return'Evening';if(/morn|am/.test(t))return'Morning';if(m){let h=+m[1];if(m[3]==='pm'&&h<12)h+=12;return h>=14?'Evening':'Morning'}return'Morning'};
+const D=s=>new Date(s+'T00:00');const wd=d=>d.toLocaleDateString('en-IN',{weekday:'short'}).toUpperCase();const mo=d=>d.toLocaleDateString('en-IN',{month:'short'}).toUpperCase();
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const add=(s,n)=>{const d=D(s);d.setDate(d.getDate()+n);return ymd(d)};
+window.jobsA4=async function(days){const td=new Date().toISOString().slice(0,10);const lim=days?add(td,days):'9999';const a=ls.get('lal_q',{});
+ const L=Object.keys(a).map(k=>Object.assign({_k:k},a[k])).filter(q=>q.status!=='Lost'&&(q.edate||'')>=td&&(q.edate||'')<=lim).sort((x,y)=>(x.edate+(sess(x)==='Morning'?'0':'1')).localeCompare(y.edate+(sess(y)==='Morning'?'0':'1')));
+ if(!L.length)return toast('No upcoming events');const biz=typeof bizN==='function'?bizN():'Lalitha Event Decors';
+ const first=L[0].edate,last=L[L.length-1].edate;const byDay={};L.forEach(q=>(byDay[q.edate]=byDay[q.edate]||[]).push(q));
+ const vc={};L.forEach(q=>{const v=(q.venue||'').trim();if(v)vc[v]=(vc[v]||0)+1});const topV=Object.entries(vc).sort((x,y)=>y[1]-x[1])[0];
+ /* day strip: from today (max 14 days) */
+ const stripEnd=[last,add(td,13)].sort()[0];const strip=[];for(let d=td,g=0;d<=stripEnd&&g<20;d=add(d,1),g++)strip.push(d);
+ const chip=d=>{const n=(byDay[d]||[]).length,x=D(d),isT=d===td;const bg=isT?'#111':n>=3?R:n?'#fde8ec':'#f1efed',fg=isT||n>=3?'#fff':n?R:'#9a948f';return`<div style="flex:1;min-width:0;background:${bg};color:${fg};border-radius:10px;padding:7px 2px;text-align:center"><div style="font-size:11px;font-weight:700">${wd(x)}</div><div style="font-size:22px;font-weight:800;line-height:1.1">${x.getDate()}</div><div style="font-size:10.5px;font-weight:700">${isT?'Today':n?n+' event'+(n>1?'s':''):''}</div></div>`};
+ const pill=s=>`<span style="display:inline-block;padding:4px 12px;border-radius:14px;font-size:12.5px;font-weight:700;${s==='Morning'?'background:#fdf0d5;color:#a46a00':'background:#e8e6fb;color:#4b3fb5'}">${s}</span>`;
+ const subm=q=>{const s=sess(q),d=s==='Morning'?add(q.edate,-1):q.edate,x=D(d);return`<div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#8a7a3a">SUBMIT BY</div><div style="font-size:15px;font-weight:700">${x.toLocaleDateString('en-IN',{weekday:'short'})} ${x.getDate()} · <span style="color:#8a6d00">${s==='Morning'?'Night':'Evening'}</span></div>`};
+ const days_=Object.keys(byDay).sort().map(d=>{const evs=byDay[d],x=D(d);const cnt={};evs.forEach(q=>{const s=sess(q);cnt[s]=(cnt[s]||0)+1});
+  const rows=evs.map((q,i)=>{const s=sess(q);const ref=(q.refby||(q.src&&!/walk|^$/i.test(q.src)?q.src:''))||'';const warn=cnt[s]>1&&evs.filter(e=>sess(e)===s).indexOf(q)===cnt[s]-1?`${cnt[s]} events same ${s.toLowerCase()} · ${cnt[s]} teams`:'';
+   return`<div style="display:flex;align-items:stretch;border-top:${i?'1px solid #eee':'0'}"><div style="width:150px;display:flex;align-items:center;padding:10px 14px">${pill(s)}</div><div style="flex:1;padding:10px 8px;min-width:0"><div style="font-size:19px;font-weight:800">${esc(q.venue||q.client||'Venue not set')}</div><div style="font-size:14.5px;color:#666">${esc(q.etype||q.ename||'Event')}${q.venue&&q.client?' · '+esc(q.client):''}${ref?` <span style="background:#e7eefc;color:#1e3a8a;border-radius:6px;padding:1px 7px;font-weight:700;font-size:12.5px">Ref: ${esc(ref)}</span>`:''}</div>${warn?`<div style="display:inline-block;margin-top:5px;background:#fde8ec;color:${R};border-radius:6px;padding:2px 8px;font-size:12.5px;font-weight:700">▲ ${warn}</div>`:''}</div><div style="width:200px;border-left:1px solid #eee;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px">${subm(q)}</div></div>`}).join('');
+  return`<div style="border:2px solid ${R};border-radius:14px;overflow:hidden;margin-top:10px"><div style="background:${R};color:#fff;display:flex;align-items:center;padding:6px 16px"><b style="font-size:19px;flex:1">${wd(x)} <span style="font-size:24px">${x.getDate()}</span> ${mo(x)}</b><span style="background:#fff3;border-radius:12px;padding:2px 10px;font-size:13px;font-weight:700">${evs.length} event${evs.length>1?'s':''}</span></div>${rows}</div>`}).join('');
+ const f=D(first),l=D(last);const rng=f.getMonth()===l.getMonth()?`${f.getDate()} – ${l.getDate()} ${l.toLocaleDateString('en-IN',{month:'short',year:'numeric'})}`:`${f.getDate()} ${f.toLocaleDateString('en-IN',{month:'short'})} – ${l.getDate()} ${l.toLocaleDateString('en-IN',{month:'short',year:'numeric'})}`;
+ const month=f.toLocaleDateString('en-IN',{month:'long'});const prep=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+ const html=`<div style="width:794px;min-height:1123px;box-sizing:border-box;padding:26px 28px;font:14px/1.35 Inter,'IBM Plex Sans',Arial,sans-serif;color:#1a1a1a;background:#fff">
+ <div style="background:${R};color:#fff;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:28px;font-weight:800">${esc(month)} Event Schedule</div><div style="opacity:.9">${esc(biz)} · ${rng} · prepared ${prep}</div></div><div style="background:#fff2;border-radius:10px;padding:6px 14px;text-align:center"><div style="font-size:26px;font-weight:800">${L.length}</div><div style="font-size:11px;font-weight:700;letter-spacing:.06em">EVENTS</div></div>${topV&&topV[1]>1?`<div style="background:#fff2;border-radius:10px;padding:6px 14px;text-align:center;max-width:150px"><div style="font-size:26px;font-weight:800">${topV[1]}</div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(topV[0].toUpperCase().replace(/ FUNCTION HALL$/,''))}</div></div>`:''}</div>
+ <div style="display:flex;gap:5px;margin-top:10px">${strip.map(chip).join('')}</div>${days_}
+ <div style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12.5px;color:#777">${pill('Morning')} submit night before ${pill('Evening')} submit by evening <span style="margin-left:auto">Dates = event dates · Submit = decor complete</span></div></div>`;
+ try{await wsJpg(html,'Event_schedule_'+td)}catch(e){toast('Could not make image: '+(e.message||e))}};
 })();
 </script>
 
