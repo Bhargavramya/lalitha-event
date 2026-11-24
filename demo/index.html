@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.8';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7529,4 +7529,180 @@ new MutationObserver(()=>{if(document.getElementById('lockv'))window.__wasLocked
 })();
 </script>
 
+<style id="v198">
+/* ===== v19.8: summary box, price lock, history, run sheet, enquiry form, dues by age ===== */
+#qsbox{position:sticky;top:8px;z-index:3}
+#qsbox .ql{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
+#qsbox .ql span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+#qsbox .qt{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 6px;padding-top:10px;border-top:2px solid #0f172a}
+#qsbox .qt b{font-size:24px;font-weight:700}
+#qsbox .qa{display:flex;justify-content:space-between;font-size:13.5px;color:#64748b;padding:3px 0}
+#qsbox .qa.due b{color:#b91c1c}
+body.qhide #qsbox,body.custmode #qsbox{display:none!important}
+.lockbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:9px 12px;border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;font-size:13.5px;color:#92400e}
+.lockbar span{flex:1;min-width:180px}.lockbar svg{width:18px;height:18px;flex:none}
+.lockbar button{min-height:36px}
+#itbl.plock td:nth-child(6) input{background:#f1f5f9!important;color:#475569;pointer-events:none}
+.qhist{margin-top:12px}.qhist ol{list-style:none;margin:8px 0 0;padding:0;border-left:2px solid #dbe1ea}
+.qhist li{position:relative;padding:4px 0 8px 14px;font-size:13.5px}.qhist li:before{content:'';position:absolute;left:-6px;top:9px;width:10px;height:10px;border-radius:50%;background:#1d4ed8}
+.qhist li small{display:block;color:#64748b;font-size:12px}
+.rshead{background:#13294b;color:#fff;border-radius:8px;padding:14px;margin-bottom:12px}
+.rshead h3{margin:0 0 4px;font-size:19px}.rshead div{font-size:14px;color:#c7d2e5;margin-top:2px}
+.rsbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.rsbtns a,.rsbtns button{flex:1;min-width:120px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;background:rgba(255,255,255,.12)!important;color:#fff!important;border:0!important;text-decoration:none;font-weight:600;font-size:14px}
+.rsc{background:#fff;border:1px solid #dbe1ea;border-radius:8px;margin-bottom:12px;overflow:hidden}
+.rsc h4{margin:0;padding:10px 12px;font-size:12px;letter-spacing:.05em;color:#475569;background:#f8fafc;border-bottom:1px solid #dbe1ea;display:flex;justify-content:space-between}
+.rsi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #eef2f7;min-height:48px;font-size:15px;cursor:pointer}
+.rsi:first-of-type{border-top:0}.rsi input{width:22px;height:22px;flex:none}.rsi .m{flex:1;min-width:0}.rsi small{display:block;color:#64748b;font-size:12.5px}
+.rsi.done .m b{text-decoration:line-through;color:#94a3b8}
+.rss{padding:8px 12px 4px;font-size:12px;font-weight:700;color:#1d4ed8;letter-spacing:.04em}
+.rsp{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #eef2f7}.rsp:first-of-type{border-top:0}.rsp .m{flex:1}
+.rsp a{min-height:40px;min-width:44px;display:flex;align-items:center;justify-content:center;border:1px solid #cbd5e1;border-radius:8px;color:#1d4ed8;text-decoration:none;font-size:13px;font-weight:600;padding:0 10px}
+.rstl{padding:10px 12px;font-size:14.5px;white-space:pre-wrap;line-height:1.6}
+.rsbar{height:6px;background:#e2e8f0}.rsbar i{display:block;height:100%;background:#15803d;transition:width .25s}
+.enqbar2{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid #dbe1ea;border-radius:8px;background:#fff}
+.enqbar2 b{flex:1;min-width:150px;font-size:14px}.enqbar2 button{min-height:40px}
+.agek{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.agek button{text-align:left;padding:12px!important;border:1px solid #dbe1ea!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;min-height:68px;box-shadow:none!important}
+.agek button.on{border-color:#1d4ed8!important;outline:2px solid rgba(29,78,216,.2)}
+.agek span{display:block;font-size:12px;color:#64748b}.agek b{font-size:17px}.agek small{display:block;font-size:12px;color:#64748b}
+.agek .a3 b{color:#b91c1c}.agek .a2 b{color:#b45309}
+.ager{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #eef2f7;cursor:pointer}.ager:first-child{border-top:0}
+.ager .m{flex:1;min-width:0}.ager small{display:block;color:#64748b;font-size:12.5px}.ager b.n{color:#b91c1c;white-space:nowrap}
+.ager button{min-height:40px}
+html[data-theme="dark"] .rsc,html[data-theme="dark"] .enqbar2,html[data-theme="dark"] .agek button{background:#111a2e!important;border-color:#22304a!important;color:#e5e7eb!important}
+html[data-theme="dark"] .rsc h4{background:#0f172a;border-color:#22304a}
+html[data-theme="dark"] .lockbar{background:#2a1f05;border-color:#78590f;color:#fcd34d}
+</style>
+<script id="v198js">
+(function(){
+const N=v=>+v||0;
+const IC={lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+call:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+map:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'};
+const dlabel=d=>{if(!d)return'';const x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'})};
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const tdy=()=>ymd(new Date());
+const biz=()=>typeof bizN==='function'?bizN():'Lalitha Event Decors';
+const qAll=()=>ls.get('lal_q',{});
+const paidOf=q=>N(q.paid)||(q.pays||[]).reduce((s,p)=>s+N(p.amt),0)+N(q.adv);
+const ph10=p=>String(p||'').replace(/\D/g,'').slice(-10);
+
+/* ---------- 1. Activity log ---------- */
+function logAdd(k,m){if(!k||!m)return;const L=ls.get('lal_log',{});(L[k]=L[k]||[]).push({t:Date.now(),m});if(L[k].length>80)L[k]=L[k].slice(-80);ls.set('lal_log',L);try{gset('log',L)}catch(e){}}
+window.qLogAdd=logAdd;
+function diff(a,b){const out=[];if(!a){out.push((b.status==='Enquiry'?'Enquiry':'Quotation')+' created'+(b.no?' ('+b.no+')':''));return out}
+ if((a.status||'')!==(b.status||''))out.push('Status: '+(a.status||'Draft')+' → '+(b.status||'Draft'));
+ if(Math.round(N(a.total))!==Math.round(N(b.total)))out.push('Total changed: '+f2(N(a.total))+' → '+f2(N(b.total)));
+ const pa=(a.pays||[]).length,pb=(b.pays||[]).length;if(pb>pa)(b.pays||[]).slice(pa).forEach(p=>out.push('Payment received: '+f2(N(p.amt))+(p.mode?' ('+p.mode+')':'')));
+ else if(pb<pa)out.push('Payment removed');
+ if(N(a.adv)!==N(b.adv))out.push('Advance set to '+f2(N(b.adv)));
+ if((a.edate||'')!==(b.edate||''))out.push('Event date: '+(dlabel(a.edate)||'none')+' → '+(dlabel(b.edate)||'none'));
+ if((a.venue||'')!==(b.venue||'')&&b.venue)out.push('Venue: '+b.venue);
+ const ar=(a.rows||[]).filter(r=>!r.sec),br=(b.rows||[]).filter(r=>!r.sec);
+ if(br.length>ar.length)out.push((br.length-ar.length)+' item'+(br.length-ar.length>1?'s':'')+' added');else if(br.length<ar.length)out.push((ar.length-br.length)+' item'+(ar.length-br.length>1?'s':'')+' removed');
+ else{const ch=br.filter((r,i)=>ar[i]&&ar[i].name===r.name&&N(ar[i].rate)!==N(r.rate));ch.slice(0,3).forEach(r=>{const o=ar.find(x=>x.name===r.name);out.push('Rate of '+r.name+': '+f2(N(o.rate))+' → '+f2(N(r.rate)))})}
+ return out}
+const SNAP={};const snap=k=>{if(k){const q=qAll()[k];SNAP[k]=q?JSON.parse(JSON.stringify(q)):null}};window.__qsnap=snap;
+const os=window.save;if(os){window.save=function(){const k0=curId;const before=k0?(k0 in SNAP?SNAP[k0]:JSON.parse(JSON.stringify(qAll()[k0]||null))):null;const r=os.apply(this,arguments);try{const k=curId;const after=qAll()[k];if(k&&after){diff(before,after).forEach(m=>logAdd(k,m));snap(k)}drawHist()}catch(e){}return r};try{save=window.save}catch(e){}}
+function drawHist(){const card=document.getElementById('tot');if(!card)return;const host=card.closest('.card');let h=document.getElementById('qhist');
+ const L=(ls.get('lal_log',{})[curId]||[]).slice().reverse();
+ if(!h){h=document.createElement('details');h.id='qhist';h.className='qhist';host.appendChild(h)}
+ const html=`<summary>History <span class="mut">(${L.length})</span></summary>${L.length?'<ol>'+L.map(x=>`<li>${esc(x.m)}<small>${new Date(x.t).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></li>`).join('')+'</ol>':'<p class="mut" style="margin:8px 0 0">No changes recorded yet. Changes are noted each time you save.</p>'}`;
+ if(h.dataset.h!==html){const o=h.open;h.innerHTML=html;h.open=o;h.dataset.h=html}}
+
+/* ---------- 2. Price lock ---------- */
+const LOCKST=/^(Sent|Confirmed|Completed)$/;
+function locked(){const st=(document.getElementById('status')||{}).value||'';if(!LOCKST.test(st))return false;const u=ls.get('lal_unlock',{})[curId||'_new'];return !(u&&u.st===st)}
+window.priceLocked=locked;
+function applyLock(){const t=document.getElementById('itbl');if(!t)return;const on=locked();t.classList.toggle('plock',on);
+ t.querySelectorAll('#rows td:nth-child(6) input').forEach(i=>{i.readOnly=on;i.tabIndex=on?-1:0});
+ let b=document.getElementById('lockbar');
+ if(!on){if(b)b.remove();return}
+ if(!b){b=document.createElement('div');b.id='lockbar';b.className='lockbar';b.innerHTML=IC.lock+'<span><b>Prices locked.</b> This quote was sent to the customer, so rates can\'t change by mistake.</span><button class="ghost sm" type="button">Unlock rates</button>';t.before(b);
+  b.querySelector('button').onclick=()=>{const d=mdl('Unlock rates?','<p>The customer already has this quote. If you change rates, send the new quote again.</p><div class="btact"><button class="ghost" data-x>Cancel</button><button data-ok>Unlock</button></div>');
+   d.querySelector('[data-ok]').onclick=()=>{const U=ls.get('lal_unlock',{});U[curId||'_new']={st:$('status').value,t:Date.now()};ls.set('lal_unlock',U);try{gset('unlock',U)}catch(e){}if(curId)logAdd(curId,'Rates unlocked for editing');d.remove();applyLock();try{haptic('tap')}catch(e){}}}}}
+{const o=window.adjRates;if(typeof o==='function'){window.adjRates=function(){if(locked()){toast('Prices are locked. Tap "Unlock rates" first.');return}return o.apply(this,arguments)};try{adjRates=window.adjRates}catch(e){}}}
+
+/* ---------- 3. Quote summary box ---------- */
+function drawSum(){const totc=document.getElementById('tot');if(!totc||typeof totals!=='function')return;const tcard=totc.closest('.card');let s=document.getElementById('qsbox');
+ if(!s){s=document.createElement('div');s.id='qsbox';s.className='card stp2';const ic=document.getElementById('itbl');(ic&&ic.closest('.card')||tcard).after(s)}
+ let t;try{t=totals()}catch(e){return}
+ const items=(typeof rows!=='undefined'?rows:[]).filter(r=>!r.sec&&r.name&&!r.opt).length;
+ const sch=String(($('sched')||{}).value||'').split(/[,\s]+/).map(Number).filter(x=>x>0);const ap=sch[0]||0;const advNeed=Math.round(t.tot*ap/100);
+ let L=`<span>Items</span><span>${items}</span><span>Subtotal</span><span>${f2(t.sub)}</span>`;
+ if(t.d)L+=`<span>Discount</span><span>− ${f2(t.d)}</span>`;if(t.x)L+=`<span>${esc($('xlabel').value||'Extra')}</span><span>${f2(t.x)}</span>`;if(t.gst)L+=`<span>GST ${t.g}%</span><span>${f2(t.gst)}</span>`;
+ const html=`<div class="ch"><h2>Quote summary</h2>${locked()?'<span class="mut" style="font-size:12px">Prices locked</span>':''}</div><div class="ql">${L}</div><div class="qt"><span>Total</span><b>${f2(t.tot)}</b></div>${ap?`<div class="qa"><span>Advance needed (${ap}%)</span><span>${f2(advNeed)}</span></div>`:''}<div class="qa"><span>Received</span><span>${f2(t.adv)}</span></div><div class="qa due"><span>Balance</span><b>${f2(t.bal)}</b></div>`;
+ if(s.dataset.h!==html){s.innerHTML=html;s.dataset.h=html}}
+
+/* ---------- 4. Event-day run sheet ---------- */
+function people(){const m={};(ls.get('lal_team',[])||[]).forEach(t=>{const n=String(t.n||t.name||'').trim();if(n)m[n.toLowerCase()]={n,ph:t.ph||t.phone||'',role:t.role||''}});try{((window.BT&&BT.bt().fl)||[]).forEach(f=>{const n=String(f.name||'').trim();if(n&&!m[n.toLowerCase()])m[n.toLowerCase()]={n,ph:f.phone||'',role:f.skill||''}})}catch(e){}return m}
+window.runSheet=function(k){const q=qAll()[k];if(!q)return toast('Save the quote first');const P=people();
+ const tick=ls.get('lal_rs',{})[k]||{};
+ const R=q.rows||[];const its=[];R.forEach((r,i)=>{if(r.opt||!r.name)return;its.push(r.sec?{sec:r.name}:{i,r})});const total=its.filter(x=>!x.sec).length;
+ const who=new Map();R.forEach(r=>{if(r.sec)return;String(r.who||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(n=>{if(!who.has(n))who.set(n,[]);who.get(n).push(r.name)})});
+ String(q.team||'').split(/[,+]/).map(x=>x.trim()).filter(x=>x&&!/^\d+$/.test(x)).forEach(n=>{if(!who.has(n))who.set(n,[])});
+ let tl='';try{tl=(((BT.bt().cp)||{})[k]||{}).tl||''}catch(e){}
+ const tel=p=>String(p||'').replace(/[^\d+]/g,'');
+ const map=q.vmap||(q.venue?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q.venue):'');
+ const done=()=>Object.keys(ls.get('lal_rs',{})[k]||{}).filter(x=>(ls.get('lal_rs',{})[k]||{})[x]).length;
+ const html=`<div class="rshead"><h3>${esc(q.etype||q.ename||'Event')}${q.client?' – '+esc(q.client):''}</h3><div>${esc(dlabel(q.edate))}${q.etime?' · '+esc(q.etime):''}</div>${q.setup?`<div>Setup: ${esc(q.setup)}</div>`:''}${q.venue?`<div>${esc(q.venue)}</div>`:''}${q.guests?`<div>Guests: ${esc(q.guests)}</div>`:''}
+ <div class="rsbtns">${map?`<a href="${esc(map)}" target="_blank" rel="noopener">${IC.map}Directions</a>`:''}${q.phone?`<a href="tel:${esc(tel(q.phone))}">${IC.call}Call customer</a>`:''}</div></div>
+ <div class="rsc"><h4><span>ITEMS CHECKLIST</span><span data-cnt>${done()}/${total} ready</span></h4><div class="rsbar"><i data-bar style="width:${total?done()/total*100:0}%"></i></div>${its.map(x=>x.sec?`<div class="rss">${esc(x.sec.toUpperCase())}</div>`:`<label class="rsi${tick[x.i]?' done':''}"><input type="checkbox" data-i="${x.i}"${tick[x.i]?' checked':''}><div class="m"><b>${esc(x.r.name)}</b><small>${[x.r.uom,(N(x.r.qty)||1)!==1?'Qty '+N(x.r.qty):'',x.r.who?'By '+x.r.who:''].filter(Boolean).map(esc).join(' · ')}</small></div></label>`).join('')||'<p class="mut" style="padding:12px;margin:0">No items in this quote.</p>'}</div>
+ ${who.size?`<div class="rsc"><h4><span>TEAM</span><span>${who.size}</span></h4>${[...who.entries()].map(([n,a])=>{const p=P[n.toLowerCase()]||{};return`<div class="rsp"><div class="m"><b>${esc(n)}</b>${a.length?`<small class="mut" style="display:block;font-size:12.5px">${esc(a.join(', '))}</small>`:''}</div>${p.ph?`<a href="tel:${esc(tel(p.ph))}" aria-label="Call ${esc(n)}">${IC.call}</a><a href="#" data-wa="${esc(p.ph)}">WhatsApp</a>`:''}</div>`}).join('')}</div>`:''}
+ ${tl.trim()?`<div class="rsc"><h4><span>TIMELINE</span></h4><div class="rstl">${esc(tl.trim())}</div></div>`:''}
+ ${q.vehicle?`<div class="rsc"><h4><span>VEHICLE</span></h4><div class="rstl">${esc(q.vehicle)}</div></div>`:''}
+ <button class="pri" data-share style="width:100%;min-height:46px;margin:4px 0 24px">Share with staff on WhatsApp</button>`;
+ const pg=BT.page('Run sheet',html);
+ pg.querySelectorAll('[data-i]').forEach(c=>c.onchange=()=>{const A=ls.get('lal_rs',{});A[k]=A[k]||{};A[k][c.dataset.i]=c.checked;ls.set('lal_rs',A);try{gset('runsheet',A)}catch(e){}c.closest('.rsi').classList.toggle('done',c.checked);const d=done();pg.querySelector('[data-cnt]').textContent=d+'/'+total+' ready';pg.querySelector('[data-bar]').style.width=(total?d/total*100:0)+'%';try{haptic(c.checked?'success':'tap')}catch(e){}if(total&&d===total)toast('All items ready')});
+ pg.querySelectorAll('[data-wa]').forEach(a=>a.onclick=e=>{e.preventDefault();waGo(a.dataset.wa,'Namaste, reminder for '+(q.etype||'event')+' on '+dlabel(q.edate)+(q.setup?', setup '+q.setup:'')+(q.venue?' at '+q.venue:'')+'. – '+biz())});
+ pg.querySelector('[data-share]').onclick=()=>{if(window.staffListText)staffListText(k);else shareText(q.client+' '+dlabel(q.edate))};
+ return pg};
+function rsButtons(){/* client card */const st=document.getElementById('status');const h=st&&st.closest('.card');if(h&&!document.getElementById('rsbtn')){const b=document.createElement('button');b.id='rsbtn';b.type='button';b.className='ghost';b.style.cssText='width:100%;margin-top:12px;min-height:44px';b.textContent='Event-day run sheet';b.onclick=()=>{if(!curId)return toast('Save the quote first');runSheet(curId)};h.appendChild(b)}
+ /* staff view jobs */document.querySelectorAll('.stv .job').forEach(j=>{const a4=j.querySelector('[data-a4]');if(!a4||j.querySelector('[data-rs]'))return;const b=document.createElement('button');b.className='pri sm';b.dataset.rs=a4.dataset.a4;b.textContent='Run sheet';b.onclick=()=>runSheet(a4.dataset.a4);a4.before(b)})}
+
+/* ---------- 5. Customer enquiry form ---------- */
+function ownerPhone(){const p=String(((document.getElementById('bphone')||{}).value)||'').replace(/\D/g,'');return p.length===10?'91'+p:p}
+function enqLink(){const base=location.href.replace(/[#?].*$/,'').replace(/(beta\/)?(index\.html)?$/,'');return base+'enq.html#p='+ownerPhone()+'&n='+encodeURIComponent(biz())}
+window.enqShare=function(){if(!ownerPhone())return toast('Add your phone number in Settings → Business first');shareText('Please share your event details here so we can prepare your quotation: '+enqLink())};
+function parseEnq(t){const o={};String(t||'').split('\n').forEach(l=>{const m=l.replace(/\*/g,'').match(/^\s*([A-Za-z ]+?)\s*:\s*(.+)$/);if(m)o[m[1].trim().toLowerCase()]=m[2].trim()});return o}
+window.enqPaste=async function(){let clip='';try{clip=await navigator.clipboard.readText()}catch(e){}
+ const d=mdl('Add enquiry from form','<p class="mut" style="margin:0 0 8px">Copy the customer\'s WhatsApp enquiry message and paste it here.</p><textarea data-t rows="9" style="width:100%;font-size:16px" placeholder="Paste the enquiry message"></textarea><div class="btact"><button class="ghost" data-x>Cancel</button><button data-ok>Create enquiry</button></div>');
+ const ta=d.querySelector('[data-t]');if(/New enquiry/i.test(clip))ta.value=clip;
+ d.querySelector('[data-ok]').onclick=()=>{const o=parseEnq(ta.value);if(!o.name&&!o.phone){toast('Could not read the message. Paste the full enquiry.');return}
+  const all=qAll();const p10=ph10(o.phone);const old=p10?Object.values(all).filter(q=>ph10(q.phone)===p10).sort((a,b)=>N(b.saved)-N(a.saved))[0]:null;
+  d.remove();if(typeof guard==='function'&&!guard())return;newQ();
+  const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!=null&&v!=='')e.value=v};
+  set('client',o.name||(old&&old.client));set('phone',o.phone);if(old){['addr','attn','cgst'].forEach(f=>set(f,old[f]))}
+  set('etype',o.event);if(/^\d{4}-\d\d-\d\d$/.test(o.date||''))set('edate',o.date);set('venue',o.venue);set('guests',String(o.guests||'').replace(/\D/g,''));set('etime',/^\d\d:\d\d$/.test(o.time||'')?o.time:'');
+  set('status','Enquiry');const nt=[o.budget?'Budget: '+o.budget:'',o.needs?'Needs: '+o.needs:''].filter(Boolean).join('\n');
+  try{statusChanged()}catch(e){}tab('est');save();if(curId){logAdd(curId,'Came from the online enquiry form'+(old?' (repeat customer)':''));if(nt)logAdd(curId,nt.replace(/\n/g,' · '))}
+  toast(old?'Enquiry added – repeat customer found':'Enquiry added');try{haptic('success')}catch(e){}}};
+function enqBar(){const s=document.getElementById('t-saved');if(!s||document.getElementById('enqbar2'))return;const b=document.createElement('div');b.id='enqbar2';b.className='enqbar2';b.innerHTML='<b>Customer enquiry form</b><button class="ghost sm" type="button" data-s>Share form link</button><button class="pri sm" type="button" data-p>Paste enquiry</button>';s.prepend(b);b.querySelector('[data-s]').onclick=enqShare;b.querySelector('[data-p]').onclick=enqPaste}
+
+/* ---------- 6. Dues by age ---------- */
+function agesOpen(sel){const td=tdy();const qs=Object.entries(qAll()).map(([k,q])=>Object.assign({_k:k},q)).filter(q=>/Confirmed|Completed|Advance|Done/i.test(q.status||'')&&N(q.total)-paidOf(q)>0.5);
+ const days=q=>{if(!q.edate)return -1;return Math.round((new Date(td+'T00:00')-new Date(q.edate+'T00:00'))/864e5)};
+ const B=[['a0','Before event','Event not done yet',q=>days(q)<0],['a1','0–30 days','After event',q=>days(q)>=0&&days(q)<=30],['a2','31–60 days','After event',q=>days(q)>30&&days(q)<=60],['a3','Over 60 days','Very late',q=>days(q)>60]];
+ const due=q=>N(q.total)-paidOf(q);
+ const cur=sel||ls.get('lal_agesel','a1');
+ const grp=B.map(b=>{const l=qs.filter(b[3]).sort((x,y)=>days(y)-days(x));return{b,l,s:l.reduce((a,q)=>a+due(q),0)}});
+ const g=grp.find(x=>x.b[0]===cur)||grp[0];
+ const html=`<div class="agek">${grp.map(x=>`<button class="${x.b[0]}${x.b[0]===g.b[0]?' on':''}" data-b="${x.b[0]}"><span>${x.b[1]}</span><b>${f2(x.s)}</b><small>${x.l.length} event${x.l.length===1?'':'s'}</small></button>`).join('')}</div>
+ <div class="card" style="padding:0!important">${g.l.length?g.l.map(q=>{const d=days(q);return`<div class="ager" data-q="${q._k}"><div class="m"><b>${esc(q.client||'—')}</b><small>${esc(q.no||'')} · ${q.edate?dlabel(q.edate):'No date'}${d>=0?' · '+d+' day'+(d===1?'':'s')+' ago':''}</small></div><b class="n">${f2(due(q))}</b>${q.phone?`<button class="ghost sm" data-r="${q._k}">Remind</button>`:''}</div>`}).join(''):'<p class="mut" style="padding:14px;margin:0">Nothing here.</p>'}</div>
+ <p class="mut" style="font-size:12.5px">Days are counted from the event date. Only Confirmed and Completed events are shown.</p>`;
+ const pg=BT.page('Dues by age',html);
+ pg.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{ls.set('lal_agesel',b.dataset.b);agesOpen(b.dataset.b)});
+ pg.querySelectorAll('.ager').forEach(r=>r.onclick=e=>{if(e.target.closest('[data-r]'))return;pg.remove();openQ(r.dataset.q)});
+ pg.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const q=qAll()[b.dataset.r];const bal=N(q.total)-paidOf(q);waGo(q.phone,`Namaste ${q.client||''},\nThis is a gentle reminder from ${biz()} for ${q.etype||'your event'}${q.edate?' on '+dlabel(q.edate):''} (${q.no||''}).\nBalance due: ${f2(bal)}.\nThank you.`);logAdd(b.dataset.r,'Payment reminder sent ('+f2(bal)+')')})}
+window.agesOpen=()=>{(window.moneyUnlock?moneyUnlock('Enter PIN to see dues'):Promise.resolve(true)).then(ok=>{if(ok)agesOpen()})};
+try{if(window.btTools){const g=btTools.find(x=>x[0]==='Money');if(g&&!g[1].some(t=>t[0]==='Dues by age'))g[1].splice(2,0,['Dues by age','How late each balance is',window.agesOpen]);try{btHub()}catch(e){}}}catch(e){}
+
+/* ---------- wiring ---------- */
+const ofl=window.fill;if(typeof ofl==='function'){window.fill=function(){const r=ofl.apply(this,arguments);try{snap(curId)}catch(e){}setTimeout(()=>{applyLock();drawSum();drawHist()},0);return r};try{fill=window.fill}catch(e){}}
+const osc=window.statusChanged;if(typeof osc==='function'){window.statusChanged=function(){const r=osc.apply(this,arguments);try{const U=ls.get('lal_unlock',{}),k=curId||'_new';if(U[k]&&U[k].st!==$('status').value){delete U[k];ls.set('lal_unlock',U);try{gset('unlock',U)}catch(e){}}}catch(e){}applyLock();drawSum();return r};try{statusChanged=window.statusChanged}catch(e){}}
+let mo;function hook(){const rw=document.getElementById('rows'),tt=document.getElementById('tot');if(!rw||!tt||mo)return;mo=new MutationObserver(()=>{applyLock();drawSum()});mo.observe(rw,{childList:true});mo.observe(tt,{childList:true,subtree:true,characterData:true})}
+setInterval(()=>{try{hook();rsButtons();enqBar();if(document.body.dataset.tab==='est'){drawSum();drawHist()}}catch(e){}},900);
+try{hook();rsButtons();enqBar();applyLock();drawSum();drawHist()}catch(e){}
+})();
+</script>
 </body></html>

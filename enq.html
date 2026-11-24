@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Event Enquiry</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#13294b;--blue:#1d4ed8;--bg:#eef1f5;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#dbe1ea}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#111a2e;--ink:#e5e7eb;--mut:#94a3b8;--line:#22304a}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#111a2e;--ink:#e5e7eb;--mut:#94a3b8;--line:#22304a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'IBM Plex Sans',system-ui,sans-serif}
+header{background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 22px) 16px 22px}
+header h1{margin:0;font-size:21px}header p{margin:4px 0 0;color:#c7d2e5;font-size:14px}
+main{max-width:560px;margin:0 auto;padding:16px}
+form{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:14px}
+label{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--mut)}
+input,select,textarea{font:inherit;font-size:16px;padding:11px 12px;border:1px solid #cbd5e1;border-radius:6px;background:var(--card);color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(29,78,216,.2);border-color:var(--blue)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{min-height:50px;border:0;border-radius:8px;background:var(--blue);color:#fff;font:600 16px 'IBM Plex Sans',sans-serif;cursor:pointer}
+button:active{transform:scale(.98)}
+.req{color:#b91c1c}.err{color:#b91c1c;font-size:14px;margin:0}
+.note{color:var(--mut);font-size:13px;text-align:center;margin:14px 0 30px}
+</style>
+</head>
+<body>
+<header><h1 id="bn">Event Enquiry</h1><p>Tell us about your event. We will send you a quotation.</p></header>
+<main>
+<form id="f" novalidate>
+<label>Your name <span class="req">*</span><input name="Name" autocomplete="name" required></label>
+<label>Mobile number <span class="req">*</span><input name="Phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
+<label>Event type<select name="Event"><option>Wedding</option><option>Reception</option><option>Engagement</option><option>Birthday</option><option>Half Saree / Dhoti Function</option><option>House Warming</option><option>Corporate Event</option><option>School / College Function</option><option>Other</option></select></label>
+<div class="two"><label>Event date<input name="Date" type="date"></label><label>Time<input name="Time" type="time"></label></div>
+<label>Venue / function hall<input name="Venue" placeholder="Hall name, area"></label>
+<div class="two"><label>Guests (approx.)<input name="Guests" type="number" inputmode="numeric"></label><label>Budget<input name="Budget" inputmode="numeric" placeholder="₹"></label></div>
+<label>What do you need?<textarea name="Needs" rows="4" placeholder="Stage, entrance arch, flowers, lighting…"></textarea></label>
+<p class="err" id="er" hidden></p>
+<button type="submit">Send on WhatsApp</button>
+</form>
+<p class="note">Your details go only to us, through WhatsApp.</p>
+</main>
+<script>
+const h=new URLSearchParams(location.hash.slice(1));const to=(h.get('p')||'').replace(/\D/g,''),bn=h.get('n')||'';
+if(bn){document.getElementById('bn').textContent=bn;document.title=bn+' – Enquiry'}
+document.getElementById('f').onsubmit=e=>{e.preventDefault();const f=e.target,er=document.getElementById('er');
+ if(!f.Name.value.trim()){er.hidden=false;er.textContent='Please enter your name.';f.Name.focus();return}
+ if(f.Phone.value.replace(/\D/g,'').length<10){er.hidden=false;er.textContent='Please enter a 10-digit mobile number.';f.Phone.focus();return}
+ er.hidden=true;const L=['*New enquiry'+(bn?' – '+bn:'')+'*'];[...new FormData(f)].forEach(([k,v])=>{v=String(v).trim().replace(/\n+/g,'; ');if(v)L.push(k+': '+v)});
+ const t=encodeURIComponent(L.join('\n'));location.href=to?'https://wa.me/'+to+'?text='+t:'https://wa.me/?text='+t};
+</script>
+</body>
+</html>
