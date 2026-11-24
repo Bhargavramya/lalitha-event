@@ -2106,7 +2106,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7229,6 +7229,40 @@ function tick(){const s=state();const b=document.getElementById('drwBtn');if(b){
  const drw=document.querySelector('#drw .pn');if(drw){const ft=drw.querySelector('.ft');line(drw,ft)}
  const ps=document.querySelector('#pcside .pcsf');if(ps)line(ps.parentNode,ps)}
 tick();setInterval(tick,1000);addEventListener('online',tick);addEventListener('offline',tick);
+})();
+</script>
+
+<style id="v192">
+/* Home is customer-safe: no money shown unless you tap the eye */
+body.hpriv #t-home .bh-k,body.hpriv #t-home #bhome .bh-s:nth-of-type(4),body.hpriv #t-home #dash .k,body.hpriv #t-home #dash .pn:has(svg[aria-label="Revenue by month"]),body.hpriv #t-home .hx-stats,body.hpriv #t-home .hx-money,body.hpriv #t-home .hx-chart{display:none!important}
+body.hpriv #t-home #dash .g2:has(svg[aria-label="Revenue by month"]){grid-template-columns:minmax(0,1fr)!important}
+body.hpriv #t-home .bh-r.hd span:nth-child(3),body.hpriv #t-home .bh-r>span.n:nth-child(3){visibility:hidden}
+body.hpriv #t-home .bh-top{padding-bottom:10px}
+.hpriv #t-home .hpriv-box{display:none!important}
+.mny-m{letter-spacing:.1em;color:inherit;opacity:.6}
+#hprivBtn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;border:0;padding:0;flex:0 0 36px}
+#hprivBtn svg{width:19px;height:19px}
+.hpriv-note{display:none}
+body.hpriv #t-home .hpriv-note{display:block;font-size:12px;color:#9fb3d1;margin-top:2px}
+</style>
+<script id="v192js">
+/* ===== v19.2: hide all amounts on Home (customer may see the screen) ===== */
+(function(){
+const EYE='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYEOFF='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+let showT=0;
+function setPriv(on){document.body.classList.toggle('hpriv',on);const b=document.getElementById('hprivBtn');if(b){b.innerHTML=on?EYEOFF:EYE;b.setAttribute('aria-label',on?'Show amounts':'Hide amounts');b.title=on?'Show amounts':'Hide amounts'}mask();clearTimeout(showT);if(!on)showT=setTimeout(()=>setPriv(true),60000)}
+/* any other ₹ amount left on Home is masked */
+function mask(){const h=document.getElementById('t-home');if(!h)return;const on=document.body.classList.contains('hpriv');h.querySelectorAll('#hx *').forEach(e=>{if(e.children.length&&e.firstElementChild&&/^\s*(Balance due|Payments due|To collect|Money due)/i.test(e.firstElementChild.textContent||'')&&e.textContent.length<600&&!e.closest('.hpriv-hide-done')){e.classList.add('hpriv-box')}});
+ if(on){const w=document.createTreeWalker(h,NodeFilter.SHOW_TEXT,{acceptNode:n=>/₹\s?[\d.,]/.test(n.nodeValue)&&!n.parentNode.closest('.mny-m,script,style,input,textarea')?1:2});const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(n=>{const s=document.createElement('span');s.className='mny-m';s.dataset.v=n.nodeValue;s.textContent=n.nodeValue.replace(/₹\s?[\d.,]+[LKk]?/g,'₹ ••••');n.parentNode.replaceChild(s,n)})}
+ else h.querySelectorAll('.mny-m').forEach(s=>s.replaceWith(document.createTextNode(s.dataset.v)))}
+function btn(){const hd=document.querySelector('header.top');if(!hd||document.getElementById('hprivBtn'))return;const b=document.createElement('button');b.id='hprivBtn';b.type='button';b.onclick=()=>{setPriv(!document.body.classList.contains('hpriv'));try{haptic('tap')}catch(e){}};const s=hd.querySelector('button[onclick*="srOpen"]')||hd.lastElementChild;hd.insertBefore(b,s);setPriv(document.body.classList.contains('hpriv'))}
+document.body.classList.add('hpriv');btn();setInterval(()=>{btn();const b=document.getElementById('hprivBtn');if(b)b.style.display=(document.body.dataset.tab||'home')==='home'?'':'none';if(document.body.classList.contains('hpriv'))mask()},700);
+/* PC: the same eye in the dashboard */
+const ot=window.tab;window.tab=function(t){const r=ot.apply(this,arguments);if(t!=='home'&&!document.body.classList.contains('hpriv'))setPriv(true);return r};
+function pcBtn(){if(innerWidth<900)return;const d=document.getElementById('dash');if(!d||d.querySelector('#hprivPc'))return;const b=document.createElement('button');b.id='hprivPc';b.className='ghost sm';b.style.cssText='margin:0 0 10px auto;display:flex';b.onclick=()=>setPriv(!document.body.classList.contains('hpriv'));d.prepend(b)}
+setInterval(()=>{pcBtn();const b=document.getElementById('hprivPc');if(b)b.textContent=document.body.classList.contains('hpriv')?'Show amounts':'Hide amounts'},700);
 })();
 </script>
 
