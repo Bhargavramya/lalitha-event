@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='19.6';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='19.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -7472,6 +7472,36 @@ window.jobsA4=async function(days){const td=new Date().toISOString().slice(0,10)
  <div style="display:flex;gap:5px;margin-top:10px">${strip.map(chip).join('')}</div>${days_}
  <div style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12.5px;color:#777">${pill('Morning')} submit night before ${pill('Evening')} submit by evening <span style="margin-left:auto">Dates = event dates · Submit = decor complete</span></div></div>`;
  try{await wsJpg(html,'Event_schedule_'+td)}catch(e){toast('Could not make image: '+(e.message||e))}};
+})();
+</script>
+
+<style id="v197">
+#t-cal>.card.calfold>*:not(.calhd){display:none}
+#t-cal>.card.calfold{padding:0!important}
+.calhd{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0 14px;border:0;background:transparent!important;box-shadow:none!important;font-weight:600;color:#0f172a!important}
+#jobsA4{gap:6px!important}
+#jobsA4 button{min-height:38px!important;font-size:13.5px!important;padding:0 12px!important}
+</style>
+<script id="v197js">
+/* ===== v19.7: Jobs — work schedule first, month calendar folded below; Face ID opens by itself ===== */
+(function(){
+function jobsOrder(){const j=document.getElementById('t-cal');if(!j)return;const cal=[...j.children].find(e=>e.classList.contains('card')&&/Confirmed bookings are added|Plan my month/.test(e.textContent));const ws=document.getElementById('wsbox');if(!cal)return;
+ if(ws&&ws.nextElementSibling!==cal)ws.after(cal);
+ if(!cal.querySelector(':scope>.calhd')){const h=document.createElement('button');h.className='calhd';h.type='button';cal.prepend(h);h.onclick=()=>{cal.classList.toggle('calfold');ls.set('lal_calopen',cal.classList.contains('calfold')?0:1);txt()};if(!ls.get('lal_calopen',0))cal.classList.add('calfold')}
+ const txt=()=>{const h=cal.querySelector(':scope>.calhd');if(h)h.innerHTML=(cal.classList.contains('calfold')?'Show month calendar':'Hide month calendar')+'<span>'+(cal.classList.contains('calfold')?'▾':'▴')+'</span>'};txt()}
+jobsOrder();setInterval(jobsOrder,1200);
+
+/* Face ID: start the scan the moment the lock shows; if iPhone needs a touch first, the first touch anywhere starts it */
+let busy=false;
+async function scan(el){if(busy||!el.isConnected||!window.bioCheck)return;busy=true;try{if(await bioCheck()){el.classList.add('ok');setTimeout(()=>el.remove(),150);ls.set('lal_unl',Date.now());try{haptic('success')}catch(e){}}}finally{busy=false}}
+function arm(){const el=document.getElementById('lockv');if(!el||el.dataset.fid||!ls.get('lal_bio',''))return;el.dataset.fid=1;scan(el);
+ const once=e=>{if(e.target.closest('.lkp button'))return;el.removeEventListener('pointerdown',once,true);scan(el)};el.addEventListener('pointerdown',once,true);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&el.isConnected)setTimeout(()=>scan(el),200)})}
+new MutationObserver(arm).observe(document.body,{childList:true});arm();
+/* after unlocking with PIN on a phone that has Face ID, offer to turn it on (once) */
+new MutationObserver(()=>{if(document.getElementById('lockv')||ls.get('lal_bio','')||ls.get('lal_bioask',0)||!ls.get('lal_pin','')||!(window.bioOK&&bioOK())||!/iPhone|iPad|Android|Mac/.test(navigator.userAgent))return;if(!window.__wasLocked)return;window.__wasLocked=0;ls.set('lal_bioask',1);
+ const d=mdl('Use Face ID to open the app?','<p class="mut" style="margin:0">Next time the app opens, it will scan your face instead of asking for the PIN. The PIN still works as backup.</p><div class="btact"><button class="ghost" data-x>Not now</button><button data-y>Turn on Face ID</button></div>');d.querySelector('[data-y]').onclick=()=>{d.remove();bioSetup()}}).observe(document.body,{childList:true});
+new MutationObserver(()=>{if(document.getElementById('lockv'))window.__wasLocked=1}).observe(document.body,{childList:true});
 })();
 </script>
 
