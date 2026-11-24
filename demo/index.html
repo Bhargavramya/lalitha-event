@@ -6798,7 +6798,7 @@ body.pcx.lvon .pvtab,body.pcx.lvon #pvtab{display:none!important}
 }
 .ntnew{background:#c8102e!important;color:#fff!important;border-color:#c8102e!important;min-height:40px;padding:0 14px;border-radius:10px;font-weight:700}
 /* --- Simple Home --- */
-body:not(.homeall) #t-home>*:not(#dash):not(#bhome):not(.hmore):not(.iosT):not(:has(#hgreet)){display:none!important}
+body:not(.homeall) #t-home>*:not(#dash):not(#bhome):not(#hx):not(.iosT):not(:has(#hgreet)){display:none!important}
 .hmore{display:block;margin:6px auto 20px;min-height:44px;padding:0 18px}
 @media(max-width:899px){#dash>.g2:nth-child(2){display:none}#dash .kc b{font-size:20px}#dash .pn{padding:12px}}
 /* --- Cost + margin sheet --- */
@@ -7078,6 +7078,12 @@ try{const o=document.querySelectorAll;}catch(e){}
 body.pcx #lvp{left:auto!important;right:0!important}
 #bhome .bh-a button{white-space:nowrap;font-size:13.5px!important;padding:0 6px!important}
 body[data-tab="notes"] #plusb,body[data-tab="set"] #plusb{display:none!important}
+.hmore,#bhome .bh-a{display:none!important}
+html body #t-home>#hx{display:block!important}
+html body #t-home>#ntcard,html body.homeall #t-home>#ntcard{display:none!important}
+header.top button[onclick*="reloadApp"]{display:none!important}
+#hx{margin-top:12px;min-height:0!important}
+@media(max-width:899px){#hx .hx-greet{display:none!important}}
 @media(max-width:899px){input[placeholder="Size"],#t-est input,#t-notes #mtg .who input,table.items input,#rows input,.cmt input,.btf input,.btf select,.btf textarea{font-size:16px!important}}
 #t-cal a[onclick],#t-cal a[href]{display:inline-block;padding:8px 2px;min-height:32px}
 .drw .who .ed{width:40px!important;height:40px!important;flex:0 0 40px}
@@ -7097,6 +7103,9 @@ lvDock();setInterval(lvDock,1000);
 /* iPhone zooms into any box with text under 16px: keep every box at 16px on phones */
 function fix16(){if(innerWidth>899)return;document.querySelectorAll('input:not([type=checkbox]):not([type=radio]),select,textarea').forEach(i=>{if(parseFloat(getComputedStyle(i).fontSize)<16)i.style.setProperty('font-size','16px','important')})}
 fix16();setInterval(fix16,1500);let f16t=0;new MutationObserver(()=>{clearTimeout(f16t);f16t=setTimeout(fix16,60)}).observe(document.body,{childList:true,subtree:true});
+/* widgets sit under the summary (Ledger home on phone, dashboard on PC) */
+function hxOrder(){const h=document.getElementById('t-home'),x=document.getElementById('hx');if(!h||!x)return;const top=innerWidth<900?document.getElementById('bhome'):document.getElementById('dash');if(top&&top.nextElementSibling!==x)top.after(x)}
+hxOrder();setInterval(hxOrder,1500);
 /* the bottom bar now has 5 tabs: Home, Notes, Quotes, Jobs, Money */
 document.body.classList.remove('tabs6');
 
