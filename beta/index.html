@@ -2100,7 +2100,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='17.7';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.0';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6059,4 +6059,214 @@ function noEmoji(root){(root||document).querySelectorAll('button,summary,h1,h2,h
 function all(){if(!cx())return;try{home()}catch(e){}try{sets()}catch(e){}try{statuses()}catch(e){}try{noEmoji()}catch(e){}}
 let q=0;new MutationObserver(()=>{if(q)return;q=1;setTimeout(()=>{q=0;all()},90)}).observe(document.body,{childList:true,subtree:true});
 setTimeout(migrate,4000);all()})();</script>
+<style id="v180">
+.btcard{margin-bottom:12px}
+.btg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 12px}
+.btg button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:64px;padding:10px 12px;border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;background:var(--cx-card,#fff);color:var(--cx-ink,#111827);font:600 14px/1.25 inherit}
+.btg button small{font-weight:500;color:var(--cx-mut,#6b7280);font-size:12px}
+.bth{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cx-mut,#6b7280);margin:10px 0 0}
+.btp{position:fixed;inset:0;z-index:300;background:var(--cx-bg,#f4f5f7);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.btp>header{display:flex;align-items:center;gap:8px;padding:36px 12px 10px;background:var(--cx-card,#fff);border-bottom:1px solid var(--cx-line,#e5e7eb)}
+.btp>header b{flex:1;font-size:17px}
+.btp>main{flex:1;overflow:auto;padding:12px 12px calc(90px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.btk{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.btk div{background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;padding:10px 12px}
+.btk span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cx-mut,#6b7280)}
+.btk b{font-size:19px}
+.btl{background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;overflow:hidden}
+.btl .r{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--cx-line,#eef0f2);cursor:pointer}
+.btl .r:first-child{border-top:0}
+.btl .r .m{flex:1;min-width:0}.btl .r .m b{display:block;font-size:15px}
+.btl .r .m small{color:var(--cx-mut,#6b7280);font-size:12.5px}
+.btl .r .a{text-align:right;font-weight:700;white-space:nowrap}
+.btt{width:100%;border-collapse:collapse;background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);font-size:14px}
+.btt th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--cx-mut,#6b7280);text-align:left;padding:8px 10px;background:var(--cx-soft,#f9fafb);border-bottom:1px solid var(--cx-line,#e5e7eb)}
+.btt td{padding:9px 10px;border-top:1px solid var(--cx-line,#eef0f2)}
+.btt .n{text-align:right;white-space:nowrap}.btt tr.t td{font-weight:800;background:var(--cx-soft,#f3f4f6)}
+.btwrap{overflow-x:auto;border-radius:10px}
+.btf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btf label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--cx-mut,#6b7280)}
+.btf label.w{grid-column:1/-1}
+.btf input,.btf select,.btf textarea{font-size:16px;min-height:44px;padding:8px 10px;border:1px solid var(--cx-line,#d1d5db);border-radius:8px;background:var(--cx-card,#fff);color:var(--cx-ink,#111827)}
+.btact{display:flex;gap:8px;margin-top:14px}.btact button{flex:1;min-height:46px}
+.btpill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid currentColor}
+.btpill.ok{color:#1f8a4c}.btpill.bad{color:#c8102e}.btpill.mid{color:#b45309}
+.btchk label{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 12px;border-top:1px solid var(--cx-line,#eef0f2);font-size:15px}
+.btchk input{width:22px;height:22px}
+.btnote{font-size:12.5px;color:var(--cx-mut,#6b7280);margin:6px 2px 10px}
+.btp~.mdl{z-index:350!important}
+.btadd{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:301;min-height:50px;padding:0 20px;border:0;border-radius:12px;background:#c8102e!important;color:#fff!important;font-weight:700;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+</style>
+<script id="v180js">
+/* ===== v18.0: Business tools — equipment, checklists, floral, power, profit, dues, trends, reconciliation, staff, freelancers, vendors, feedback ===== */
+(function(){
+const BTK='lal_bt';
+const D0={equip:[],chk:{},flo:[],pow:[],rec:{},att:[],fl:[],vr:[],fb:[]};
+const bt=()=>Object.assign({},D0,ls.get(BTK,{}));
+function btSave(b){ls.set(BTK,b);try{gset('biztools',b)}catch(e){}}
+window.btData=bt;
+const R=v=>f2(+v||0);
+const N=v=>+v||0;
+const today=()=>new Date().toISOString().slice(0,10);
+const dl=d=>{if(!d)return'-';const x=new Date(d+'T00:00');if(isNaN(x))return esc(d);return x.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})};
+const uid=()=>'b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const Q=()=>{const a=ls.get('lal_q',{});return Object.keys(a).map(k=>Object.assign({_k:k},a[k]))};
+const qName=k=>{const q=ls.get('lal_q',{})[k];return q?(q.client||'Customer')+(q.etype?' · '+q.etype:''):''};
+const qOpts=(sel,all)=>'<option value="">Select event</option>'+Q().filter(q=>all||q.status!=='Lost').sort((a,b)=>(b.edate||'').localeCompare(a.edate||'')).map(q=>`<option value="${q._k}"${q._k===sel?' selected':''}>${esc((q.client||'Customer')+' · '+(q.etype||'')+' · '+(q.edate||''))}</option>`).join('');
+const qPaid=q=>N(q.paid)||(q.pays||[]).reduce((s,p)=>s+N(p.amt),0)||0;
+const qExp=q=>(q.exps||[]).reduce((s,e)=>s+N(e.amt),0);
+
+/* page shell */
+let pg=null;
+function page(title,html,onAdd,addLbl){if(pg)pg.remove();pg=document.createElement('div');pg.className='btp';pg.innerHTML=`<header><button class="ghost sm" data-bk aria-label="Back">← Back</button><b>${esc(title)}</b></header><main>${html}</main>${onAdd?`<button class="btadd" data-add>＋ ${esc(addLbl||'Add')}</button>`:''}`;document.body.appendChild(pg);pg.querySelector('[data-bk]').onclick=()=>{pg.remove();pg=null};if(onAdd)pg.querySelector('[data-add]').onclick=onAdd;return pg}
+window.btClose=()=>{if(pg){pg.remove();pg=null}};
+
+/* generic form */
+function form(title,fields,rec,onSave,onDel){const f=fields.map(([k,l,t,o])=>{const v=rec[k]??'';const w=(t==='text-w'||t==='area'||t==='q')?' class="w"':'';
+ if(t==='q')return`<label${w}>${l}<select data-f="${k}">${qOpts(v,1)}</select></label>`;
+ if(t==='sel')return`<label${w}>${l}<select data-f="${k}">${o.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}</select></label>`;
+ if(t==='area')return`<label${w}>${l}<textarea data-f="${k}" rows="3">${esc(v)}</textarea></label>`;
+ const ty=t==='num'?'number" inputmode="decimal':t==='date'?'date':t==='time'?'time':t==='tel'?'tel" inputmode="tel':'text';
+ return`<label${w}>${l}<input data-f="${k}" type="${ty}" value="${esc(v)}"${o?` list="${o}"`:''}></label>`}).join('');
+ const d=mdl(title,`<div class="btf">${f}</div><div class="btact">${onDel?'<button class="ghost" data-del>Delete</button>':''}<button class="ghost" data-x>Cancel</button><button data-sv>Save</button></div>`);
+ d.querySelector('[data-sv]').onclick=()=>{const o=Object.assign({},rec);d.querySelectorAll('[data-f]').forEach(i=>{o[i.dataset.f]=i.type==='number'?(i.value===''?'':+i.value):i.value});d.remove();onSave(o);try{haptic('success')}catch(e){}toast('Saved')};
+ if(onDel)d.querySelector('[data-del]').onclick=()=>{d.remove();onDel()};return d}
+function crud(key,title,fields,label,open){return{add:()=>form('Add '+label,fields,{id:uid(),date:today()},o=>{const b=bt();b[key].push(o);btSave(b);open()}),edit:id=>{const b=bt();const r=b[key].find(x=>x.id===id);if(!r)return;form('Edit '+label,fields,r,o=>{const b=bt();b[key]=b[key].map(x=>x.id===id?o:x);btSave(b);open()},()=>askDel('Delete this '+label.toLowerCase()+'?','This entry will be removed from all your phones.',()=>{const b=bt();b[key]=b[key].filter(x=>x.id!==id);btSave(b);open();toast('Deleted')}))}}}
+function bindRows(p,fn){p.querySelectorAll('[data-id]').forEach(r=>r.onclick=()=>fn(r.dataset.id))}
+const kpi=a=>`<div class="btk">${a.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>`;
+const empty=t=>`<div class="btl"><div class="r" style="cursor:default"><div class="m"><small>${t}</small></div></div></div>`;
+const teamNames=()=>{try{return(ls.get('lal_team',[])||[]).map(t=>t.name||t.n||t[0]).filter(Boolean)}catch(e){return[]}};
+const vendNames=()=>{try{const v=ls.get('lal_vend',[]);return(Array.isArray(v)?v:Object.values(v)).map(t=>t.name||t.n||t[0]).filter(Boolean)}catch(e){return[]}};
+function dlist(id,arr){let e=document.getElementById(id);if(!e){e=document.createElement('datalist');e.id=id;document.body.appendChild(e)}e.innerHTML=[...new Set(arr)].map(x=>`<option value="${esc(x)}">`).join('')}
+
+/* 1 Equipment out / return */
+const EQF=[['item','Item','text-w','bteq'],['q','Event','q'],['out','Qty sent','num'],['back','Qty returned','num'],['dmg','Damaged','num'],['dout','Date out','date'],['dback','Date back','date'],['note','Notes','area']];
+function eqOpen(){dlist('bteq',(getCat?getCat():[]).map(c=>c[0]).concat(bt().equip.map(e=>e.item)));const b=bt();const L=b.equip.slice().sort((a,c)=>(c.dout||'').localeCompare(a.dout||''));
+ const st=e=>{const out=N(e.out),bk=N(e.back),dm=N(e.dmg);if(e.back===''||e.back==null)return['Out','mid'];if(bk+dm<out)return['Short '+(out-bk-dm),'bad'];if(dm)return['Damaged '+dm,'bad'];return['Returned','ok']};
+ const outN=L.filter(e=>e.back===''||e.back==null).reduce((s,e)=>s+N(e.out),0),miss=L.reduce((s,e)=>{const m=(e.back===''||e.back==null)?0:Math.max(0,N(e.out)-N(e.back)-N(e.dmg));return s+m},0),dm=L.reduce((s,e)=>s+N(e.dmg),0);
+ const p=page('Equipment out / return',kpi([['Items out now',outN],['Missing',miss],['Damaged',dm]])+(L.length?`<div class="btl">${L.map(e=>{const[s,c]=st(e);return`<div class="r" data-id="${e.id}"><div class="m"><b>${esc(e.item||'Item')}</b><small>${esc(qName(e.q)||'No event')} · out ${dl(e.dout)}</small></div><div class="a">${N(e.out)} <span class="btpill ${c}">${s}</span></div></div>`}).join('')}</div>`:empty('No equipment sent yet. Tap Add when items leave the godown.')),()=>C1.add(),'Send items');bindRows(p,id=>C1.edit(id))}
+const C1=crud('equip','Equipment out / return',EQF,'Entry',eqOpen);
+
+/* 2 Setup & teardown checklist */
+const CKD={setup:['Vehicle loaded and checked against list','Team reached venue on time','Stage / frames fixed and level','Backdrop flex fitted','Flowers and props placed','Lights and LED tested','Wiring taped and safe','Photos of final setup taken','Client checked and approved'],tear:['Client handover done','All flowers and waste cleared','Lights and LED packed','Frames dismantled and counted','Props and cloth counted','Damaged items noted','Venue left clean','Vehicle loaded','Items unloaded at godown']};
+function ckOpen(k){const b=bt();const qs=Q().filter(q=>q.status!=='Lost').sort((a,c)=>(c.edate||'').localeCompare(a.edate||''));
+ if(!k){const p=page('Setup & teardown',`<p class="btnote">Pick a job to open its checklist.</p>`+(qs.length?`<div class="btl">${qs.slice(0,60).map(q=>{const c=b.chk[q._k]||{};const done=Object.values(c).filter(Boolean).length,tot=CKD.setup.length+CKD.tear.length;return`<div class="r" data-id="${q._k}"><div class="m"><b>${esc(q.client||'Customer')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)}</small></div><div class="a">${done}/${tot}</div></div>`}).join('')}</div>`:empty('No jobs yet.')));bindRows(p,id=>ckOpen(id));return}
+ const c=b.chk[k]||{};const sec=(t,a,p)=>`<div class="bth">${t}</div><div class="btl btchk">${a.map((x,i)=>`<label><input type="checkbox" data-c="${p}${i}"${c[p+i]?' checked':''}>${esc(x)}</label>`).join('')}</div>`;
+ const p=page(qName(k)||'Checklist',sec('Setup',CKD.setup,'s')+sec('Teardown',CKD.tear,'t')+`<div class="btact"><button class="ghost" data-r>Clear ticks</button><button data-bkl>Done</button></div>`);
+ p.querySelectorAll('[data-c]').forEach(i=>i.onchange=()=>{const b=bt();b.chk[k]=b.chk[k]||{};b.chk[k][i.dataset.c]=i.checked;btSave(b);try{haptic('tap')}catch(e){}});
+ p.querySelector('[data-r]').onclick=()=>askDel('Clear all ticks?','All ticks for this job will be cleared.',()=>{const b=bt();delete b.chk[k];btSave(b);ckOpen(k)});p.querySelector('[data-bkl]').onclick=()=>ckOpen()}
+
+/* 3 Floral calculator */
+const FLP=[['Stage backdrop flowers','sq ft',380],['Mandap / pillar flowers','sq ft',450],['Entrance arch flowers','sq ft',300],['Garlands','nos',350],['Table centrepiece','nos',1500],['Flower strings (loose)','kg',250],['Petals for welcome','kg',200]];
+function flOpen(id){const b=bt();if(!id){const L=b.flo.slice().reverse();const p=page('Floral calculator',`<p class="btnote">Save flower estimates and share them. Use them while making a quote.</p>`+(L.length?`<div class="btl">${L.map(f=>`<div class="r" data-id="${f.id}"><div class="m"><b>${esc(f.name||'Flower estimate')}</b><small>${(f.rows||[]).length} items · ${dl(f.date)}</small></div><div class="a">${R((f.rows||[]).reduce((s,r)=>s+N(r.q)*N(r.r),0))}</div></div>`).join('')}</div>`:empty('No estimates yet.')),()=>{const b=bt();const f={id:uid(),name:'',date:today(),rows:FLP.slice(0,3).map(x=>({e:x[0],u:x[1],q:'',r:x[2]}))};b.flo.push(f);btSave(b);flOpen(f.id)},'New estimate');bindRows(p,x=>flOpen(x));return}
+ const f=b.flo.find(x=>x.id===id);if(!f)return flOpen();
+ const draw=()=>{const tot=f.rows.reduce((s,r)=>s+N(r.q)*N(r.r),0);return`<label class="btf" style="display:block;margin-bottom:10px"><input data-n value="${esc(f.name)}" placeholder="Name, e.g. Ramesh wedding stage" style="width:100%"></label><div class="btwrap"><table class="btt"><tr><th>Element</th><th>Unit</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Cost</th><th></th></tr>${f.rows.map((r,i)=>`<tr><td><input data-i="${i}" data-k="e" value="${esc(r.e)}" list="btflo" style="width:100%;min-width:120px"></td><td><input data-i="${i}" data-k="u" value="${esc(r.u)}" style="width:56px"></td><td class="n"><input data-i="${i}" data-k="q" type="number" inputmode="decimal" value="${r.q}" style="width:64px"></td><td class="n"><input data-i="${i}" data-k="r" type="number" inputmode="decimal" value="${r.r}" style="width:74px"></td><td class="n">${R(N(r.q)*N(r.r))}</td><td><button class="ghost sm" data-rm="${i}" aria-label="Remove">✕</button></td></tr>`).join('')}<tr class="t"><td colspan="4">Total flowers</td><td class="n">${R(tot)}</td><td></td></tr></table></div><div class="btact"><button class="ghost" data-ad>＋ Add row</button><button class="ghost" data-sh>Share</button><button class="ghost" data-dl>Delete</button></div>`};
+ dlist('btflo',FLP.map(x=>x[0]));const p=page('Floral estimate','<div id="btfl"></div>');const box=p.querySelector('#btfl');
+ const save=()=>{const b=bt();b.flo=b.flo.map(x=>x.id===id?f:x);btSave(b)};
+ const re=()=>{box.innerHTML=draw();box.querySelector('[data-n]').oninput=e=>{f.name=e.target.value;save()};
+  box.querySelectorAll('[data-i]').forEach(i=>i.onchange=()=>{const r=f.rows[+i.dataset.i];r[i.dataset.k]=i.type==='number'?i.value:i.value;if(i.dataset.k==='e'){const m=FLP.find(x=>x[0]===i.value);if(m){r.u=m[1];if(!N(r.r))r.r=m[2]}}save();re()});
+  box.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{f.rows.splice(+x.dataset.rm,1);save();re()});
+  box.querySelector('[data-ad]').onclick=()=>{f.rows.push({e:'',u:'nos',q:'',r:''});save();re()};
+  box.querySelector('[data-sh]').onclick=()=>shareText(`${f.name||'Flower estimate'}\n`+f.rows.filter(r=>r.e).map(r=>`${r.e}: ${r.q||0} ${r.u} × ${R(r.r)} = ${R(N(r.q)*N(r.r))}`).join('\n')+`\nTotal: ${R(f.rows.reduce((s,r)=>s+N(r.q)*N(r.r),0))}`);
+  box.querySelector('[data-dl]').onclick=()=>askDel('Delete this estimate?','The flower estimate will be removed.',()=>{const b=bt();b.flo=b.flo.filter(x=>x.id!==id);btSave(b);flOpen()})};re()}
+
+/* 4 Power load calculator */
+const PWP=[['LED wall (per sq ft)',25],['Sharpy / moving head',330],['LED par',60],['Cold fire machine',700],['Smoke / fog machine',1200],['Sound set (line array)',6000],['Monitor / TV',250],['Cooler',200],['Fan',75],['Halogen / focus light',1000],['Fairy lights (per 10 m)',20],['Air conditioner (1.5 ton)',1800]];
+const DG=[15,20,25,30,40,62.5,82.5,100,125,160,200,250,320];
+function pwOpen(id){const b=bt();if(!id){const L=b.pow.slice().reverse();const p=page('Power load calculator',`<p class="btnote">Add your equipment to see total load and the generator size to book.</p>`+(L.length?`<div class="btl">${L.map(x=>{const kw=(x.rows||[]).reduce((s,r)=>s+N(r.w)*N(r.q),0)/1000;return`<div class="r" data-id="${x.id}"><div class="m"><b>${esc(x.name||'Power plan')}</b><small>${dl(x.date)}</small></div><div class="a">${kw.toFixed(1)} kW</div></div>`}).join('')}</div>`:empty('No power plans yet.')),()=>{const b=bt();const x={id:uid(),name:'',date:today(),rows:[]};b.pow.push(x);btSave(b);pwOpen(x.id)},'New plan');bindRows(p,x=>pwOpen(x));return}
+ const x=b.pow.find(y=>y.id===id);if(!x)return pwOpen();dlist('btpw',PWP.map(y=>y[0]));
+ const p=page('Power load','<div id="btpw2"></div>');const box=p.querySelector('#btpw2');const save=()=>{const b=bt();b.pow=b.pow.map(y=>y.id===id?x:y);btSave(b)};
+ const re=()=>{const w=x.rows.reduce((s,r)=>s+N(r.w)*N(r.q),0),kw=w/1000,kva=kw/0.8,need=kva*1.25,dg=DG.find(d=>d>=need)||Math.ceil(need);
+  box.innerHTML=`<label class="btf" style="display:block;margin-bottom:10px"><input data-n value="${esc(x.name)}" placeholder="Name, e.g. Herbal Life 29 Nov" style="width:100%"></label>`+kpi([['Total load',kw.toFixed(1)+' kW'],['In kVA',kva.toFixed(1)+' kVA'],['Book generator',dg+' kVA']])+`<div class="btwrap"><table class="btt"><tr><th>Equipment</th><th class="n">Watts each</th><th class="n">Qty</th><th class="n">Total W</th><th></th></tr>${x.rows.map((r,i)=>`<tr><td><input data-i="${i}" data-k="e" value="${esc(r.e)}" list="btpw" style="width:100%;min-width:130px"></td><td class="n"><input data-i="${i}" data-k="w" type="number" inputmode="decimal" value="${r.w}" style="width:70px"></td><td class="n"><input data-i="${i}" data-k="q" type="number" inputmode="decimal" value="${r.q}" style="width:60px"></td><td class="n">${(N(r.w)*N(r.q)).toLocaleString('en-IN')}</td><td><button class="ghost sm" data-rm="${i}" aria-label="Remove">✕</button></td></tr>`).join('')}<tr class="t"><td colspan="3">Total watts</td><td class="n">${w.toLocaleString('en-IN')}</td><td></td></tr></table></div><p class="btnote">Generator size includes 25% safety margin. Watts are typical values; change them to match your equipment.</p><div class="btact"><button class="ghost" data-ad>＋ Add equipment</button><button class="ghost" data-sh>Share</button><button class="ghost" data-dl>Delete</button></div>`;
+  box.querySelector('[data-n]').oninput=e=>{x.name=e.target.value;save()};
+  box.querySelectorAll('[data-i]').forEach(i=>i.onchange=()=>{const r=x.rows[+i.dataset.i];r[i.dataset.k]=i.value;if(i.dataset.k==='e'){const m=PWP.find(y=>y[0]===i.value);if(m)r.w=m[1]}save();re()});
+  box.querySelectorAll('[data-rm]').forEach(y=>y.onclick=()=>{x.rows.splice(+y.dataset.rm,1);save();re()});
+  box.querySelector('[data-ad]').onclick=()=>{x.rows.push({e:'',w:'',q:1});save();re()};
+  box.querySelector('[data-sh]').onclick=()=>shareText(`${x.name||'Power plan'}\n`+x.rows.filter(r=>r.e).map(r=>`${r.e}: ${r.q} × ${r.w} W`).join('\n')+`\nTotal load: ${kw.toFixed(1)} kW (${kva.toFixed(1)} kVA)\nGenerator needed: ${dg} kVA`);
+  box.querySelector('[data-dl]').onclick=()=>askDel('Delete this power plan?','The power plan will be removed.',()=>{const b=bt();b.pow=b.pow.filter(y=>y.id!==id);btSave(b);pwOpen()})};
+ if(!x.rows.length){x.rows=[{e:'LED wall (per sq ft)',w:25,q:''},{e:'Sharpy / moving head',w:330,q:''},{e:'Sound set (line array)',w:6000,q:1}];save()}re()}
+
+/* staff cost per event from attendance */
+const attPay=a=>{const h=(()=>{if(!a.tin||!a.tout)return 0;const[x1,y1]=a.tin.split(':').map(Number),[x2,y2]=a.tout.split(':').map(Number);let m=(x2*60+y2)-(x1*60+y1);if(m<0)m+=1440;return m/60})();return{h,gross:N(a.rate)+N(a.ot)*N(a.otr),net:N(a.rate)+N(a.ot)*N(a.otr)-N(a.adv)}};
+const staffCost=k=>bt().att.filter(a=>a.q===k).reduce((s,a)=>s+attPay(a).gross,0);
+
+/* 5 Profit per event */
+function prOpen(){const L=Q().filter(q=>/Confirmed|Completed|Done|Advance/i.test(q.status||'')).sort((a,c)=>(c.edate||'').localeCompare(a.edate||''));
+ const rows=L.map(q=>{const rev=N(q.total),ex=qExp(q),st=staffCost(q._k),pr=rev-ex-st;return{q,rev,ex,st,pr,m:rev?pr/rev*100:0}});
+ const T=rows.reduce((s,r)=>({rev:s.rev+r.rev,ex:s.ex+r.ex,st:s.st+r.st,pr:s.pr+r.pr}),{rev:0,ex:0,st:0,pr:0});
+ page('Profit per event',kpi([['Billed',R(T.rev)],['Costs',R(T.ex+T.st)],['Profit',R(T.pr)],['Margin',(T.rev?(T.pr/T.rev*100).toFixed(1):'0')+'%']])+`<p class="btnote">Costs = expenses saved in each quote + staff pay from Staff attendance.</p>`+(rows.length?`<div class="btwrap"><table class="btt"><tr><th>Event</th><th class="n">Billed</th><th class="n">Expenses</th><th class="n">Staff</th><th class="n">Profit</th><th class="n">Margin</th></tr>${rows.map(r=>`<tr><td><b>${esc(r.q.client||'')}</b><br><small>${esc(r.q.etype||'')} · ${dl(r.q.edate)}</small></td><td class="n">${R(r.rev)}</td><td class="n">${R(r.ex)}</td><td class="n">${R(r.st)}</td><td class="n"><b>${R(r.pr)}</b></td><td class="n"><span class="btpill ${r.m>=30?'ok':r.m>=10?'mid':'bad'}">${r.m.toFixed(0)}%</span></td></tr>`).join('')}<tr class="t"><td>Total</td><td class="n">${R(T.rev)}</td><td class="n">${R(T.ex)}</td><td class="n">${R(T.st)}</td><td class="n">${R(T.pr)}</td><td></td></tr></table></div>`:empty('No confirmed or done events yet.')))}
+
+/* 6 Late payment reminders */
+function duOpen(){const td=today();const L=Q().filter(q=>q.status!=='Lost'&&/Confirmed|Completed|Done|Advance/i.test(q.status||'')).map(q=>({q,bal:N(q.total)-qPaid(q)})).filter(x=>x.bal>0).sort((a,c)=>(a.q.edate||'').localeCompare(c.q.edate||''));
+ const late=L.filter(x=>x.q.edate&&x.q.edate<td),up=L.filter(x=>!(x.q.edate&&x.q.edate<td));
+ const days=d=>Math.round((new Date(td)-new Date(d))/864e5);
+ const row=x=>`<div class="r" data-id="${x.q._k}"><div class="m"><b>${esc(x.q.client||'Customer')}</b><small>${esc(x.q.etype||'')} · ${dl(x.q.edate)}${x.q.edate&&x.q.edate<td?` · <span style="color:#c8102e">${days(x.q.edate)} days after event</span>`:''}</small></div><div class="a">${R(x.bal)}<br><button class="ghost sm" data-wa="${x.q._k}">WhatsApp</button></div></div>`;
+ const p=page('Payment reminders',kpi([['Overdue',R(late.reduce((s,x)=>s+x.bal,0))],['Overdue customers',late.length],['Due for upcoming',R(up.reduce((s,x)=>s+x.bal,0))]])+`<div class="bth">Event over, balance pending</div>`+(late.length?`<div class="btl">${late.map(row).join('')}</div>`:empty('Nothing overdue.'))+`<div class="bth">Upcoming events with balance</div>`+(up.length?`<div class="btl">${up.map(row).join('')}</div>`:empty('No upcoming balances.')));
+ p.querySelectorAll('[data-wa]').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=L.find(y=>y.q._k===b.dataset.wa);const q=x.q;const t=`Namaste ${q.client||''} garu,\nThank you for choosing ${bizN()}.\nGentle reminder: balance of ${R(x.bal)} is pending for your ${q.etype||'event'}${q.edate?' on '+dl(q.edate):''}.\nTotal ${R(q.total)} · Paid ${R(qPaid(q))}.\nKindly pay at your convenience. Thank you.`;if(q.phone)waGo(q.phone,t);else shareText(t)});
+ bindRows(p,k=>{try{btClose();openQ?openQ(k):null}catch(e){}})}
+
+/* 7 Monthly trends */
+function trOpen(){const all=Q();const by={};all.forEach(q=>{const m=(q.edate||q.date||'').slice(0,7);if(!m)return;const o=by[m]=by[m]||{n:0,won:0,lost:0,rev:0};o.n++;if(q.status==='Lost')o.lost++;else if(/Confirmed|Completed|Done|Advance/i.test(q.status||'')){o.won++;o.rev+=N(q.total)}});
+ const ms=Object.keys(by).sort().reverse().slice(0,18);const mx=Math.max(1,...ms.map(m=>by[m].rev));const ml=m=>new Date(m+'-01T00:00').toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+ const tw=ms.reduce((s,m)=>s+by[m].won,0),tn=ms.reduce((s,m)=>s+by[m].n,0),trv=ms.reduce((s,m)=>s+by[m].rev,0);
+ page('Monthly trends',kpi([['Enquiries',tn],['Booked',tw],['Conversion',(tn?(tw/tn*100).toFixed(0):0)+'%'],['Avg booking',R(tw?trv/tw:0)]])+(ms.length?`<div class="btwrap"><table class="btt"><tr><th>Month</th><th class="n">Enquiries</th><th class="n">Booked</th><th class="n">Lost</th><th class="n">Revenue</th><th class="n">Avg</th><th style="width:30%"></th></tr>${ms.map(m=>{const o=by[m];return`<tr><td>${ml(m)}</td><td class="n">${o.n}</td><td class="n">${o.won}</td><td class="n">${o.lost}</td><td class="n">${R(o.rev)}</td><td class="n">${R(o.won?o.rev/o.won:0)}</td><td><div style="height:10px;border-radius:3px;background:#c8102e;width:${(o.rev/mx*100).toFixed(0)}%"></div></td></tr>`}).join('')}</table></div><p class="btnote">Grouped by event date. Booked = Confirmed or Done.</p>`:empty('No quotes yet.')))}
+
+/* 8 Final reconciliation */
+function rcOpen(k){if(!k){const L=Q().filter(q=>/Confirmed|Completed|Done|Advance/i.test(q.status||'')).sort((a,c)=>(c.edate||'').localeCompare(a.edate||''));const b=bt();
+ const p=page('Final reconciliation',`<p class="btnote">After the event, add what changed (extra items, items not used, power bill) to get the final bill.</p>`+(L.length?`<div class="btl">${L.map(q=>{const r=b.rec[q._k];const fin=N(q.total)+(r?r.adj.reduce((s,a)=>s+N(a.amt),0):0);return`<div class="r" data-id="${q._k}"><div class="m"><b>${esc(q.client||'')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)} ${r&&r.closed?'<span class="btpill ok">Closed</span>':''}</small></div><div class="a">${R(fin)}</div></div>`}).join('')}</div>`:empty('No confirmed events yet.')));bindRows(p,x=>rcOpen(x));return}
+ const q=ls.get('lal_q',{})[k];if(!q)return rcOpen();const b=bt();const r=b.rec[k]=b.rec[k]||{adj:[],closed:false};
+ const p=page('Reconcile · '+(q.client||''),'<div id="btrc"></div>');const box=p.querySelector('#btrc');const save=()=>{const b=bt();b.rec[k]=r;btSave(b)};
+ const re=()=>{const adj=r.adj.reduce((s,a)=>s+N(a.amt),0),fin=N(q.total)+adj,pd=qPaid(q),ex=qExp(q)+staffCost(k);
+  box.innerHTML=kpi([['Quoted',R(q.total)],['Changes',R(adj)],['Final bill',R(fin)],['Paid',R(pd)],['Balance',R(fin-pd)],['Profit',R(fin-ex)]])+`<div class="bth">Changes after the event</div><div class="btwrap"><table class="btt"><tr><th>What changed</th><th class="n">Amount (+ / −)</th><th></th></tr>${r.adj.map((a,i)=>`<tr><td><input data-i="${i}" data-k="what" value="${esc(a.what)}" placeholder="e.g. Extra 100 chairs / Power bill" style="width:100%;min-width:150px"></td><td class="n"><input data-i="${i}" data-k="amt" type="number" inputmode="decimal" value="${a.amt}" style="width:100px"></td><td><button class="ghost sm" data-rm="${i}" aria-label="Remove">✕</button></td></tr>`).join('')||'<tr><td colspan="3" class="btnote">No changes. Add a line if something was added or not used. Use minus for items not used.</td></tr>'}</table></div><div class="btact"><button class="ghost" data-ad>＋ Add change</button><button class="ghost" data-sh>Share final bill</button><button data-cl>${r.closed?'Reopen':'Mark closed'}</button></div>`;
+  box.querySelectorAll('[data-i]').forEach(i=>i.onchange=()=>{r.adj[+i.dataset.i][i.dataset.k]=i.dataset.k==='amt'?+i.value||0:i.value;save();re()});
+  box.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{r.adj.splice(+x.dataset.rm,1);save();re()});
+  box.querySelector('[data-ad]').onclick=()=>{r.adj.push({what:'',amt:0});save();re()};
+  box.querySelector('[data-cl]').onclick=()=>{r.closed=!r.closed;save();re();toast(r.closed?'Marked closed':'Reopened')};
+  box.querySelector('[data-sh]').onclick=()=>{const t=`Final bill – ${q.client||''} (${q.etype||''}${q.edate?', '+dl(q.edate):''})\nQuoted: ${R(q.total)}\n`+r.adj.filter(a=>a.what||a.amt).map(a=>`${a.what||'Change'}: ${N(a.amt)<0?'−':'+'}${R(Math.abs(N(a.amt)))}`).join('\n')+`\nFinal bill: ${R(fin)}\nPaid: ${R(pd)}\nBalance: ${R(fin-pd)}\n– ${bizN()}`;if(q.phone)waGo(q.phone,t);else shareText(t)}};re()}
+
+/* 9 Staff attendance & pay */
+const ATF=[['name','Staff name','text-w','btstaff'],['q','Event','q'],['date','Date','date'],['tin','Check-in','time'],['tout','Check-out','time'],['rate','Day pay (₹)','num'],['ot','Overtime hours','num'],['otr','OT rate ₹/hour','num'],['adv','Advance paid (₹)','num'],['paid','Paid?','sel',['No','Yes']]];
+function atOpen(){dlist('btstaff',teamNames().concat(bt().fl.map(f=>f.name)).concat(bt().att.map(a=>a.name)));const b=bt();const L=b.att.slice().sort((a,c)=>(c.date||'').localeCompare(a.date||''));
+ const per={};L.filter(a=>a.paid!=='Yes').forEach(a=>{per[a.name]=(per[a.name]||0)+attPay(a).net});
+ const pend=Object.entries(per).filter(x=>x[1]>0).sort((a,c)=>c[1]-a[1]);
+ const p=page('Staff attendance & pay',kpi([['Entries',L.length],['Pay pending',R(pend.reduce((s,x)=>s+x[1],0))],['Staff to pay',pend.length]])+(pend.length?`<div class="bth">Pending pay by person</div><div class="btl">${pend.map(([n,v])=>`<div class="r" style="cursor:default"><div class="m"><b>${esc(n)}</b></div><div class="a">${R(v)}</div></div>`).join('')}</div>`:'')+`<div class="bth">All entries</div>`+(L.length?`<div class="btl">${L.map(a=>{const x=attPay(a);return`<div class="r" data-id="${a.id}"><div class="m"><b>${esc(a.name||'Staff')}</b><small>${esc(qName(a.q)||'')} · ${dl(a.date)}${a.tin?' · '+a.tin+'–'+(a.tout||'')+(x.h?` (${x.h.toFixed(1)} h)`:''):''}</small></div><div class="a">${R(x.net)} <span class="btpill ${a.paid==='Yes'?'ok':'mid'}">${a.paid==='Yes'?'Paid':'Due'}</span></div></div>`}).join('')}</div>`:empty('No attendance yet. Tap Add when staff reach the event.')),()=>C9.add(),'Add attendance');bindRows(p,id=>C9.edit(id))}
+const C9=crud('att','Staff attendance',ATF,'Attendance',atOpen);
+
+/* 10 Freelancer list */
+const FLF=[['name','Name','text-w'],['skill','Skill / work','text',null],['phone','Phone','tel'],['city','Area / city','text'],['rate','Rate per day (₹)','num'],['rating','Rating','sel',['5','4','3','2','1']],['pref','Preferred?','sel',['Yes','No']],['note','Notes','area']];
+function frOpen(){const b=bt();const L=b.fl.slice().sort((a,c)=>(c.pref==='Yes')-(a.pref==='Yes')||N(c.rating)-N(a.rating));
+ const p=page('Freelancers',(L.length?`<div class="btl">${L.map(f=>`<div class="r" data-id="${f.id}"><div class="m"><b>${esc(f.name||'')}${f.pref==='Yes'?' <span class="btpill ok">Preferred</span>':''}</b><small>${esc(f.skill||'')}${f.city?' · '+esc(f.city):''} · ${'★'.repeat(N(f.rating)||0)}</small></div><div class="a">${f.rate?R(f.rate)+'/day':''}${f.phone?`<br><a class="ghost sm" href="tel:${esc(f.phone)}" onclick="event.stopPropagation()">Call</a> <button class="ghost sm" data-wa="${esc(f.phone)}">WhatsApp</button>`:''}</div></div>`).join('')}</div>`:empty('No freelancers yet. Add helpers, florists, electricians and drivers you hire.')),()=>C10.add(),'Add freelancer');
+ p.querySelectorAll('[data-wa]').forEach(x=>x.onclick=e=>{e.stopPropagation();waGo(x.dataset.wa,'Namaste')});bindRows(p,id=>C10.edit(id))}
+const C10=crud('fl','Freelancers',FLF,'Freelancer',frOpen);
+
+/* 11 Vendor rating */
+const VRF=[['name','Vendor','text-w','btvend'],['cat','What they supply','text'],['q','Event','q'],['qual','Quality (1-5)','sel',['5','4','3','2','1']],['time','On time (1-5)','sel',['5','4','3','2','1']],['price','Price (1-5)','sel',['5','4','3','2','1']],['tier','Status','sel',['Preferred','OK','Do not rehire']],['note','Notes','area']];
+function vrOpen(){dlist('btvend',vendNames().concat(bt().vr.map(v=>v.name)));const b=bt();const by={};b.vr.forEach(v=>{const k=(v.name||'').trim();if(!k)return;const o=by[k]=by[k]||{n:0,s:0,cat:v.cat,tier:v.tier,last:v};o.n++;o.s+=(N(v.qual)+N(v.time)+N(v.price))/3;if((v.date||'')>=(o.last.date||'')){o.tier=v.tier;o.last=v;o.cat=v.cat||o.cat}});
+ const V=Object.entries(by).sort((a,c)=>c[1].s/c[1].n-a[1].s/a[1].n);const cls=t=>t==='Preferred'?'ok':t==='Do not rehire'?'bad':'mid';
+ const p=page('Vendor rating',kpi([['Vendors rated',V.length],['Preferred',V.filter(v=>v[1].tier==='Preferred').length],['Do not rehire',V.filter(v=>v[1].tier==='Do not rehire').length]])+(V.length?`<div class="bth">Vendors</div><div class="btl">${V.map(([n,o])=>`<div class="r" data-id="${o.last.id}"><div class="m"><b>${esc(n)}</b><small>${esc(o.cat||'')} · ${o.n} rating${o.n>1?'s':''}</small></div><div class="a">${(o.s/o.n).toFixed(1)} ★ <span class="btpill ${cls(o.tier)}">${esc(o.tier||'OK')}</span></div></div>`).join('')}</div>`:empty('No vendor ratings yet. Rate a vendor after each event.')),()=>C11.add(),'Rate vendor');bindRows(p,id=>C11.edit(id))}
+const C11=crud('vr','Vendor rating',VRF,'Rating',vrOpen);
+
+/* 12 Client feedback */
+const FBF=[['q','Event','q'],['dec','Decor quality (1-5)','sel',['5','4','3','2','1']],['team','Team behaviour (1-5)','sel',['5','4','3','2','1']],['val','Value for money (1-5)','sel',['5','4','3','2','1']],['nps','Would recommend (0-10)','sel',['10','9','8','7','6','5','4','3','2','1','0']],['note','Comments','area']];
+function fbOpen(){const b=bt();const L=b.fb.slice().reverse();const nps=L.length?Math.round((L.filter(f=>N(f.nps)>=9).length-L.filter(f=>N(f.nps)<=6).length)/L.length*100):0;const avg=k=>L.length?(L.reduce((s,f)=>s+N(f[k]),0)/L.length).toFixed(1):'-';
+ const done=new Set(L.map(f=>f.q));const ask=Q().filter(q=>/Completed|Done/i.test(q.status||'')&&!done.has(q._k)).slice(0,10);
+ const p=page('Client feedback',kpi([['Feedback',L.length],['Decor',avg('dec')+' ★'],['Team',avg('team')+' ★'],['Value',avg('val')+' ★'],['NPS',nps]])+(ask.length?`<div class="bth">Ask for feedback</div><div class="btl">${ask.map(q=>`<div class="r" style="cursor:default"><div class="m"><b>${esc(q.client||'')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)}</small></div><div class="a"><button class="ghost sm" data-ask="${q._k}">Ask on WhatsApp</button></div></div>`).join('')}</div>`:'')+`<div class="bth">Received</div>`+(L.length?`<div class="btl">${L.map(f=>`<div class="r" data-id="${f.id}"><div class="m"><b>${esc(qName(f.q)||'Client')}</b><small>${esc((f.note||'').slice(0,80))}</small></div><div class="a">${((N(f.dec)+N(f.team)+N(f.val))/3).toFixed(1)} ★<br><span class="btpill ${N(f.nps)>=9?'ok':N(f.nps)>=7?'mid':'bad'}">${f.nps}/10</span></div></div>`).join('')}</div>`:empty('No feedback yet. Ask customers after the event and save their answers here.')),()=>C12.add(),'Add feedback');
+ p.querySelectorAll('[data-ask]').forEach(x=>x.onclick=()=>{const q=ls.get('lal_q',{})[x.dataset.ask];const t=`Namaste ${q.client||''} garu,\nThank you for choosing ${bizN()} for your ${q.etype||'event'}.\nPlease reply with your rating (1 to 5):\n1. Decor quality\n2. Team behaviour\n3. Value for money\nAnd from 0 to 10, how likely are you to recommend us?\nYour feedback helps us a lot. Thank you!`;if(q.phone)waGo(q.phone,t);else shareText(t)});bindRows(p,id=>C12.edit(id))}
+const C12=crud('fb','Client feedback',FBF,'Feedback',fbOpen);
+
+/* hub */
+const TOOLS=[['Decor & equipment',[['Equipment out / return','Items sent, returned, damaged',eqOpen],['Setup & teardown','Job checklist',()=>ckOpen()],['Floral calculator','Flowers cost estimate',()=>flOpen()],['Power load','Generator size',()=>pwOpen()]]],
+ ['Money',[['Profit per event','Billed − costs, margin',prOpen],['Payment reminders','Pending balances',duOpen],['Monthly trends','Bookings and revenue',trOpen],['Final reconciliation','After-event final bill',()=>rcOpen()]]],
+ ['Team & clients',[['Staff attendance & pay','Check-in, pay due',atOpen],['Freelancers','Helpers you hire',frOpen],['Vendor rating','Preferred or do not rehire',vrOpen],['Client feedback','Ratings and NPS',fbOpen]]]];
+window.btTools=TOOLS;
+function hubHtml(){return`<div class="card btcard" id="bthub"><div class="ch"><h2>Business tools</h2></div>${TOOLS.map(([g,a],gi)=>`<div class="bth">${g}</div><div class="btg">${a.map(([t,s],i)=>`<button data-bt="${gi}.${i}">${t}<small>${s}</small></button>`).join('')}</div>`).join('')}</div>`}
+function hubMount(){const sec=document.getElementById('t-rep');if(!sec||document.getElementById('bthub'))return;sec.insertAdjacentHTML('afterbegin',hubHtml());sec.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{const[g,i]=b.dataset.bt.split('.').map(Number);try{haptic('tap')}catch(e){}TOOLS[g][1][i][2]()})}
+window.btOpen=name=>{for(const[,a]of TOOLS)for(const t of a)if(t[0].toLowerCase().includes(String(name).toLowerCase()))return t[2]()};
+hubMount();
+const ot=window.tab;window.tab=function(t){btClose();const r=ot.apply(this,arguments);if(t==='rep')hubMount();return r};
+/* sync back from the Sheet */
+(function(){const of=window.fetch.bind(window);window.fetch=async function(u,o){const res=await of(u,o);try{if(typeof u==='string'&&G.url&&u.startsWith(G.url)&&u.includes('?key=')&&(!o||!o.method||o.method==='GET')){res.clone().json().then(j=>{const st=j&&j.settings&&j.settings.biztools;if(st&&+st.at>ls.get('lal_set_at_biztools',0)){ls.set(BTK,st.value);ls.set('lal_set_at_biztools',+st.at)}}).catch(()=>{})}}catch(e){}return res}})();
+})();
+</script>
+
 </body></html>
