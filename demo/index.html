@@ -2124,7 +2124,7 @@ gset('config',ls.get('lal_cfg',{}));gset('business',ls.get('lal_b',{}));const bb
 lockSetup();
 const _stab=stab;stab=function(t){document.querySelectorAll('.card.editing').forEach(c=>lkSave(c.querySelector('.lk-s'),1));_stab(t)};
 
-const APP_VERSION='18.1';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
+const APP_VERSION='18.2';const APP_DATE='30 Oct 2026';document.querySelectorAll('.appver').forEach(e=>e.textContent='v'+APP_VERSION+' ('+APP_DATE+')');document.querySelectorAll('.appvs').forEach(e=>e.textContent='v'+APP_VERSION);
 
 function ssPick(sel){const p=sel.value;if(!p)return;$('ssp').value=p;const n=sel.options[sel.selectedIndex].text.split(' – ')[0];const m=$('ssm');
 if(ssName&&m.value.includes(ssName))m.value=m.value.replace(ssName,n);ssName=n;if(window._ssPrev&&window._ssPrev.fb){window._ssPrev.name=n;ssRefresh()}}
@@ -6142,7 +6142,7 @@ const qExp=q=>(q.exps||[]).reduce((s,e)=>s+N(e.amt),0);
 
 /* page shell */
 let pg=null;
-function page(title,html,onAdd,addLbl){if(pg)pg.remove();pg=document.createElement('div');pg.className='btp';pg.innerHTML=`<header><button class="ghost sm" data-bk aria-label="Back">← Back</button><b>${esc(title)}</b></header><main>${html}</main>${onAdd?`<button class="btadd" data-add>＋ ${esc(addLbl||'Add')}</button>`:''}`;document.body.appendChild(pg);pg.querySelector('[data-bk]').onclick=()=>{pg.remove();pg=null};if(onAdd)pg.querySelector('[data-add]').onclick=onAdd;return pg}
+function page(title,html,onAdd,addLbl){if(pg)pg.remove();pg=document.createElement('div');pg.className='btp';pg.innerHTML=`<header><button class="ghost sm" data-bk aria-label="Back">← Back</button><b>${esc(title)}</b><button class="ghost sm" data-prt aria-label="Print">Print</button><button class="ghost sm" data-csv aria-label="Download CSV">CSV</button></header><main>${html}</main>${onAdd?`<button class="btadd" data-add>＋ ${esc(addLbl||'Add')}</button>`:''}`;document.body.appendChild(pg);pg.querySelector('[data-bk]').onclick=()=>{pg.remove();pg=null};if(onAdd)pg.querySelector('[data-add]').onclick=onAdd;pg.querySelector('[data-prt]').onclick=()=>window.btPrint&&btPrint(title,pg.querySelector('main'));pg.querySelector('[data-csv]').onclick=()=>window.btCSV&&btCSV(title,pg.querySelector('main'));return pg}
 window.btClose=()=>{if(pg){pg.remove();pg=null}};
 
 /* generic form */
@@ -6260,14 +6260,14 @@ const C9=crud('att','Staff attendance',ATF,'Attendance',atOpen);
 const FLF=[['name','Name','text-w'],['skill','Skill / work','text',null],['phone','Phone','tel'],['city','Area / city','text'],['rate','Rate per day (₹)','num'],['rating','Rating','sel',['5','4','3','2','1']],['pref','Preferred?','sel',['Yes','No']],['note','Notes','area']];
 function frOpen(){const b=bt();const L=b.fl.slice().sort((a,c)=>(c.pref==='Yes')-(a.pref==='Yes')||N(c.rating)-N(a.rating));
  const p=page('Freelancers',(L.length?`<div class="btl">${L.map(f=>`<div class="r" data-id="${f.id}"><div class="m"><b>${esc(f.name||'')}${f.pref==='Yes'?' <span class="btpill ok">Preferred</span>':''}</b><small>${esc(f.skill||'')}${f.city?' · '+esc(f.city):''} · ${'★'.repeat(N(f.rating)||0)}</small></div><div class="a">${f.rate?R(f.rate)+'/day':''}${f.phone?`<br><a class="ghost sm" href="tel:${esc(f.phone)}" onclick="event.stopPropagation()">Call</a> <button class="ghost sm" data-wa="${esc(f.phone)}">WhatsApp</button>`:''}</div></div>`).join('')}</div>`:empty('No freelancers yet. Add helpers, florists, electricians and drivers you hire.')),()=>C10.add(),'Add freelancer');
- p.querySelectorAll('[data-wa]').forEach(x=>x.onclick=e=>{e.stopPropagation();waGo(x.dataset.wa,'Namaste')});bindRows(p,id=>C10.edit(id))}
+ p.querySelectorAll('[data-wa]').forEach(x=>x.onclick=e=>{e.stopPropagation();waGo(x.dataset.wa,'Namaste')});bindRows(p,id=>window.btCard?btCard('fl',id,()=>C10.edit(id)):C10.edit(id))}
 const C10=crud('fl','Freelancers',FLF,'Freelancer',frOpen);
 
 /* 11 Vendor rating */
 const VRF=[['name','Vendor','text-w','btvend'],['cat','What they supply','text'],['q','Event','q'],['qual','Quality (1-5)','sel',['5','4','3','2','1']],['time','On time (1-5)','sel',['5','4','3','2','1']],['price','Price (1-5)','sel',['5','4','3','2','1']],['tier','Status','sel',['Preferred','OK','Do not rehire']],['note','Notes','area']];
 function vrOpen(){dlist('btvend',vendNames().concat(bt().vr.map(v=>v.name)));const b=bt();const by={};b.vr.forEach(v=>{const k=(v.name||'').trim();if(!k)return;const o=by[k]=by[k]||{n:0,s:0,cat:v.cat,tier:v.tier,last:v};o.n++;o.s+=(N(v.qual)+N(v.time)+N(v.price))/3;if((v.date||'')>=(o.last.date||'')){o.tier=v.tier;o.last=v;o.cat=v.cat||o.cat}});
  const V=Object.entries(by).sort((a,c)=>c[1].s/c[1].n-a[1].s/a[1].n);const cls=t=>t==='Preferred'?'ok':t==='Do not rehire'?'bad':'mid';
- const p=page('Vendor rating',kpi([['Vendors rated',V.length],['Preferred',V.filter(v=>v[1].tier==='Preferred').length],['Do not rehire',V.filter(v=>v[1].tier==='Do not rehire').length]])+(V.length?`<div class="bth">Vendors</div><div class="btl">${V.map(([n,o])=>`<div class="r" data-id="${o.last.id}"><div class="m"><b>${esc(n)}</b><small>${esc(o.cat||'')} · ${o.n} rating${o.n>1?'s':''}</small></div><div class="a">${(o.s/o.n).toFixed(1)} ★ <span class="btpill ${cls(o.tier)}">${esc(o.tier||'OK')}</span></div></div>`).join('')}</div>`:empty('No vendor ratings yet. Rate a vendor after each event.')),()=>C11.add(),'Rate vendor');bindRows(p,id=>C11.edit(id))}
+ const p=page('Vendor rating',kpi([['Vendors rated',V.length],['Preferred',V.filter(v=>v[1].tier==='Preferred').length],['Do not rehire',V.filter(v=>v[1].tier==='Do not rehire').length]])+(V.length?`<div class="bth">Vendors</div><div class="btl">${V.map(([n,o])=>`<div class="r" data-id="${o.last.id}"><div class="m"><b>${esc(n)}</b><small>${esc(o.cat||'')} · ${o.n} rating${o.n>1?'s':''}</small></div><div class="a">${(o.s/o.n).toFixed(1)} ★ <span class="btpill ${cls(o.tier)}">${esc(o.tier||'OK')}</span></div></div>`).join('')}</div>`:empty('No vendor ratings yet. Rate a vendor after each event.')),()=>C11.add(),'Rate vendor');bindRows(p,id=>window.btCard?btCard('vr',id,()=>C11.edit(id)):C11.edit(id))}
 const C11=crud('vr','Vendor rating',VRF,'Rating',vrOpen);
 
 /* 12 Client feedback */
@@ -6325,14 +6325,14 @@ function paOpen(k){const b=bt();b.pal=b.pal||{};if(!k){const qs=Q().filter(won).
 
 /* 3 Decor ideas from venue photo (free Gemini via your Sheet) */
 function aiOpen(){const p=page('Decor ideas from photo',`<p class="btnote">Upload a photo of the hall or stage. AI suggests a decor plan, colours and an item list you can add to a quote.</p><div class="btf"><label class="w">Event<select id="btaq">${qOpts('',0)}</select></label><label class="w">Theme / what the customer wants<input id="btat" placeholder="e.g. traditional South Indian wedding, red & gold, 300 guests"></label></div><div class="btact"><button data-ph>Choose venue photo</button></div><div id="btar"></div>`);
- let img=null;p.querySelector('[data-ph]').onclick=async()=>{try{img=await pickImg()}catch(e){img=null}if(!img)return;const box=p.querySelector('#btar');const src=typeof img==='string'?img:(img.data?('data:'+(img.mime||'image/jpeg')+';base64,'+img.data):'');box.innerHTML=(src?`<img class="btimg" src="${src}" alt="Venue photo">`:'')+'<div class="btai">Looking at the venue…</div>';
+ let img=null;p.querySelector('[data-ph]').onclick=async()=>{try{img=await pickImg()}catch(e){img=null}if(!img)return;const box=p.querySelector('#btar');const src=typeof img==='string'?img:(img.data?('data:'+(img.mime||'image/jpeg')+';base64,'+img.data):'');box.innerHTML=(src?`<img class="btimg" src="${src}" alt="Venue photo">`:'')+'<div class="btai" data-prog></div>';try{btProg(box.querySelector('[data-prog]'))}catch(e){}
   const k=p.querySelector('#btaq').value,q=k?ls.get('lal_q',{})[k]:null,th=p.querySelector('#btat').value;const cat=((typeof getCat==='function'?getCat():[])||[]).slice(0,150).map(c=>({n:c[0],size:c[1],rate:+c[2]||0}));
   try{const r=await aiAsk(`You are an expert Indian event decorator. Look at this venue photo. Event: ${q?(q.etype||'')+' for '+(q.client||''):'event'}. Customer wish: ${th||'not given'}. Suggest a practical decor plan for this exact space. Use my catalog names and rates where they fit: ${JSON.stringify(cat)}. Reply JSON only: {"space":"one line about the venue (size, ceiling, light)","concept":"2-3 sentence decor concept","palette":["#hex",5 colours],"zones":[{"zone":"Stage","idea":"short"}],"items":[{"name":"","size":"","qty":1,"rate":0}],"tips":["short practical tip"]}`,typeof AISYS!=='undefined'?AISYS:'',1,[img]);
    const items=(r.items||[]).filter(x=>x&&x.name);const tot=items.reduce((s,x)=>s+N(x.qty)*N(x.rate),0);
    box.innerHTML=(src?`<img class="btimg" src="${src}" alt="Venue photo">`:'')+`<div class="btai"><b>${esc(r.space||'')}</b><p style="margin:6px 0">${esc(r.concept||'')}</p>${(r.palette||[]).length?sw(r.palette.slice(0,5)):''}</div>`+((r.zones||[]).length?`<div class="bth">Zone by zone</div><div class="btl">${r.zones.map(z=>`<div class="r" style="cursor:default"><div class="m"><b>${esc(z.zone)}</b><small>${esc(z.idea)}</small></div></div>`).join('')}</div>`:'')+(items.length?`<div class="bth">Suggested items</div><div class="btwrap"><table class="btt"><tr><th></th><th>Item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr>${items.map((x,i)=>`<tr><td><input type="checkbox" data-it="${i}" checked></td><td>${esc(x.name)}${x.size?'<br><small>'+esc(x.size)+'</small>':''}</td><td class="n">${N(x.qty)}</td><td class="n">${R(x.rate)}</td><td class="n">${R(N(x.qty)*N(x.rate))}</td></tr>`).join('')}<tr class="t"><td></td><td colspan="3">Estimated total</td><td class="n">${R(tot)}</td></tr></table></div>`:'')+((r.tips||[]).length?`<div class="bth">Tips</div><div class="btai">${r.tips.map(t=>'• '+esc(t)).join('<br>')}</div>`:'')+`<div class="btact">${k&&items.length?'<button data-addq>Add ticked items to quote</button>':''}${k&&(r.palette||[]).length?'<button class="ghost" data-pal>Save colours to job</button>':''}</div>${!k?'<p class="btnote">Pick an event above to add these items to its quote.</p>':''}`;
-   const aq=box.querySelector('[data-addq]');if(aq)aq.onclick=()=>{const pick=[...box.querySelectorAll('[data-it]')].filter(c=>c.checked).map(c=>items[+c.dataset.it]);if(!pick.length)return toast('Tick at least one item');qUpd(k,o=>{o.rows=o.rows||[];o.rows.push({name:'Decor ideas (from photo)',uom:'',qty:1,days:1,rate:0,sec:1});pick.forEach(x=>o.rows.push({name:x.name,size:x.size||'',uom:'',qty:N(x.qty)||1,days:1,rate:N(x.rate),desc:'',amount:(N(x.qty)||1)*N(x.rate)}));o.total=o.rows.reduce((s,r)=>s+(r.sec?0:N(r.amount)),0)});try{haptic('success')}catch(e){}toast(pick.length+' items added to the quote')};
+   try{btTabify(box)}catch(e){}const aq=box.querySelector('[data-addq]');if(aq)aq.onclick=()=>{const pick=[...box.querySelectorAll('[data-it]')].filter(c=>c.checked).map(c=>items[+c.dataset.it]);if(!pick.length)return toast('Tick at least one item');qUpd(k,o=>{o.rows=o.rows||[];o.rows.push({name:'Decor ideas (from photo)',uom:'',qty:1,days:1,rate:0,sec:1});pick.forEach(x=>o.rows.push({name:x.name,size:x.size||'',uom:'',qty:N(x.qty)||1,days:1,rate:N(x.rate),desc:'',amount:(N(x.qty)||1)*N(x.rate)}));o.total=o.rows.reduce((s,r)=>s+(r.sec?0:N(r.amount)),0)});try{haptic('success')}catch(e){}toast(pick.length+' items added to the quote')};
    const ap=box.querySelector('[data-pal]');if(ap)ap.onclick=()=>{const b=bt();b.pal=b.pal||{};b.pal[k]={n:'From photo',c:r.palette.slice(0,5)};btSave(b);toast('Colours saved to job')};
-  }catch(e){box.querySelector('.btai:last-child').textContent='Could not get ideas: '+(e.message||e)}}}
+  }catch(e){(box.querySelector('[data-prog]')||box).textContent='Could not get ideas: '+(e.message||e)}}}
 
 /* 4 Customer event page */
 const b64=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -6351,6 +6351,153 @@ window.btEventLink=cpLink;
 
 const G2=['Planning',[['Item clashes','Same item, same day',clOpen],['Decor ideas from photo','AI plan + item list',aiOpen],['Colour palette','Theme colours per job',()=>paOpen()],['Customer event page','One link for the customer',()=>cpOpen()]]];
 if(!btTools.some(g=>g[0]==='Planning'))btTools.unshift(G2);btHub();
+})();
+</script>
+
+<style id="v182">
+html.acc-anim *{transition:background-color .35s ease,color .35s ease,border-color .35s ease!important}
+.btcnt{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.btcnt button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;min-height:64px;border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;background:var(--cx-card,#fff);color:var(--cx-ink,#111827);text-align:left}
+.btcnt span{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cx-mut,#6b7280)}
+.btcnt b{font-size:18px;line-height:1.2}
+@media(max-width:520px){.btcnt{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.btsheet{position:fixed;inset:0;z-index:360;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;animation:btfade .2s}
+.btsheet>div{width:100%;max-width:520px;background:var(--cx-card,#fff);color:var(--cx-ink,#111827);border-radius:16px 16px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));animation:btup .25s ease}
+.btsheet .grab{width:40px;height:5px;border-radius:3px;background:var(--cx-line,#d1d5db);margin:4px auto 12px}
+.btsheet .av{width:56px;height:56px;border-radius:50%;background:#c8102e;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
+.btsheet .top{display:flex;gap:12px;align-items:center}.btsheet h3{margin:0;font-size:19px}
+.btsheet dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0;font-size:14.5px}.btsheet dt{color:var(--cx-mut,#6b7280)}.btsheet dd{margin:0;font-weight:600}
+.btp .btact button:not(.ghost),.btsheet [data-e],.btp .btai .btact button:not(.ghost){background:#c8102e!important;color:#fff!important;border-color:#c8102e!important}
+.btsheet .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.btsheet .acts a,.btsheet .acts button{min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-weight:700;text-decoration:none}
+@keyframes btup{from{transform:translateY(100%)}to{transform:none}}@keyframes btfade{from{opacity:0}to{opacity:1}}
+.bttabs{display:flex;gap:6px;overflow-x:auto;margin:4px 0 10px;border-bottom:1px solid var(--cx-line,#e5e7eb)}
+.bttabs button{flex:0 0 auto;border:0;background:none;padding:10px 12px;font-weight:600;color:var(--cx-mut,#6b7280);border-bottom:2px solid transparent;border-radius:0;min-height:44px}
+.bttabs button.on{color:var(--cx-ink,#111827);border-bottom-color:#c8102e}
+.btprog .st{display:flex;align-items:center;gap:10px;padding:6px 0;color:var(--cx-mut,#6b7280)}.btprog .st i{width:20px;height:20px;border-radius:50%;border:2px solid currentColor;flex:0 0 20px}
+.btprog .st.on{color:var(--cx-ink,#111827);font-weight:600}.btprog .st.on i{border-color:#c8102e;border-top-color:transparent;animation:btspin .8s linear infinite}
+.btprog .st.ok{color:#1f8a4c}.btprog .st.ok i{background:#1f8a4c;border-color:#1f8a4c}
+.btprog .bar{height:6px;border-radius:3px;background:var(--cx-line,#e5e7eb);overflow:hidden;margin-top:10px}.btprog .bar b{display:block;height:100%;background:#c8102e;width:0;transition:width .6s}
+@keyframes btspin{to{transform:rotate(360deg)}}
+.btgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.btgal button{padding:0;border:0;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--cx-soft,#eee)}.btgal img{width:100%;height:100%;object-fit:cover;display:block}
+.btview{position:fixed;inset:0;z-index:380;background:#000;display:flex;flex-direction:column}
+.btview .im{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory}.btview .im div{flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center}
+.btview img{max-width:100%;max-height:100%;object-fit:contain}
+.btview header,.btview footer{display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;color:#fff}
+.btview footer{padding:10px 12px calc(14px + env(safe-area-inset-bottom))}.btview header b{flex:1}.btview button{min-height:44px;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:10px;padding:0 14px}
+.bttk{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--cx-line,#eef0f2)}
+.bttk .m{flex:1}.bttk button{min-height:40px;min-width:92px;border-radius:8px;font-weight:700}
+.bttk button.s0{background:var(--cx-soft,#f3f4f6);color:var(--cx-mut,#6b7280);border:1px solid var(--cx-line,#e5e7eb)}
+.bttk button.s1{background:#fff7ed;color:#b45309;border:1px solid #fdba74}.bttk button.s2{background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd}.bttk button.s3{background:#ecfdf5;color:#1f8a4c;border:1px solid #86efac}
+body.stmode .tabs,body.stmode #side,body.stmode .side,body.stmode nav.tabs{display:none!important}
+.stv{position:fixed;inset:0;z-index:250;background:var(--cx-bg,#f4f5f7);overflow:auto;padding:calc(14px + env(safe-area-inset-top)) 12px 40px}
+.stv h1{font-size:20px;margin:4px 0 2px}.stv .job{background:var(--cx-card,#fff);border:1px solid var(--cx-line,#e5e7eb);border-radius:10px;margin-top:10px;overflow:hidden}
+.stv .job>b{display:block;padding:10px 12px 0;font-size:16px}.stv .job small{display:block;padding:0 12px 8px;color:var(--cx-mut,#6b7280)}
+.stv .job .it{padding:8px 12px;border-top:1px solid var(--cx-line,#eef0f2);display:flex;justify-content:space-between}
+.stv .bar{display:flex;gap:8px;align-items:center}.stv .bar b{flex:1}
+</style>
+<script id="v182js">
+/* ===== v18.2: UI pack — accent themes, live counters, contact cards, AI tabs + progress, packed ticks, print/CSV, shortcuts, staff view, photo gallery ===== */
+(function(){if(!window.BT)return;const{page,kpi,empty,bt,btSave,dl,R,N,Q,qName,bindRows,uid,today,qPaid}=BT;
+
+/* 1 Accent themes: swap the brand red across every stylesheet */
+const ACC={Red:'#c8102e',Navy:'#1f3a68',Green:'#1f7a4c',Gold:'#b8860b',Purple:'#6b2fa3',Teal:'#0f766e'};
+const BASE=[200,16,46];let curAcc='#c8102e';
+const hexRgb=h=>{h=h.replace('#','');return[0,2,4].map(i=>parseInt(h.substr(i,2),16))};
+function swapRules(rules,from,to){for(const r of rules){try{if(r.cssRules)swapRules(r.cssRules,from,to);if(r.style){for(let i=0;i<r.style.length;i++){const p=r.style[i],v=r.style.getPropertyValue(p);if(v&&v.includes(from))r.style.setProperty(p,v.split(from).join(to),r.style.getPropertyPriority(p))}}}catch(e){}}}
+function applyAcc(hex,anim){const to=hexRgb(hex),from=hexRgb(curAcc);if(hex.toLowerCase()===curAcc.toLowerCase())return;const fs=`rgb(${from.join(', ')})`,ts=`rgb(${to.join(', ')})`;const fa=`rgba(${from.join(', ')},`,ta=`rgba(${to.join(', ')},`;
+ if(anim){document.documentElement.classList.add('acc-anim');setTimeout(()=>document.documentElement.classList.remove('acc-anim'),500)}
+ for(const sh of document.styleSheets){try{swapRules(sh.cssRules,fs,ts);swapRules(sh.cssRules,fa,ta)}catch(e){}}
+ document.querySelectorAll('[style]').forEach(e=>{const s=e.getAttribute('style');if(s&&s.toLowerCase().includes(curAcc.toLowerCase()))e.setAttribute('style',s.split(curAcc).join(hex).split(curAcc.toUpperCase()).join(hex))});
+ document.documentElement.style.setProperty('--acc',hex);curAcc=hex;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=hex}
+window.btAccent=(name)=>{const h=ACC[name]||name;ls.set('lal_acc',h);applyAcc(h,true);try{haptic('select')}catch(e){}};
+const savedAcc=ls.get('lal_acc','');if(savedAcc&&savedAcc!=='#c8102e')setTimeout(()=>applyAcc(savedAcc,false),50);
+new MutationObserver(ms=>{if(curAcc==='#c8102e')return;for(const m of ms)for(const n of m.addedNodes){if(n.tagName==='STYLE'){const h=curAcc;curAcc='#c8102e';applyAcc(h,false);return}}}).observe(document.head,{childList:true});
+function accUI(){const look=document.querySelector('[data-sp="look"]');if(!look||document.getElementById('btaccs'))return;look.insertAdjacentHTML('afterbegin',`<div class="card" id="btaccs"><div class="ch"><h2>Brand colour</h2></div><p class="btnote">Changes the main colour across the whole app.</p><div class="btsw" style="gap:10px">${Object.entries(ACC).map(([n,h])=>`<button data-acc="${n}" aria-label="${n}" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;min-width:56px"><i style="width:40px;height:40px;border-radius:50%;background:${h};display:block;box-shadow:0 0 0 3px ${ls.get('lal_acc','#c8102e')===h?'var(--cx-ink,#111)':'transparent'}"></i><small>${n}</small></button>`).join('')}</div></div>`);look.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>{btAccent(b.dataset.acc);document.getElementById('btaccs').remove();accUI()})}
+setInterval(accUI,1500);
+
+/* 2 Live counters on Home */
+function cntHtml(){const td=today(),wk=new Date(Date.now()+7*864e5).toISOString().slice(0,10),qs=Q();
+ const enq=qs.filter(q=>/Enquiry|Draft/i.test(q.status||'')).length,conf=qs.filter(q=>q.status==='Confirmed'&&(q.edate||'')>=td).length,due=qs.filter(q=>q.status!=='Lost'&&/Confirmed|Completed|Done|Advance/i.test(q.status||'')).reduce((s,q)=>s+Math.max(0,N(q.total)-qPaid(q)),0),week=qs.filter(q=>q.status!=='Lost'&&q.edate>=td&&q.edate<=wk).length;
+ return`<div class="btcnt" id="btcnt"><button data-go="enq"><span>Enquiries</span><b>${enq}</b></button><button data-go="conf"><span>Confirmed</span><b>${conf}</b></button><button data-go="due"><span>Balance due</span><b>${R(due)}</b></button><button data-go="week"><span>This week</span><b>${week}</b></button></div>`}
+function cntMount(){const h=document.getElementById('t-home');if(!h)return;const old=document.getElementById('btcnt');const html=cntHtml();if(old){if(old.outerHTML!==html)old.outerHTML=html}else{const kids=[...h.children].filter(e=>e.offsetParent!==null);const g=kids.find(e=>/Good (morning|afternoon|evening)/.test(e.textContent)&&e.textContent.length<400);const first=g||kids[0];first?first.insertAdjacentHTML('afterend',html):h.insertAdjacentHTML('afterbegin',html)}
+ h.querySelectorAll('#btcnt [data-go]').forEach(b=>b.onclick=()=>{try{haptic('tap')}catch(e){}const g=b.dataset.go;if(g==='due')return btOpen('Payment reminders');try{tab('saved');setTimeout(()=>{const f={enq:'Enquiry',conf:'Confirmed',week:''}[g];const chip=[...document.querySelectorAll('#t-saved button')].find(x=>f&&x.textContent.trim().startsWith(f));if(chip)chip.click()},150)}catch(e){}})}
+cntMount();setInterval(()=>{if(!document.getElementById('t-home')||document.getElementById('t-home').hidden)return;cntMount()},2500);
+
+/* 3 Contact cards */
+window.btCard=(key,id,edit)=>{const r=(bt()[key]||[]).find(x=>x.id===id);if(!r)return edit();const nm=r.name||'Contact',ini=nm.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+ const rows=key==='fl'?[['Work',r.skill],['Area',r.city],['Rate',r.rate?R(r.rate)+' / day':''],['Rating',r.rating?'★'.repeat(N(r.rating))+'☆'.repeat(5-N(r.rating)):''],['Preferred',r.pref],['Notes',r.note]]:[['Supplies',r.cat],['Event',qName(r.q)],['Quality',r.qual?r.qual+' / 5':''],['On time',r.time?r.time+' / 5':''],['Price',r.price?r.price+' / 5':''],['Status',r.tier],['Notes',r.note]];
+ const ph=r.phone||((window.ls&&(ls.get('lal_vend',[])||[]).find?.(v=>(v.name||v.n)===nm))||{}).phone||'';
+ const d=document.createElement('div');d.className='btsheet';d.innerHTML=`<div><div class="grab"></div><div class="top"><div class="av">${esc(ini)}</div><div><h3>${esc(nm)}</h3><small class="mut">${esc(key==='fl'?(r.skill||'Freelancer'):(r.cat||'Vendor'))}</small></div></div><dl>${rows.filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join('')}</dl><div class="acts">${ph?`<a class="ghost" href="tel:${esc(ph)}">Call</a><button class="ghost" data-w>WhatsApp</button>`:'<span></span><span></span>'}<button data-e>Edit</button></div></div>`;
+ document.body.appendChild(d);try{haptic('tap')}catch(e){}const close=()=>d.remove();d.onclick=e=>{if(e.target===d)close()};
+ let y0=null;const sh=d.firstElementChild;sh.addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});sh.addEventListener('touchmove',e=>{if(y0==null)return;const dy=e.touches[0].clientY-y0;if(dy>0)sh.style.transform=`translateY(${dy}px)`},{passive:true});sh.addEventListener('touchend',e=>{const dy=(e.changedTouches[0].clientY-(y0||0));if(dy>90)close();else sh.style.transform='';y0=null});
+ const w=d.querySelector('[data-w]');if(w)w.onclick=()=>waGo(ph,'Namaste '+nm);d.querySelector('[data-e]').onclick=()=>{close();edit()}};
+
+/* 4 Tabs for AI results */
+window.btTabify=box=>{const kids=[...box.children];const img=kids.find(k=>k.tagName==='IMG');const act=kids.filter(k=>k.classList.contains('btact')||k.classList.contains('btnote'));
+ const groups=[['Plan',[]]];kids.forEach(k=>{if(k===img||act.includes(k))return;if(k.classList.contains('bth')){groups.push([k.textContent.replace('Suggested items','Items').replace('Zone by zone','Zones'),[]]);return}groups[groups.length-1][1].push(k)});
+ const pal=groups[0][1].find(x=>x.querySelector&&x.querySelector('.btsw'));if(pal){const sw=pal.querySelector('.btsw');const c=document.createElement('div');c.className='btai';c.appendChild(sw);groups.splice(1,0,['Colours',[c]])}
+ const T=document.createElement('div');T.className='bttabs';const P=document.createElement('div');groups.forEach(([n,els],i)=>{const b=document.createElement('button');b.textContent=n;b.className=i?'':'on';T.appendChild(b);const pn=document.createElement('div');pn.hidden=!!i;els.forEach(e=>pn.appendChild(e));P.appendChild(pn);b.onclick=()=>{[...T.children].forEach((x,j)=>x.classList.toggle('on',j===i));[...P.children].forEach((x,j)=>x.hidden=j!==i);try{haptic('select')}catch(e){}}});
+ box.querySelectorAll('.bth').forEach(h=>h.remove());const ref=act[0]||null;box.insertBefore(T,ref);box.insertBefore(P,ref)};
+
+/* 5 AI progress steps */
+window.btProg=(el,steps)=>{steps=steps||['Reading the photo','Measuring the space','Planning the decor','Matching your catalog and pricing'];el.classList.add('btprog');let i=0;
+ const draw=()=>{el.innerHTML=steps.map((s,j)=>`<div class="st ${j<i?'ok':j===i?'on':''}"><i></i>${esc(s)}${j===i?'…':''}</div>`).join('')+`<div class="bar"><b style="width:${Math.min(95,(i+0.5)/steps.length*100)}%"></b></div>`};draw();
+ const t=setInterval(()=>{if(!el.isConnected)return clearInterval(t);if(i<steps.length-1){i++;draw()}},6000)};
+
+/* 6 Packed / Loaded / Set up ticks */
+const TKS=['Not packed','Packed','Loaded','Set up'];
+function tkOpen(k){const b=bt();b.tk=b.tk||{};if(!k){const td=today();const qs=Q().filter(q=>q.status!=='Lost'&&(q.edate||'')>=new Date(Date.now()-3*864e5).toISOString().slice(0,10)).sort((a,c)=>(a.edate||'').localeCompare(c.edate||''));
+ const p=page('Packed / loaded',`<p class="btnote">Tick every quote item as it is packed, loaded and set up.</p>`+(qs.length?`<div class="btl">${qs.map(q=>{const it=(q.rows||[]).filter(r=>!r.sec&&r.name);const t=b.tk[q._k]||{};const done=it.filter((r,i)=>N(t[i])===3).length;return`<div class="r" data-id="${q._k}"><div class="m"><b>${esc(q.client||'')}</b><small>${esc(q.etype||'')} · ${dl(q.edate)}</small></div><div class="a">${done}/${it.length} set up</div></div>`}).join('')}</div>`:empty('No upcoming jobs.')));bindRows(p,x=>tkOpen(x));return}
+ const q=ls.get('lal_q',{})[k];if(!q)return tkOpen();const it=(q.rows||[]).filter(r=>!r.sec&&r.name);
+ const p=page('Ticks · '+(q.client||''),'<div id="bttk"></div>');const box=p.querySelector('#bttk');
+ const re=()=>{const t=(bt().tk||{})[k]||{};const cnt=[0,1,2,3].map(s=>it.filter((r,i)=>N(t[i])===s).length);box.innerHTML=kpi([['Packed',cnt[1]+cnt[2]+cnt[3]+' / '+it.length],['Loaded',cnt[2]+cnt[3]+' / '+it.length],['Set up',cnt[3]+' / '+it.length]])+`<div class="btl">${it.map((r,i)=>{const s=N(t[i]);return`<div class="bttk"><div class="m"><b>${esc(r.name)}</b><br><small class="mut">${N(r.qty)||1}${r.size?' · '+esc(r.size):''}</small></div><button class="s${s}" data-t="${i}">${TKS[s]}</button></div>`}).join('')}</div><p class="btnote">Tap a button to move it to the next step.</p>`;
+  box.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{const b=bt();b.tk=b.tk||{};const t=b.tk[k]=b.tk[k]||{};t[x.dataset.t]=(N(t[x.dataset.t])+1)%4;btSave(b);try{haptic(t[x.dataset.t]===3?'success':'tap')}catch(e){}re()})};re()}
+
+/* 7 A4 print + CSV */
+window.btPrint=(title,main)=>{const css=`@page{size:A4;margin:14mm}body{font:12px/1.45 Inter,Arial,sans-serif;color:#111}h1{font-size:18px;margin:0 0 2px}.sub{color:#666;margin-bottom:12px}button,input[type=checkbox],.btadd,.btact,.bttabs{display:none!important}input,select,textarea{border:0;font:inherit;background:none;padding:0}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left}th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#555;background:#f3f4f6}.n{text-align:right}.btk{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.btk div{border:1px solid #ddd;padding:6px 10px;min-width:110px}.btk span{display:block;font-size:9px;text-transform:uppercase;color:#666}.btl .r{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:6px 0}.bth{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#555;margin:12px 0 4px;border-top:2px solid #c8102e;padding-top:4px}.btpill{border:1px solid #999;padding:0 5px;border-radius:4px;font-size:10px}small{color:#666}`;
+ const c=main.cloneNode(true);c.querySelectorAll('input,select,textarea').forEach(i=>{const s=document.createElement('span');s.textContent=i.tagName==='SELECT'?(i.selectedOptions[0]||{}).text||'':i.type==='checkbox'?'':i.value;i.replaceWith(s)});c.querySelectorAll('[hidden]').forEach(e=>e.removeAttribute('hidden'));
+ const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style></head><body><h1>${esc(title)}</h1><div class="sub">${esc(typeof bizN==='function'?bizN():'')} · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>${c.innerHTML}</body></html>`;
+ if(typeof wsPrint==='function'){try{return wsPrint(html,title)}catch(e){}}const f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0';document.body.appendChild(f);f.contentDocument.write(html);f.contentDocument.close();setTimeout(()=>{f.contentWindow.print();setTimeout(()=>f.remove(),2000)},400)};
+window.btCSV=(title,main)=>{const cell=e=>{const i=e.querySelector('input,select');let v=i?(i.tagName==='SELECT'?(i.selectedOptions[0]||{}).text:i.value):e.innerText;v=String(v||'').replace(/\s+/g,' ').trim();return'"'+v.replace(/"/g,'""')+'"'};let rows=[];
+ main.querySelectorAll('table').forEach(t=>{t.querySelectorAll('tr').forEach(tr=>rows.push([...tr.children].map(cell).join(',')));rows.push('')});
+ if(!rows.length)main.querySelectorAll('.btl .r, .btk div, .bttk').forEach(r=>rows.push([...r.children].map(cell).join(',')));
+ if(!rows.length)return toast('Nothing to export here');const blob=new Blob(['﻿'+rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=title.replace(/[^\w]+/g,'_')+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('CSV downloaded')};
+
+/* 8 Shortcuts */
+const KB=[['B','Business tools'],['G','Photo gallery'],['T','Packed / loaded ticks'],['K','Item clashes'],['Esc','Close tool page']];
+addEventListener('keydown',e=>{const t=e.target;if(e.metaKey||e.ctrlKey||e.altKey||(t&&(/INPUT|TEXTAREA|SELECT/.test(t.tagName)||t.isContentEditable)))return;if(document.querySelector('.mdl,.btsheet,.btview,.stv,#lockv'))return;const k=e.key.toLowerCase();
+ if(k==='escape'&&document.querySelector('.btp')){btClose();return}
+ const go={b:()=>{btClose();tab('rep');setTimeout(()=>{const h=document.getElementById('bthub');h&&h.scrollIntoView({behavior:'smooth'})},100)},g:()=>galOpen(),t:()=>tkOpen(),k:()=>btOpen('Item clashes')}[k];if(go){e.preventDefault();go()}});
+window.btKeys=KB;
+const kbAdd=()=>{document.querySelectorAll('.mdl').forEach(m=>{const t=m.querySelector('.pkhd b');if(t&&/shortcut/i.test(t.textContent)&&!m.querySelector('#btkb')){const c=m.querySelector('.mdlc');c&&c.insertAdjacentHTML('beforeend',`<div id="btkb"><div class="bth">Business tools</div><div class="btl">${KB.map(([k,d])=>`<div class="r" style="cursor:default"><div class="m">${d}</div><div class="a"><kbd style="border:1px solid var(--cx-line,#ccc);border-radius:5px;padding:1px 7px;font:600 12px monospace">${k}</kbd></div></div>`).join('')}</div></div>`)}})};
+new MutationObserver(kbAdd).observe(document.body,{childList:true});
+
+/* 9 Staff read-only view */
+async function stEnter(){if(!ls.get('lal_pin','')){return mdl('Staff view',`<p>Set an app lock PIN first (Settings → App & backup → App lock). The PIN is needed to leave staff view.</p>`)}ls.set('lal_staffv',1);stShow()}
+function stShow(){if(!ls.get('lal_staffv',0)||document.querySelector('.stv'))return;document.body.classList.add('stmode');const td=new Date(Date.now()-864e5).toISOString().slice(0,10);const qs=Q().filter(q=>q.status==='Confirmed'&&(q.edate||'')>=td).sort((a,c)=>(a.edate||'').localeCompare(c.edate||''));const b=bt();
+ const v=document.createElement('div');v.className='stv';v.innerHTML=`<div class="bar"><b><h1>Staff view</h1><small class="mut">${esc(typeof bizN==='function'?bizN():'')} · upcoming jobs</small></b><button class="ghost sm" data-x>Exit</button></div>${qs.length?qs.map(q=>{const it=(q.rows||[]).filter(r=>!r.sec&&r.name);const t=(b.tk||{})[q._k]||{};return`<div class="job"><b>${esc(q.client||'')} · ${esc(q.etype||'')}</b><small>${dl(q.edate)}${q.etime?' · '+esc(q.etime):''}${q.venue?' · '+esc(q.venue):''}</small>${q.vmap&&/^https?:/i.test(q.vmap)?`<div class="it"><a href="${esc(q.vmap)}" target="_blank" rel="noopener">Open venue location</a></div>`:''}${it.map((r,i)=>`<div class="it"><span>${esc(r.name)}${r.size?' · '+esc(r.size):''}</span><span>${N(r.qty)||1} · ${TKS[N(t[i])]}</span></div>`).join('')}<div class="it"><button class="ghost sm" data-tk="${q._k}">Packed / loaded ticks</button><button class="ghost sm" data-ck="${q._k}">Checklist</button></div></div>`}).join(''):'<p class="btnote">No upcoming confirmed jobs.</p>'}`;
+ document.body.appendChild(v);v.querySelectorAll('[data-tk]').forEach(x=>x.onclick=()=>{tkOpen(x.dataset.tk)});v.querySelectorAll('[data-ck]').forEach(x=>x.onclick=()=>{btOpen('Setup');setTimeout(()=>{const r=document.querySelector(`.btp [data-id="${x.dataset.ck}"]`);r&&r.click()},50)});
+ v.querySelector('[data-x]').onclick=()=>{let s='';const d=mdl('Enter PIN to exit',`<input id="btstp" type="password" inputmode="numeric" maxlength="4" style="font-size:22px;letter-spacing:.4em;text-align:center;width:100%;min-height:52px"><div class="btact"><button data-ok>Exit staff view</button></div>`);d.style.zIndex=400;const i=d.querySelector('#btstp');setTimeout(()=>i.focus(),50);d.querySelector('[data-ok]').onclick=async()=>{if(await pinHash(i.value)===ls.get('lal_pin','')){d.remove();ls.set('lal_staffv',0);v.remove();document.body.classList.remove('stmode');btClose();toast('Owner view')}else{try{haptic('error')}catch(e){}i.value='';toast('Wrong PIN')}}}}
+window.btStaff=stEnter;setTimeout(stShow,800);
+
+/* 10 Photo gallery (stored on this phone) */
+const GDB={db:null,open(){return this.db?Promise.resolve(this.db):new Promise((ok,no)=>{const r=indexedDB.open('lal_gallery',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>{this.db=r.result;ok(this.db)};r.onerror=()=>no(r.error)})},async all(){const d=await this.open();return new Promise(ok=>{const r=d.transaction('p').objectStore('p').getAll();r.onsuccess=()=>ok(r.result||[]);r.onerror=()=>ok([])})},async put(o){const d=await this.open();return new Promise(ok=>{const t=d.transaction('p','readwrite');t.objectStore('p').put(o);t.oncomplete=ok})},async del(id){const d=await this.open();return new Promise(ok=>{const t=d.transaction('p','readwrite');t.objectStore('p').delete(id);t.oncomplete=ok})}};
+const GT=['All','Wedding','Engagement','Haldi','Mehendi','Birthday','Half saree','Naming','House warming','Corporate','Other'];
+let gTag='All';
+async function galOpen(){const all=(await GDB.all()).sort((a,c)=>c.at-a.at);const L=gTag==='All'?all:all.filter(x=>x.tag===gTag);
+ const p=page('Photo gallery',`<div class="bttabs">${GT.map(t=>`<button class="${t===gTag?'on':''}" data-g="${esc(t)}">${esc(t)}${t==='All'?' ('+all.length+')':''}</button>`).join('')}</div>`+(L.length?`<div class="btgal">${L.map((x,i)=>`<button data-v="${i}" aria-label="Open photo"><img src="${x.src}" alt="${esc(x.tag)}" loading="lazy"></button>`).join('')}</div>`:empty('No photos here yet. Add your best decor photos to show customers.'))+`<p class="btnote">Photos stay on this phone and are not added to your Google Sheet.</p>`,()=>galAdd(),'Add photos');
+ p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{gTag=b.dataset.g;galOpen()});p.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>galView(L,+b.dataset.v))}
+function galAdd(){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.onchange=async()=>{const fs=[...inp.files];if(!fs.length)return;const d=mdl('Add '+fs.length+' photo'+(fs.length>1?'s':''),`<div class="btf"><label class="w">Event type<select id="btgt">${GT.slice(1).map(t=>`<option${t===gTag?' selected':''}>${t}</option>`).join('')}</select></label><label class="w">Caption (optional)<input id="btgc" placeholder="e.g. Red & gold stage, Green City hall"></label></div><div class="btact"><button data-x class="ghost">Cancel</button><button data-sv>Save photos</button></div>`);
+ d.querySelector('[data-sv]').onclick=async()=>{const tag=d.querySelector('#btgt').value,cap=d.querySelector('#btgc').value;d.remove();toast('Saving photos…');for(const f of fs){const url=await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(f)});const src=typeof shrink==='function'?await shrink(url,1400,.82):url;await GDB.put({id:uid(),src,tag,cap,at:Date.now()})}gTag=tag;try{haptic('success')}catch(e){}galOpen()}};inp.click()}
+function galView(L,i){const v=document.createElement('div');v.className='btview';v.innerHTML=`<header><button data-c>Close</button><b></b></header><div class="im">${L.map(x=>`<div><img src="${x.src}" alt=""></div>`).join('')}</div><footer><button data-sh>Send to customer</button><span style="flex:1"></span><button data-dl>Delete</button></footer>`;document.body.appendChild(v);const im=v.querySelector('.im');const cap=()=>{const j=Math.round(im.scrollLeft/im.clientWidth);v.querySelector('header b').textContent=`${j+1} / ${L.length} · ${L[j].tag}${L[j].cap?' · '+L[j].cap:''}`;return j};
+ requestAnimationFrame(()=>{im.scrollLeft=i*im.clientWidth;cap()});im.addEventListener('scroll',()=>cap(),{passive:true});v.querySelector('[data-c]').onclick=()=>v.remove();
+ v.querySelector('[data-sh]').onclick=async()=>{const x=L[cap()];try{const bl=await (await fetch(x.src)).blob();const f=new File([bl],'decor.jpg',{type:bl.type||'image/jpeg'});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],text:(x.cap||x.tag)+' – '+(typeof bizN==='function'?bizN():'')});else{const a=document.createElement('a');a.href=x.src;a.download='decor.jpg';a.click()}}catch(e){}};
+ v.querySelector('[data-dl]').onclick=()=>{const x=L[cap()];askDel('Delete this photo?','The photo will be removed from this phone.',async()=>{await GDB.del(x.id);v.remove();galOpen();toast('Photo deleted')})}}
+
+/* add to hub */
+const G3=['Event day & extras',[['Packed / loaded','Tick items on event day',()=>tkOpen()],['Photo gallery','Your decor portfolio',galOpen],['Staff view','Read-only for staff phones',stEnter]]];
+if(!btTools.some(g=>g[0]===G3[0]))btTools.splice(1,0,G3);btHub();
 })();
 </script>
 
